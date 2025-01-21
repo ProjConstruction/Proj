@@ -1,12 +1,14 @@
-import Mathlib.Algebra.PresentedMonoid.Basic
+import Mathlib.Algebra.Group.Subgroup.Lattice
+import Mathlib.Algebra.Group.Subgroup.Ker
+import Mathlib.GroupTheory.Congruence.Basic
 import Mathlib.Tactic.Group
 import Mathlib.Tactic.ApplyFun
 
 universe u v
 
-variable (M : Type u) [CommMonoid M]
-
 namespace GRConstruction
+
+variable (M : Type u) [CommMonoid M]
 
 @[to_additive AddGRConstruction.rel]
 def rel : (M × M) → (M × M) → Prop
@@ -37,7 +39,7 @@ lemma rel_trans : ∀ {x y z : M × M}, rel M x y → rel M y z → rel M x z :=
     simp only [mul_comm a, ← mul_assoc, mul_comm b]
     simp [mul_assoc, mul_comm a b]⟩
 
-@[to_additive AddGRConstruction.addCon]
+@[to_additive (attr := simps) AddGRConstruction.addCon]
 def con : Con (M × M) where
   r := rel M
   mul' := by
@@ -63,16 +65,23 @@ def con : Con (M × M) where
     symm := rel_symm M
     trans := rel_trans M }
 
+@[to_additive AddGRConstruction.con_def]
+lemma con_def (x y : M × M) : con M x y = ∃ z, x.1 * y.2 * z = y.1 * x.2 * z := rfl
+
 end GRConstruction
 
 @[to_additive AddGR]
-abbrev GR : Type u := Con.Quotient (GRConstruction.con M)
+abbrev GR (M : Type*) [CommMonoid M] := (GRConstruction.con M).Quotient
 
 scoped [GR] postfix:max "ᵍʳ" => GR
 
 scoped [GR] postfix:max "ᵃᵍʳ" => AddGR
 
 namespace GR
+
+section monoid
+
+variable (M : Type u) [CommMonoid M]
 
 @[to_additive]
 def emb : M →* Mᵍʳ where
@@ -82,6 +91,11 @@ def emb : M →* Mᵍʳ where
     simp only [Con.coe_mk']
     change Con.mk' _ _ = Con.mk' _ _
     simp only [Con.coe_mk', Prod.mk_mul_mk, mul_one]
+
+@[to_additive]
+lemma emb_injective [IsCancelMul M] : Function.Injective (emb M) := by
+  intro x y h
+  simpa [emb, GRConstruction.con_def] using h
 
 variable {M}
 
@@ -154,6 +168,10 @@ lemma lift_comp_emb {G : Type v} [Group G] (f : M →* G) : (lift f).comp (emb M
   simp [lift, emb]
 
 @[to_additive (attr := simp)]
+lemma lift_emb_apply {G : Type v} [Group G] (f : M →* G) (x) : (lift f) (emb M x) = f x := by
+  simp [lift, emb]
+
+@[to_additive (attr := simp)]
 lemma lift_uniq {G : Type v} [Group G] (f : M →* G) (f' : Mᵍʳ →* G) (h : f'.comp (emb M) = f) :
     f' = lift f := by
   ext x
@@ -163,5 +181,53 @@ lemma lift_uniq {G : Type v} [Group G] (f : M →* G) (f' : Mᵍʳ →* G) (h : 
   simp only [emb, MonoidHom.coe_comp, MonoidHom.coe_mk, OneHom.coe_mk, Function.comp_apply] at eq
   rw [show ((a, b) : M × M) = (a, 1) * (1, b) by simp, Con.coe_mul, map_mul, eq,
     show (↑((1, b) : M × M) : Mᵍʳ) = ↑(((b, 1) : M × M) : Mᵍʳ)⁻¹ by simp, map_inv, eq]
+
+@[to_additive (attr := simp)]
+lemma lift_apply_coe {G : Type v} [Group G] (f : M →* G) (a b : M) :
+    lift f (↑(a, b)) = f a * (f b)⁻¹ := rfl
+
+
+end monoid
+
+section subgroup
+
+variable {M : Type u} [CommGroup M] (N : Submonoid M)
+
+instance : IsCancelMul N where
+  mul_left_cancel := by aesop
+  mul_right_cancel := by aesop
+
+@[simps! apply]
+noncomputable def equivAsSubgroup : Nᵍʳ ≃* Subgroup.closure (N : Set M) :=
+  MulEquiv.ofBijective (lift (Submonoid.inclusion Subgroup.subset_closure)) <| by
+    constructor
+    · rw [← MonoidHom.ker_eq_bot_iff, eq_bot_iff]
+      intro x h
+      obtain ⟨⟨⟨a, ha⟩, ⟨b, hb⟩⟩, rfl⟩ := Con.mk'_surjective x
+      simp only [lift_comp_emb, Con.coe_mk', MonoidHom.mem_ker, lift_apply_coe, Subtype.ext_iff,
+        Subgroup.coe_mul, InvMemClass.coe_inv, OneMemClass.coe_one] at h
+      change a * b⁻¹ = 1 at h
+      rw [mul_inv_eq_one] at h
+      subst h
+      simp only [Con.coe_mk', coe_same, Subgroup.mem_bot]
+    · rintro ⟨x, hx⟩
+      apply Subgroup.closure_induction (p := _) (x := x) (hx := hx)
+      · intro x hx
+        refine ⟨emb _ ⟨x, hx⟩, ?_⟩
+        simp only [lift_comp_emb, lift_emb_apply]
+        rfl
+      · use 1
+        simp only [lift_comp_emb, map_one]
+        rfl
+      · rintro x y hx hy ⟨a, ha⟩ ⟨b, hb⟩
+        refine ⟨a * b, ?_⟩
+        rw [map_mul, ha, hb]
+        rfl
+      · rintro x hx ⟨a, ha⟩
+        refine ⟨a⁻¹, ?_⟩
+        simp only [lift_comp_emb, map_inv, ha]
+        rfl
+
+end subgroup
 
 end GR
