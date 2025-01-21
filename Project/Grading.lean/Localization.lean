@@ -1,6 +1,8 @@
 import Mathlib.RingTheory.GradedAlgebra.Basic
 import Mathlib.RingTheory.Localization.Basic
 
+open DirectSum
+
 variable {ι A σ : Type*}
 variable [AddCommGroup ι] [CommRing A] [SetLike σ A]  (𝒜 : ι → σ)
 
@@ -197,13 +199,8 @@ namespace LocalizationGrading
 
 lemma one_mem : 1 ∈ S.LocalizationGrading 0 := ⟨AddCon.mk' _ 1, Localization.mk_one⟩
 
-end LocalizationGrading
 
-end HomogeneousSubmonoid
-
-variable [AddSubgroupClass σ A] [DecidableEq ι] [GradedRing 𝒜]
-
-instance (S : HomogeneousSubmonoid 𝒜) : SetLike.GradedMonoid S.LocalizationGrading where
+instance : SetLike.GradedMonoid S.LocalizationGrading where
   one_mem := HomogeneousSubmonoid.LocalizationGrading.one_mem ..
   mul_mem := by
     rintro i j _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
@@ -224,13 +221,141 @@ instance (S : HomogeneousSubmonoid 𝒜) : SetLike.GradedMonoid S.LocalizationGr
     simp only [AddCon.coe_mk', HomogeneousSubmonoid.PreLocalizationGrading.emb_apply, AddCon.liftOn_coe,
       HomogeneousSubmonoid.PreLocalizationGrading.val_apply]
 
-instance (S : HomogeneousSubmonoid 𝒜) : DirectSum.Decomposition S.LocalizationGrading where
-  decompose' := sorry
-  left_inv := sorry
-  right_inv := sorry
+noncomputable def decomposition :
+    Localization S.toSubmonoid →+* ⨁ i : ι, S.LocalizationGrading i :=
+  IsLocalization.lift (M := S.toSubmonoid) (S := Localization S.toSubmonoid)
+    (g := (DirectSum.toSemiring (fun i ↦
+      (DirectSum.of (fun i ↦ S.LocalizationGrading i) i :
+        S.LocalizationGrading i →+ ⨁ i, S.LocalizationGrading i).comp
+      (⟨⟨fun x ↦ ⟨Localization.mk x.1 1,
+        ⟨AddCon.mk' _ ⟨x.1, 1, i, 0, x.2, SetLike.GradedOne.one_mem, by simp⟩, rfl⟩⟩,
+        by simp only [ZeroMemClass.coe_zero, AddSubgroup.mk_eq_zero]; exact Localization.mk_zero 1⟩,
+        by
+          intro x y
+          ext
+          simp only [AddMemClass.coe_add, AddSubgroup.coe_add]
+          exact (Localization.add_mk_self x.1 1 y.1).symm⟩ : (𝒜 i) →+ (S.LocalizationGrading i)))
+            (by
+              simp only [AddMonoidHom.coe_comp, AddMonoidHom.coe_mk, ZeroHom.coe_mk,
+                Function.comp_apply, SetLike.coe_gOne, Localization.mk_one]
+              rfl)
+            (by
+              intro i j x y
+              simp only [AddMonoidHom.coe_comp, AddMonoidHom.coe_mk, ZeroHom.coe_mk,
+                Function.comp_apply, SetLike.coe_gMul]
+              rw [DirectSum.of_mul_of]
+              congr 1
+              ext
+              simp [Localization.mk_mul])).comp (DirectSum.decomposeRingEquiv 𝒜).toRingHom)
+  (by
+    rintro ⟨x, hx⟩
+    obtain ⟨i, hi⟩ := S.homogeneous hx
+    lift x to 𝒜 i using hi
+    simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+      toSemiring_apply]
+    rw [show decomposeRingEquiv 𝒜 x = of (fun i ↦ 𝒜 i) i x from decompose_coe 𝒜 _]
+    simp only [toAddMonoid_of, AddMonoidHom.coe_comp, AddMonoidHom.coe_mk, ZeroHom.coe_mk,
+      Function.comp_apply]
+    rw [isUnit_iff_exists_inv]
+    use of (fun i ↦ S.LocalizationGrading i) (-i) ⟨Localization.mk 1 ⟨x, hx⟩, ⟨AddCon.mk' _
+      ⟨1, ⟨x, hx⟩, 0, i, SetLike.GradedOne.one_mem, x.2, by simp⟩, by simp⟩⟩
+    simp only [of_mul_of, one_def]
+    change of (fun i ↦ S.LocalizationGrading i) (i + (-i)) ⟨_, _⟩ = _
+    simp only [Localization.mk_mul, mul_one, one_mul]
+    simp_rw [Localization.mk_self (S := S.toSubmonoid) (a := ⟨x, hx⟩)]
+    have (j : ι) (h : j = 0) :
+        of (fun i ↦ S.LocalizationGrading i) j
+          (⟨1, h ▸ one_mem S⟩ : S.LocalizationGrading j) =
+        of (fun i ↦ S.LocalizationGrading i) 0 1 := by
+      subst h; rfl
 
-instance (S : HomogeneousSubmonoid 𝒜) : GradedRing S.LocalizationGrading where
+    exact this (i + (-i)) (by simp))
 
-namespace LocalizationGrading
+lemma decomposition_homogeneous_mk
+    {i j : ι} (a : A) (ha : a ∈ 𝒜 i) (b : S.toSubmonoid) (hb : b.1 ∈ 𝒜 j) :
+    decomposition S (Localization.mk a b) =
+    of _ (i - j) ⟨Localization.mk a b, ⟨AddCon.mk' _ ⟨a, b, i, j, ha, hb, rfl⟩, rfl⟩⟩ := by
+  simp_rw [decomposition, Localization.mk_eq_mk', IsLocalization.lift_mk'_spec]
+  simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+    toSemiring_apply]
+  lift a to 𝒜 i
+  · exact ha
+  rcases b with ⟨b, hb'⟩
+  lift b to 𝒜 j
+  · exact hb
+  erw [decompose_coe, toAddMonoid_of, decompose_coe, toAddMonoid_of]
+  simp only [AddMonoidHom.coe_comp, AddMonoidHom.coe_mk, ZeroHom.coe_mk, Function.comp_apply,
+    of_mul_of]
+  simp_rw [← Localization.mk_eq_mk']
+  change _ = of (fun i ↦ S.LocalizationGrading i) _ ⟨_, _⟩
+  simp only [Localization.mk_mul, one_mul,
+    show Localization.mk (b.1 * a.1) (⟨b, hb'⟩ : S.toSubmonoid) = Localization.mk a.1 1 by
+    simp [Localization.mk_eq_mk_iff, Localization.r_iff_exists]]
+
+  have (k : ι) (h : i = k) (x : Localization S.toSubmonoid) (hx : x ∈ S.LocalizationGrading i):
+        of (fun i ↦ S.LocalizationGrading i) k
+          (⟨x, h.symm ▸ hx⟩ : S.LocalizationGrading k) =
+        of (fun i ↦ S.LocalizationGrading i) i ⟨x, hx⟩ := by
+      subst h; rfl
+  exact this (j + (i - j)) (by simp) (Localization.mk a 1) _ |>.symm
+
+noncomputable instance : DirectSum.Decomposition S.LocalizationGrading where
+  decompose' := LocalizationGrading.decomposition S
+  left_inv x := by
+    induction x using Localization.induction_on with | H x =>
+    rcases x with ⟨a, ⟨b, hb⟩⟩
+    simp only
+    induction a using DirectSum.Decomposition.inductionOn 𝒜 with
+    | h_zero =>
+      rw [Localization.mk_zero, map_zero, map_zero]
+    | @h_homogeneous i x =>
+      obtain ⟨j, hj⟩ := S.homogeneous hb
+      rw [decomposition_homogeneous_mk S x.1 x.2 ⟨b, hb⟩ hj]
+      simp only [coeAddMonoidHom_of]
+    | h_add a a' h h' =>
+      convert congr($h + $h') using 1
+      · rw [← map_add, ← map_add, Localization.add_mk_self]
+      · rw [Localization.add_mk_self]
+  right_inv x := by
+    induction x using DirectSum.induction_on with
+    | H_zero => simp
+    | H_basic i x =>
+      simp only [coeAddMonoidHom_of]
+      obtain ⟨y, hy⟩ := x.2
+      have hy' : x = ⟨_, ⟨y, rfl⟩⟩ := by ext; exact hy.symm
+      rw [← hy, hy']
+      clear hy hy' x
+      obtain ⟨⟨a, ⟨b, hb⟩, m, n, hm, hn, H⟩, rfl⟩ := AddCon.mk'_surjective y
+      conv_lhs => simp only [decomposition, Localization.mk_eq_mk', RingEquiv.toRingHom_eq_coe,
+        AddCon.coe_mk', PreLocalizationGrading.emb_apply, AddCon.liftOn_coe,
+        PreLocalizationGrading.val_apply]
+      erw [IsLocalization.lift_mk'_spec]
+      simp only [RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply, toSemiring_apply,
+        AddCon.coe_mk', PreLocalizationGrading.emb_apply, AddCon.liftOn_coe,
+        PreLocalizationGrading.val_apply]
+      lift a to 𝒜 m
+      · exact hm
+      lift b to 𝒜 n
+      · exact hn
+      erw [decompose_coe, decompose_coe]
+      simp only [← Localization.mk_eq_mk', toAddMonoid_of, AddMonoidHom.coe_comp,
+        AddMonoidHom.coe_mk, ZeroHom.coe_mk, Function.comp_apply, of_mul_of]
+      change _ = of (fun i ↦ S.LocalizationGrading i) (n + i)
+        ⟨Localization.mk _ _ * Localization.mk _ _, _⟩
+      simp only [Localization.mk_mul, one_mul,
+        show Localization.mk (b.1 * a.1) (⟨b, hb⟩ : S.toSubmonoid) = Localization.mk a.1 1 by
+        simp [Localization.mk_eq_mk_iff, Localization.r_iff_exists]]
+      have (k : ι) (h : m = k) (x : Localization S.toSubmonoid) (hx : x ∈ S.LocalizationGrading m):
+          of (fun i ↦ S.LocalizationGrading i) k
+            (⟨x, h.symm ▸ hx⟩ : S.LocalizationGrading k) =
+          of (fun i ↦ S.LocalizationGrading i) m ⟨x, hx⟩ := by
+        subst h; rfl
+      exact this (n + i) (by rw [← H]; abel) (Localization.mk a 1) _ |>.symm
+    | H_plus x y hx hy =>
+      simp only [map_add, hx, hy]
+
+noncomputable instance : GradedRing S.LocalizationGrading where
 
 end LocalizationGrading
+
+end HomogeneousSubmonoid
