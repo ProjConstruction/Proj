@@ -189,6 +189,11 @@ instance (i : ι) : AddCommGroup (addCon S i).Quotient where
 def emb (i : ι) : (addCon S i).Quotient →+ Localization S.toSubmonoid :=
   AddCon.lift _ (val ..) le_rfl
 
+-- sanity check
+example {i : ι} (x y : S.PreLocalizationGrading i) :
+    addCon S i x y ↔ Localization.mk x.num x.den = Localization.mk y.num y.den := by
+  simp [addCon]
+
 end PreLocalizationGrading
 
 variable [AddSubgroupClass σ A] [DecidableEq ι] [GradedRing 𝒜]
@@ -198,7 +203,6 @@ def LocalizationGrading (i : ι) : AddSubgroup (Localization S.toSubmonoid) := (
 namespace LocalizationGrading
 
 lemma one_mem : 1 ∈ S.LocalizationGrading 0 := ⟨AddCon.mk' _ 1, Localization.mk_one⟩
-
 
 instance : SetLike.GradedMonoid S.LocalizationGrading where
   one_mem := HomogeneousSubmonoid.LocalizationGrading.one_mem ..
