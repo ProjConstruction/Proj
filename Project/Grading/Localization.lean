@@ -1,13 +1,11 @@
-import Mathlib.RingTheory.GradedAlgebra.Basic
 import Mathlib.RingTheory.Localization.Basic
+
+import Project.Grading.HomogeneousSubmonoid
 
 open DirectSum
 
 variable {ι A σ : Type*}
 variable [AddCommGroup ι] [CommRing A] [SetLike σ A]  (𝒜 : ι → σ)
-
-structure HomogeneousSubmonoid extends Submonoid A where
-  homogeneous : ∀ {x}, x ∈ toSubmonoid → SetLike.Homogeneous 𝒜 x
 
 namespace HomogeneousSubmonoid
 

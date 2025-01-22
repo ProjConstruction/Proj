@@ -197,7 +197,7 @@ instance : IsCancelMul N where
   mul_left_cancel := by aesop
   mul_right_cancel := by aesop
 
-@[simps! apply]
+@[to_additive (attr := simps! apply)]
 noncomputable def equivAsSubgroup : Nᵍʳ ≃* Subgroup.closure (N : Set M) :=
   MulEquiv.ofBijective (lift (Submonoid.inclusion Subgroup.subset_closure)) <| by
     constructor
