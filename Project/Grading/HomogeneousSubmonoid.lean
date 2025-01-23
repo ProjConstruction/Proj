@@ -98,26 +98,76 @@ noncomputable def convMonDeg : Submodule ℝ≥0 (ℝ ⊗[ℤ] ι) := LinearMap.
 noncomputable def convMonDeg' : Submodule ℝ≥0 (ℝ ⊗[ℤ] ι) :=
   Submodule.span ℝ≥0 {x | ∃ (a : ℝ≥0) (i : ι) (_ : i ∈ S.deg) , x = a.1 ⊗ₜ i }
 
-scoped notation:max ι"["S"⟩≥0" => convMonDeg (ι := ι) S
+scoped notation:max ι"["S"⟩ℝ≥0" => convMonDeg (ι := ι) S
 
-example [Nontrivial A] (x) :
-    x ∈ convMonDeg' S ↔
-    ∃ (a b : ℝ≥0) (i j : ι) (hi : i ∈ S.deg) (hj : j ∈ S.deg), x = a.1 ⊗ₜ i + b.1 ⊗ₜ j := by
-  constructor
-  · intro hx
-    induction hx using Submodule.span_induction with
-    | mem x hx =>
-      rcases hx with ⟨a, i, hi, rfl⟩
-      exact ⟨a, 0, i, 0, hi, S.zero_mem_deg, by simp⟩
+lemma mem_convMonDeg [Nontrivial A] (x) :
+    x ∈ ι[S⟩ℝ≥0 ↔
+    ∃ (s : ι →₀ ℝ≥0), (∀ i ∈ s.support, i ∈ S.deg) ∧ x = ∑ i ∈ s.support, (s i).1 ⊗ₜ i := by
+    -- ∃ (a b : ℝ≥0) (i j : ι) (hi : i ∈ S.deg) (hj : j ∈ S.deg), x = a.1 ⊗ₜ i + b.1 ⊗ₜ j := by
+  classical
+  fconstructor
+  · rintro ⟨x, rfl⟩
+    induction x using TensorProduct.induction_on with
     | zero =>
-      refine ⟨0, 0, 0, 0, S.zero_mem_deg, S.zero_mem_deg, by simp⟩
-    | add x y hx hy ihx ihy =>
-      obtain ⟨a₁, a₂, i₁, i₂, hi₁, hi₂, eq⟩ := ihx
-      obtain ⟨b₁, b₂, j₁, j₂, hj₁, hj₂, eq'⟩ := ihy
-      rw [eq, eq']
-      sorry
-    | smul x hx => sorry
-  · sorry
+      refine ⟨0, ?_, by simp⟩
+      intro i hi
+      simp only [Finsupp.support_zero, Finset.not_mem_empty] at hi
+    | tmul a i =>
+      rcases i with ⟨i, hi⟩
+      induction hi using AddSubmonoid.closure_induction with
+      | mem i hi =>
+        refine ⟨Finsupp.single i a, ?_, ?_⟩
+        · intro i hi
+          simp only [Finsupp.mem_support_iff, Finsupp.single_apply, ne_eq, ite_eq_right_iff,
+            Classical.not_imp] at hi
+          rwa [← hi.1]
+        simp only [convMonDegEmbedding_apply_tmul, NNReal.val_eq_coe]
+        rw [eq_comm, Finset.sum_eq_single i]
+        · simp
+        · intro j hj H
+          simp [Finsupp.single_eq_of_ne H.symm]
+        aesop
+      | one => exact ⟨0, by aesop, by simp⟩
+      | mul i j _ _ ih ih' =>
+        obtain ⟨s, hs, eq⟩ := ih
+        obtain ⟨t, ht, eq'⟩ := ih'
+        simp only [convMonDegEmbedding_apply_tmul, NNReal.val_eq_coe, ne_eq, tmul_add] at eq eq' ⊢
+        simp_rw [eq, eq']
+        refine ⟨s + t, ?_, ?_⟩
+        · intro j hj
+          have := Finsupp.support_add hj
+          simp only [Finset.mem_union, Finsupp.mem_support_iff, ne_eq] at this hs ht
+          tauto
+        simp only [Finsupp.coe_add, Pi.add_apply, NNReal.coe_add, add_tmul, Finset.sum_add_distrib]
+        nth_rewrite 1 [show (s + t).support = s.support ∪ ((s + t).support \ s.support) by
+          ext; aesop]
+        nth_rewrite 2 [show (s + t).support = t.support ∪ ((s + t).support \ t.support) by
+          ext; aesop]
+        rw [Finset.sum_union_eq_left, Finset.sum_union_eq_left]
+        · aesop
+        · aesop
+    | add x y ihx ihy =>
+      obtain ⟨s, hs, eq⟩ := ihx
+      obtain ⟨t, ht, eq'⟩ := ihy
+      simp only [NNReal.val_eq_coe, Finsupp.mem_support_iff, ne_eq, map_add] at eq eq' ⊢
+      simp_rw [eq, eq']
+      refine ⟨s + t, ⟨?_, ?_⟩⟩
+      · intro j hj
+        simp only [Finsupp.mem_support_iff, ne_eq, Finsupp.coe_add, Pi.add_apply,
+          AddLeftCancelMonoid.add_eq_zero, not_and] at hs ht hj
+        tauto
+      simp only [Finsupp.coe_add, Pi.add_apply, NNReal.coe_add, add_tmul, Finset.sum_add_distrib]
+      nth_rewrite 1 [show (s + t).support = s.support ∪ ((s + t).support \ s.support) by
+        ext; aesop]
+      nth_rewrite 2 [show (s + t).support = t.support ∪ ((s + t).support \ t.support) by
+        ext; aesop]
+      rw [Finset.sum_union_eq_left, Finset.sum_union_eq_left]
+      · aesop
+      · aesop
+
+  · rintro ⟨a, ha, hi, rfl⟩
+    refine Submodule.sum_mem _ fun i hi => ?_
+    exact ⟨a i ⊗ₜ[ℕ] ⟨i, AddSubmonoid.subset_closure (ha i hi)⟩, rfl⟩
 
 def isRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), n • i ∈ ι[S.bar]
 
