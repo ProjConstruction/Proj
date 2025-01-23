@@ -100,6 +100,7 @@ noncomputable def convMonDeg' : Submodule ℝ≥0 (ℝ ⊗[ℤ] ι) :=
 
 scoped notation:max ι"["S"⟩ℝ≥0" => convMonDeg (ι := ι) S
 
+omit [AddSubgroupClass σ A] [GradedRing 𝒜] in
 lemma mem_convMonDeg [Nontrivial A] (x) :
     x ∈ ι[S⟩ℝ≥0 ↔
     ∃ (s : ι →₀ ℝ≥0), (∀ i ∈ s.support, i ∈ S.deg) ∧ x = ∑ i ∈ s.support, (s i).1 ⊗ₜ i := by
