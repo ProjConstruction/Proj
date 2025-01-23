@@ -40,19 +40,19 @@ def deg : Set ι := {i | ∃ x ∈ S.toSubmonoid, x ≠ 0 ∧ x ∈ 𝒜 i}
 omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
 lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S.toSubmonoid, x ≠ 0 ∧ x ∈ 𝒜 i := Iff.rfl
 
-def genDeg [AddCommGroup ι] : AddSubmonoid ι := AddSubmonoid.closure S.deg
+def monDeg [AddCommGroup ι] : AddSubmonoid ι := AddSubmonoid.closure S.deg
 
-scoped notation:max ι"["S"⟩" => genDeg (ι := ι) S
+scoped notation:max ι"["S"⟩" => monDeg (ι := ι) S
 
-def genDegAGR [AddCommGroup ι] : AddSubgroup ι := AddSubgroup.closure ι[ S ⟩
+def agrDeg [AddCommGroup ι] : AddSubgroup ι := AddSubgroup.closure ι[ S ⟩
 
-scoped notation:max ι"["S"]" => genDegAGR (ι := ι) S
+scoped notation:max ι"["S"]" => agrDeg (ι := ι) S
 
 noncomputable def genDegAGREquiv : ι[S⟩ᵃᵍʳ ≃+ ι[S] := AddGR.equivAsAddSubgroup ..
 
-def convexCone := ι[S⟩ ⊗[ℕ] ℝ
+def convMonDeg := ι[S⟩ ⊗[ℕ] ℝ
 
-scoped notation ι"["S"⟩≥0" => convexCone (ι := ι) S
+scoped notation ι"["S"⟩≥0" => convMonDeg (ι := ι) S
 
 def isRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), n • i ∈ ι[S.bar]
 
