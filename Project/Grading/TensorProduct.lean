@@ -17,9 +17,6 @@ noncomputable def gradingByProduct : ιA × ιB → Submodule R (A ⊗[R] B) := 
 
 scoped infix:min "⊗" => gradingByProduct
 
--- lemma mem_gradingByProduct_iff {i : ιA} {j : ιB} {x : A ⊗[R] B} :
---   x ∈ (𝒜 ⊗ ℬ) (i, j) ↔
-
 instance : SetLike.GradedMonoid (𝒜 ⊗ ℬ) where
   one_mem := ⟨1 ⊗ₜ 1, rfl⟩
   mul_mem := by
