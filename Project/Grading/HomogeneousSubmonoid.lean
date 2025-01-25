@@ -4,6 +4,8 @@ import Mathlib.RingTheory.GradedAlgebra.HomogeneousIdeal
 import Mathlib.Data.NNReal.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Tower
 
+import Project.ForMathlib.SubgroupBasic
+
 import Project.GR.Basic
 
 open DirectSum TensorProduct
@@ -104,7 +106,6 @@ omit [AddSubgroupClass σ A] [GradedRing 𝒜] in
 lemma mem_convMonDeg [Nontrivial A] (x) :
     x ∈ ι[S⟩ℝ≥0 ↔
     ∃ (s : ι →₀ ℝ≥0), (∀ i ∈ s.support, i ∈ S.deg) ∧ x = ∑ i ∈ s.support, (s i).1 ⊗ₜ i := by
-    -- ∃ (a b : ℝ≥0) (i j : ι) (hi : i ∈ S.deg) (hj : j ∈ S.deg), x = a.1 ⊗ₜ i + b.1 ⊗ₜ j := by
   classical
   fconstructor
   · rintro ⟨x, rfl⟩
@@ -177,6 +178,43 @@ abbrev setIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.Homogeneous 𝒜 i) 
 
 abbrev elemIsRelevant (a : A) (ha : SetLike.Homogeneous 𝒜 a) : Prop :=
   closure {a} (by simpa) |>.isRelevant
+
+lemma zero_elemIsRelevant : elemIsRelevant (𝒜 := 𝒜) 0 ⟨0, zero_mem _⟩ := by
+  intro i
+  use 0
+  simp only [zero_smul]
+  exact zero_mem _
+
+attribute [-simp] Finsupp.mem_support_iff in
+example (x : A) (homogeneous : SetLike.Homogeneous 𝒜 x) (rel : elemIsRelevant x homogeneous) :
+    ∃ (k : ℕ) (c : ι →₀ A), x^k = ∏ i ∈ c.support, (c i) := by
+  rcases homogeneous with ⟨i, hi⟩
+  obtain ⟨k, hk⟩ := rel i
+  erw [AddSubgroup.mem_closure_iff_exists] at hk
+  obtain ⟨c, hc1, hc2⟩ := hk
+  generalize_proofs h at hc1
+  have (k : ι)  :
+      (k ∈ (closure {x} h).bar.deg) ↔ ∃ (a : A) (n : ℕ), a ∈ 𝒜 k ∧ a ≠ 0 ∧ a ∣ x ^ n := by
+    simp only [deg, bar, closure, Submonoid.mem_closure_singleton, exists_exists_eq_and,
+      Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq, exists_and_left]
+
+    constructor
+    · rintro ⟨a, ⟨-, ⟨n, ha1⟩⟩, ⟨ha2, ha3⟩⟩
+      exact ⟨a, ha3, ha2, n, ha1⟩
+    · rintro ⟨a, ha1, ha2, ⟨n, ha3⟩⟩
+      exact ⟨a, ⟨⟨k, ha1⟩, ⟨n, ha3⟩⟩, ha2, ha1⟩
+  simp_rw [this] at hc1
+
+  simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq] at hc1
+  choose y hy1 hy2 hy3 using hc1
+  choose hy0 hy1 using hy1
+  change ∀ _ _, ∃ _ ∈ Submonoid.closure _, _ at hy1
+  simp_rw [Submonoid.mem_closure_singleton] at hy1
+
+
+
+
+  sorry
 
 variable (𝒜) in
 def daggerIdeal : HomogeneousIdeal 𝒜 where
