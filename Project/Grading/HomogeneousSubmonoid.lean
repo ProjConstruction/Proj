@@ -170,7 +170,7 @@ lemma mem_convMonDeg [Nontrivial A] (x) :
     refine Submodule.sum_mem _ fun i hi => ?_
     exact ⟨a i ⊗ₜ[ℕ] ⟨i, AddSubmonoid.subset_closure (ha i hi)⟩, rfl⟩
 
-def isRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), n • i ∈ ι[S.bar]
+def isRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), 0 < n ∧ n • i ∈ ι[S.bar]
 
 abbrev setIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.Homogeneous 𝒜 i) : Prop :=
   closure s hs |>.isRelevant
