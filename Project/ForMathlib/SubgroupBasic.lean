@@ -1,4 +1,6 @@
 import Mathlib.Algebra.Group.Subgroup.Basic
+import Mathlib.GroupTheory.Finiteness
+import Mathlib.LinearAlgebra.Finsupp.LinearCombination
 
 variable {G : Type*} [CommGroup G] (N : Submonoid G)
 
@@ -23,3 +25,45 @@ lemma closure_submonoid :
     aesop
 
 end Subgroup
+
+namespace AddGroup
+
+variable (M : Type*) [AddCommGroup M] [AddGroup.FG M]
+
+example (s : Set M) (h : AddSubgroup.closure s = ⊤) :
+    ∃ (t : Finset M), (t : Set M) ⊆ s ∧ AddSubgroup.closure (t : Set M) = ⊤ := by
+  have fg : AddGroup.FG M := by infer_instance
+  rw [fg_def] at fg
+  obtain ⟨T, hT⟩ := fg
+  if T_empty : T = ∅
+  then
+  subst T_empty
+  simp only [Finset.coe_empty, AddSubgroup.closure_empty] at hT
+  exact ⟨∅, by simp, hT ▸ by simp⟩
+  else
+  have (m : M) (mem : m ∈ T) :
+      ∃ (c : M →₀ ℤ), (c.support : Set M) ⊆ s ∧ ∑ i ∈ c.support, c i • i = m := by
+    have mem : m ∈ AddSubgroup.closure s := h ▸ ⟨⟩
+    simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
+      mem_span_set] at mem
+    exact mem
+  choose c hc_subset hc_eq using this
+  have T_nonempty : T.attach.Nonempty := by simpa using Finset.nonempty_iff_ne_empty.mpr T_empty
+  let 𝓉 : Finset M := Set.Finite.toFinset (s := ⋃ (i : T), (c _ i.2).support) (Set.toFinite _)
+  refine ⟨𝓉, by simpa [𝓉], ?_⟩
+  rw [eq_top_iff]
+  rintro x -
+  have mem : x ∈ AddSubgroup.closure T := hT ▸ ⟨⟩
+  simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
+    mem_span_set] at mem
+  obtain ⟨d, hd, (rfl : ∑ _ ∈ _, _ = x)⟩ := mem
+  refine sum_mem fun i hi ↦ ?_
+  specialize hc_subset i (hd hi)
+  refine zsmul_mem ?_ _
+  rw [← hc_eq _ (hd hi)]
+  refine sum_mem fun j hj ↦ zsmul_mem ?_ _
+  refine AddSubgroup.subset_closure ?_
+  simp only [Set.Finite.coe_toFinset, Set.mem_iUnion, Finset.mem_coe, Subtype.exists, 𝓉]
+  exact ⟨i, hd hi, hj⟩
+
+end AddGroup
