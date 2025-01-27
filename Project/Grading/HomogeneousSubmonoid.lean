@@ -4,6 +4,7 @@ import Mathlib.RingTheory.GradedAlgebra.HomogeneousIdeal
 import Mathlib.Data.NNReal.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Tower
 import Mathlib.GroupTheory.Torsion
+import Mathlib.GroupTheory.FiniteAbelian.Basic
 
 import Project.GR.Basic
 
@@ -189,6 +190,15 @@ lemma isRelevant_iff_isTorsion_quotient : S.IsRelevant ↔ AddMonoid.IsTorsion (
     refine ⟨n, hn, ?_⟩
     change Quotient.mk'' (n • i) = _ at hni
     rwa [QuotientAddGroup.eq_zero_iff] at hni
+
+lemma isRelevant_iff_finite_quotient_of_FG [AddGroup.FG ι] :
+    S.IsRelevant ↔ Finite (ι ⧸ ι[S.bar]) := by
+  rw [isRelevant_iff_isTorsion_quotient]
+  fconstructor
+  · intro H
+    exact AddCommGroup.finite_of_fg_torsion _ H
+  · intro H
+    apply is_add_torsion_of_finite
 
 abbrev SetIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.Homogeneous 𝒜 i) : Prop :=
   closure s hs |>.IsRelevant
