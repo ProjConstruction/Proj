@@ -30,7 +30,7 @@ namespace AddGroup
 
 variable (M : Type*) [AddCommGroup M] [AddGroup.FG M]
 
-example (s : Set M) (h : AddSubgroup.closure s = ⊤) :
+lemma exists_finite_generating_set_of_FG (s : Set M) (h : AddSubgroup.closure s = ⊤) :
     ∃ (t : Finset M), (t : Set M) ⊆ s ∧ AddSubgroup.closure (t : Set M) = ⊤ := by
   have fg : AddGroup.FG M := by infer_instance
   rw [fg_def] at fg
