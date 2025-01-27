@@ -3,6 +3,7 @@ import Mathlib.Data.Real.Basic
 import Mathlib.RingTheory.GradedAlgebra.HomogeneousIdeal
 import Mathlib.Data.NNReal.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Tower
+import Mathlib.GroupTheory.Torsion
 
 import Project.GR.Basic
 
@@ -170,17 +171,34 @@ lemma mem_convMonDeg [Nontrivial A] (x) :
     refine Submodule.sum_mem _ fun i hi => ?_
     exact ⟨a i ⊗ₜ[ℕ] ⟨i, AddSubmonoid.subset_closure (ha i hi)⟩, rfl⟩
 
-def isRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), 0 < n ∧ n • i ∈ ι[S.bar]
+def IsRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), 0 < n ∧ n • i ∈ ι[S.bar]
 
-abbrev setIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.Homogeneous 𝒜 i) : Prop :=
-  closure s hs |>.isRelevant
+lemma isRelevant_iff_isTorsion_quotient : S.IsRelevant ↔ AddMonoid.IsTorsion (ι ⧸ ι[S.bar]) := by
+  fconstructor
+  · intro H x
+    induction x using Quotient.inductionOn' with | h x =>
+    rw [isOfFinAddOrder_iff_nsmul_eq_zero]
+    obtain ⟨n, hn, hx⟩ := H x
+    refine ⟨n, hn, ?_⟩
+    change Quotient.mk'' (n • x) = _
+    rwa [QuotientAddGroup.eq_zero_iff]
+  · intro H i
+    specialize H i
+    rw [isOfFinAddOrder_iff_nsmul_eq_zero] at H
+    obtain ⟨n, hn, hni⟩ := H
+    refine ⟨n, hn, ?_⟩
+    change Quotient.mk'' (n • i) = _ at hni
+    rwa [QuotientAddGroup.eq_zero_iff] at hni
 
-abbrev elemIsRelevant (a : A) (ha : SetLike.Homogeneous 𝒜 a) : Prop :=
-  closure {a} (by simpa) |>.isRelevant
+abbrev SetIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.Homogeneous 𝒜 i) : Prop :=
+  closure s hs |>.IsRelevant
+
+abbrev ElemIsRelevant (a : A) (ha : SetLike.Homogeneous 𝒜 a) : Prop :=
+  closure {a} (by simpa) |>.IsRelevant
 
 variable (𝒜) in
 def daggerIdeal : HomogeneousIdeal 𝒜 where
-  __ := Ideal.span { x | ∃ (h : SetLike.Homogeneous 𝒜 x), elemIsRelevant x h }
+  __ := Ideal.span { x | ∃ (h : SetLike.Homogeneous 𝒜 x), ElemIsRelevant x h }
   is_homogeneous' := Ideal.homogeneous_span _ _ (by rintro x ⟨h, _⟩; exact h)
 
 scoped postfix:max "†" => daggerIdeal
