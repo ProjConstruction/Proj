@@ -66,4 +66,53 @@ lemma exists_finite_generating_set_of_FG (s : Set M) (h : AddSubgroup.closure s 
   simp only [Set.Finite.coe_toFinset, Set.mem_iUnion, Finset.mem_coe, Subtype.exists, 𝓉]
   exact ⟨i, hd hi, hj⟩
 
+omit [FG M] in
+lemma exists_finite_generating_set_of_FG' (s : Set M) (h : AddGroup.FG <| AddSubgroup.closure s) :
+    ∃ (t : Finset M), (t : Set M) ⊆ s ∧
+      AddSubgroup.closure (t : Set M) = AddSubgroup.closure s := by
+  have fg : (AddSubgroup.closure s).FG := by exact
+    (fg_iff_addSubgroup_fg (AddSubgroup.closure s)).mp h
+  obtain ⟨T, hT⟩ := fg
+  if T_empty : T = ∅
+  then
+  subst T_empty
+  simp only [Finset.coe_empty, AddSubgroup.closure_empty] at hT
+  exact ⟨∅, by simp, hT ▸ by simp⟩
+  else
+  have (m : M) (mem : m ∈ AddSubgroup.closure s) :
+      ∃ (c : M →₀ ℤ), (c.support : Set M) ⊆ s ∧ ∑ i ∈ c.support, c i • i = m := by
+    simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
+      mem_span_set] at mem
+    exact mem
+  choose c hc_subset hc_eq using this
+  have T_nonempty : T.attach.Nonempty := by simpa using Finset.nonempty_iff_ne_empty.mpr T_empty
+  let 𝓉 : Finset M := Set.Finite.toFinset (s := ⋃ (i : T), (c i.1 <| by
+    rw [← hT]
+    exact AddSubgroup.subset_closure i.2).support) (Set.toFinite _)
+  have le1 : 𝓉 ≤ s := by
+    simp only [Set.Finite.coe_toFinset, Set.le_eq_subset, Set.iUnion_subset_iff, Subtype.forall, 𝓉]
+    intro m hm
+    apply hc_subset m
+  refine ⟨𝓉, le1, ?_⟩
+
+  refine le_antisymm (AddSubgroup.closure_mono le1) ?_
+  -- rw [← hT]
+  intro x hx
+  have mem : x ∈ AddSubgroup.closure T := hT ▸ hx
+  simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
+    mem_span_set] at mem
+  obtain ⟨d, hd, (rfl : ∑ _ ∈ _, _ = x)⟩ := mem
+  refine sum_mem fun i hi ↦ ?_
+  specialize hc_subset i (by
+    rw [← hT]
+    exact AddSubgroup.subset_closure (hd hi))
+  refine zsmul_mem ?_ _
+  rw [← hc_eq i (by
+    rw [← hT]
+    exact AddSubgroup.subset_closure (hd hi))]
+  refine sum_mem fun j hj ↦ zsmul_mem ?_ _
+  refine AddSubgroup.subset_closure ?_
+  simp only [Set.Finite.coe_toFinset, Set.mem_iUnion, Finset.mem_coe, Subtype.exists, 𝓉]
+  exact ⟨i, hd hi, hj⟩
+
 end AddGroup
