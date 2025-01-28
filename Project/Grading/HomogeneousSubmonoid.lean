@@ -314,13 +314,18 @@ lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
       (AddSubgroup.closure (Set.range d)).FiniteIndex ∧
       (∃ (k : ℕ), ∏ i : Fin n, x i = a ^ k) := by
   classical
+  -- a is relevant iff M[⟨a⟩.bar] is of finite index
   rw [ElemIsRelevant, isRelevant_iff_finiteIndex_of_FG] at a_rel
+  -- M[⟨a⟩.bar] is finitely generated
   haveI fg : AddGroup.FG ι[(closure {a} (by simpa)).bar] := by
     set H : AddSubgroup ι := ι[(closure {a} (by simpa)).bar]
     exact AddSubgroup.fg_of_index_ne_zero (H := H)
+  -- let s be a subset of ⟨a⟩.bar such that s generates M[⟨a⟩.bar]
   obtain ⟨s, hs1, hs2⟩ :=
     AddGroup.exists_finite_generating_set_of_FG' _
     (closure (𝒜 := 𝒜) {a} (by simpa)).bar.deg fg
+  -- then since a is relevant, for every i ∈ s, there exists some y ∈ A such that
+  -- y ≠ 0 and y ∈ Aᵢ and there exists some n such that y divides a^n
   have hs3 : ∀ i : s, ∃ (y : A), y ≠ 0 ∧ y ∈ 𝒜 i ∧
       (∃ (n : ℕ), y ∣ a^n) := by
     rintro ⟨i, hi⟩
@@ -333,6 +338,8 @@ lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
 
   choose y y_ne_zero y_mem y_dvd using hs3
   choose n y_dvd using y_dvd
+  -- note that y : s → A is an injective function (you can only get this if you include non-zero
+  -- assumption in the definition of deg, but I don't think the injectivity is very useful here)
   have y_inj : Function.Injective y := by
     intro a b h
     have ha := y_mem a
@@ -341,22 +348,37 @@ lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
     have := DirectSum.degree_eq_of_mem_mem 𝒜 ha hb (y_ne_zero b)
     ext
     assumption
+  -- let N be the number of elements in s and we write s as {y_1, ..., y_N}
   let N : ℕ := s.card
+  -- we write {d_1, ..., d_N} be the degrees of y_i
   let d : Fin N → ι := Subtype.val ∘ (Finset.equivFin s).symm
+  -- I blundered here, but because I already use y as a function, I can't use the same name
+  -- so x is actually the sequence y_1, ..., y_N
   let x : Fin N → A := y ∘ (Finset.equivFin s).symm
   have x_inj : Function.Injective x := by
     refine Function.Injective.comp y_inj s.equivFin.symm.injective
+  -- we write k_1, ..., k_N to be the natural numbers that y_i | a^kᵢ
   let k : Fin N → ℕ := n ∘ (Finset.equivFin s).symm
+  -- let K be the sum of k_i
   let K : ℕ := ∑ i : Fin N, k i
+  -- then y_1 y_2 ... y_N divides a^K
   have dvd : (∏ i : Fin N, x i) ∣ a ^ K := by
     rw [← Finset.prod_pow_eq_pow_sum]
     apply Finset.prod_dvd_prod_of_dvd
     rintro ⟨i, hi⟩ -
     apply y_dvd
 
+  -- then there exists a homogeneous b such that y_1 y_2 ... y_N b = a^K where b ∈ Aⱼ
   obtain ⟨b, hb, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 sorry sorry dvd
   by_cases b_eq_0 : b = 0
-  · sorry
+  ·
+    -- if b = 0, however, this means a^K = 0. It is a bit awkward to choose `n`. The obvious choice
+    -- is n = 0, but this won't work because the span of empty set is {0} which may not have finite
+    -- index. The only thing we know that have finite index is the span of {d_1, ..., d_N}
+    sorry
+
+  -- if b ≠ 0, then y_1, y_2, ..., y_N, b is a factorisation of a^K where all y_i and b are non-zero
+  -- such that d_1, ..., d_N, j together generate a subgroup of finite index
   refine ⟨N + 1, Fin.cons b x, Fin.cons j d, ?_, ?_, ?_, ⟨K, ?_⟩⟩
   · intro i
     refine Fin.cases ?_ ?_ i
