@@ -48,27 +48,27 @@ def bar : HomogeneousSubmonoid 𝒜 where
   one_mem' := ⟨SetLike.homogeneous_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
   homogeneous := by rintro x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩; exact hom_x
 
-def deg : Set ι := {i | ∃ x ∈ S.toSubmonoid, x ≠ 0 ∧ x ∈ 𝒜 i}
+def deg : Set ι := {i | ∃ x ∈ S.toSubmonoid, x ∈ 𝒜 i}
 
 lemma mem_deg_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)).deg ↔
-    (∃ n : ℕ, a ^ n ≠ 0 ∧ a ^ n ∈ 𝒜 x) := by
+    (∃ n : ℕ, a ^ n ∈ 𝒜 x) := by
   simp only [deg, ne_eq, Set.mem_setOf_eq, exists_and_right]
   fconstructor
-  · rintro ⟨y, hy, y_ne_0, h⟩
+  · rintro ⟨y, hy, h⟩
     rw [mem_closure_singleton (ha := ha)] at hy
     obtain ⟨n, rfl⟩ := hy
-    exact ⟨n, ‹_›, ‹_›⟩
-  · rintro ⟨n, hn1, hn2⟩
-    refine ⟨a^n, ?_, hn1, hn2⟩
+    exact ⟨n, ‹_›⟩
+  · rintro ⟨n, hn⟩
+    refine ⟨a^n, ?_, hn⟩
     rw [mem_closure_singleton (ha := ha)]
     aesop
 
 omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
-lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S.toSubmonoid, x ≠ 0 ∧ x ∈ 𝒜 i := Iff.rfl
+lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S.toSubmonoid, x ∈ 𝒜 i := Iff.rfl
 
 lemma zero_mem_deg [Nontrivial A] : 0 ∈ S.deg :=
-  ⟨1, one_mem _, one_ne_zero, SetLike.GradedOne.one_mem⟩
+  ⟨1, one_mem _, SetLike.GradedOne.one_mem⟩
 
 def monDeg [AddCommGroup ι] : AddSubmonoid ι := AddSubmonoid.closure S.deg
 
@@ -244,72 +244,72 @@ attribute [to_additive] Subgroup.closure_mul_image_eq_top'
 attribute [to_additive] Subgroup.exists_finset_card_le_mul
 attribute [to_additive] Subgroup.fg_of_index_ne_zero
 
-lemma exists_factorisation_of_elemIsRelevant_aux
-    [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a) (a_rel : ElemIsRelevant a ha) :
-    ∃ (x : ι →₀ A), (∀ i ∈ x.support, x i ∈ 𝒜 i) ∧
-      AddSubgroup.closure x.support = ι[(closure {a} (by simpa)).bar] ∧
-      (∃ k : ℕ, (∏ i ∈ x.support, x i) ∣ a ^ k) := by
-  rw [ElemIsRelevant, isRelevant_iff_finiteIndex_of_FG] at a_rel
-  haveI fg : AddGroup.FG ι[(closure {a} (by simpa)).bar] := by
-    set H : AddSubgroup ι := ι[(closure {a} (by simpa)).bar]
-    exact AddSubgroup.fg_of_index_ne_zero (H := H)
-  obtain ⟨s, hs1, hs2⟩ :=
-    AddGroup.exists_finite_generating_set_of_FG' _
-    (closure (𝒜 := 𝒜) {a} (by simpa)).bar.deg fg
-  have hs3 : ∀ i : s, ∃ (y : A), y ≠ 0 ∧ y ∈ 𝒜 i ∧
-      (∃ (n : ℕ), y ∣ a^n) := by
-    rintro ⟨i, hi⟩
-    specialize hs1 hi
-    simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq] at hs1
-    obtain ⟨y, ⟨⟨_, ⟨z, hz1, hz2⟩⟩, hy2, hy1⟩⟩ := hs1
-    rw [mem_closure_singleton (ha := ha)] at hz1
-    obtain ⟨n, rfl⟩ := hz1
-    exact ⟨y, hy2, hy1, n, hz2⟩
+-- lemma exists_factorisation_of_elemIsRelevant_aux
+--     [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a) (a_rel : ElemIsRelevant a ha) :
+--     ∃ (x : ι →₀ A), (∀ i ∈ x.support, x i ∈ 𝒜 i) ∧
+--       AddSubgroup.closure x.support = ι[(closure {a} (by simpa)).bar] ∧
+--       (∃ k : ℕ, (∏ i ∈ x.support, x i) ∣ a ^ k) := by
+--   rw [ElemIsRelevant, isRelevant_iff_finiteIndex_of_FG] at a_rel
+--   haveI fg : AddGroup.FG ι[(closure {a} (by simpa)).bar] := by
+--     set H : AddSubgroup ι := ι[(closure {a} (by simpa)).bar]
+--     exact AddSubgroup.fg_of_index_ne_zero (H := H)
+--   obtain ⟨s, hs1, hs2⟩ :=
+--     AddGroup.exists_finite_generating_set_of_FG' _
+--     (closure (𝒜 := 𝒜) {a} (by simpa)).bar.deg fg
+--   have hs3 : ∀ i : s, ∃ (y : A), y ≠ 0 ∧ y ∈ 𝒜 i ∧
+--       (∃ (n : ℕ), y ∣ a^n) := by
+--     rintro ⟨i, hi⟩
+--     specialize hs1 hi
+--     simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq] at hs1
+--     obtain ⟨y, ⟨⟨_, ⟨z, hz1, hz2⟩⟩, hy2, hy1⟩⟩ := hs1
+--     rw [mem_closure_singleton (ha := ha)] at hz1
+--     obtain ⟨n, rfl⟩ := hz1
+--     exact ⟨y, hy2, hy1, n, hz2⟩
 
-  choose y y_ne_zero y_mem y_dvd using hs3
-  choose n y_dvd using y_dvd
-  let x : ι →₀ A :=
-    Finsupp.onFinset s (fun i ↦ if h : i ∈ s then y ⟨i, h⟩ else 0) <| by
-      intro i hi
-      simp only [ne_eq, dite_eq_right_iff, not_forall] at hi
-      exact hi.choose
-  refine ⟨x, ?_, ?_, ?_⟩
-  · intro i hi
-    simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq, dite_eq_right_iff,
-      not_forall, x] at hi
-    obtain ⟨h1, h2⟩ := hi
-    simp only [Finsupp.onFinset_apply, dif_pos h1, x]
-    exact y_mem ⟨i, h1⟩
-  · refine Eq.trans (le_antisymm ?_ ?_) hs2
-    · refine AddSubgroup.closure_mono fun i hi ↦ ?_
-      simp only [Finset.mem_coe, Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq,
-        dite_eq_right_iff, not_forall, x] at hi
-      exact hi.choose
-    · rw [AddSubgroup.closure_le]
-      intro i hi
-      refine AddSubgroup.subset_closure ?_
-      simp only [Finset.mem_coe, Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq,
-        dite_eq_right_iff, not_forall, x]
-      refine ⟨hi, y_ne_zero ⟨_, hi⟩⟩
+--   choose y y_ne_zero y_mem y_dvd using hs3
+--   choose n y_dvd using y_dvd
+--   let x : ι →₀ A :=
+--     Finsupp.onFinset s (fun i ↦ if h : i ∈ s then y ⟨i, h⟩ else 0) <| by
+--       intro i hi
+--       simp only [ne_eq, dite_eq_right_iff, not_forall] at hi
+--       exact hi.choose
+--   refine ⟨x, ?_, ?_, ?_⟩
+--   · intro i hi
+--     simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq, dite_eq_right_iff,
+--       not_forall, x] at hi
+--     obtain ⟨h1, h2⟩ := hi
+--     simp only [Finsupp.onFinset_apply, dif_pos h1, x]
+--     exact y_mem ⟨i, h1⟩
+--   · refine Eq.trans (le_antisymm ?_ ?_) hs2
+--     · refine AddSubgroup.closure_mono fun i hi ↦ ?_
+--       simp only [Finset.mem_coe, Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq,
+--         dite_eq_right_iff, not_forall, x] at hi
+--       exact hi.choose
+--     · rw [AddSubgroup.closure_le]
+--       intro i hi
+--       refine AddSubgroup.subset_closure ?_
+--       simp only [Finset.mem_coe, Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq,
+--         dite_eq_right_iff, not_forall, x]
+--       refine ⟨hi, y_ne_zero ⟨_, hi⟩⟩
 
-  have le : x.support ≤ s := by
-    intro i hi
-    simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq, dite_eq_right_iff,
-      not_forall, x] at hi
-    exact hi.choose
-  refine ⟨∑ i ∈ x.support.attach, n ⟨i.1, le i.2⟩, ?_⟩
-  rw [← Finset.prod_attach, ← Finset.prod_pow_eq_pow_sum]
-  apply Finset.prod_dvd_prod_of_dvd
-  rintro ⟨i, hi⟩ -
-  simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq, dite_eq_right_iff, not_forall,
-    x] at hi
-  obtain ⟨hx1, hx2⟩ := hi
-  simp only [Finsupp.onFinset_apply, dif_pos hx1, x]
-  apply y_dvd ⟨_, _⟩
+--   have le : x.support ≤ s := by
+--     intro i hi
+--     simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq, dite_eq_right_iff,
+--       not_forall, x] at hi
+--     exact hi.choose
+--   refine ⟨∑ i ∈ x.support.attach, n ⟨i.1, le i.2⟩, ?_⟩
+--   rw [← Finset.prod_attach, ← Finset.prod_pow_eq_pow_sum]
+--   apply Finset.prod_dvd_prod_of_dvd
+--   rintro ⟨i, hi⟩ -
+--   simp only [Finsupp.mem_support_iff, Finsupp.onFinset_apply, ne_eq, dite_eq_right_iff, not_forall,
+--     x] at hi
+--   obtain ⟨hx1, hx2⟩ := hi
+--   simp only [Finsupp.onFinset_apply, dif_pos hx1, x]
+--   apply y_dvd ⟨_, _⟩
 
 lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
     [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a) (a_rel : ElemIsRelevant a ha) :
-    ∃ (n : ℕ) (x : Fin n → A) (d : Fin n → ι) (x_ne_zero : ∀ i, x i ≠ 0)
+    ∃ (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
       (mem : ∀ (i : Fin n), x i ∈ 𝒜 (d i)),
       (AddSubgroup.closure (Set.range d)).FiniteIndex ∧
       (∃ (k : ℕ), ∏ i : Fin n, x i = a ^ k) := by
@@ -321,31 +321,21 @@ lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
   obtain ⟨s, hs1, hs2⟩ :=
     AddGroup.exists_finite_generating_set_of_FG' _
     (closure (𝒜 := 𝒜) {a} (by simpa)).bar.deg fg
-  have hs3 : ∀ i : s, ∃ (y : A), y ≠ 0 ∧ y ∈ 𝒜 i ∧
-      (∃ (n : ℕ), y ∣ a^n) := by
+  have hs3 : ∀ i : s, ∃ (y : A), y ∈ 𝒜 i ∧ (∃ (n : ℕ), y ∣ a^n) := by
     rintro ⟨i, hi⟩
     specialize hs1 hi
     simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq] at hs1
-    obtain ⟨y, ⟨⟨_, ⟨z, hz1, hz2⟩⟩, hy2, hy1⟩⟩ := hs1
+    obtain ⟨y, ⟨_, ⟨z, hz1, hz2⟩⟩, hy⟩ := hs1
     rw [mem_closure_singleton (ha := ha)] at hz1
     obtain ⟨n, rfl⟩ := hz1
-    exact ⟨y, hy2, hy1, n, hz2⟩
+    exact ⟨y, hy, n, hz2⟩
 
-  choose y y_ne_zero y_mem y_dvd using hs3
+  choose y y_mem y_dvd using hs3
   choose n y_dvd using y_dvd
-  have y_inj : Function.Injective y := by
-    intro a b h
-    have ha := y_mem a
-    have hb := y_mem b
-    rw [h] at ha
-    have := DirectSum.degree_eq_of_mem_mem 𝒜 ha hb (y_ne_zero b)
-    ext
-    assumption
+
   let N : ℕ := s.card
   let d : Fin N → ι := Subtype.val ∘ (Finset.equivFin s).symm
   let x : Fin N → A := y ∘ (Finset.equivFin s).symm
-  have x_inj : Function.Injective x := by
-    refine Function.Injective.comp y_inj s.equivFin.symm.injective
   let k : Fin N → ℕ := n ∘ (Finset.equivFin s).symm
   let K : ℕ := ∑ i : Fin N, k i
   have dvd : (∏ i : Fin N, x i) ∣ a ^ K := by
@@ -355,15 +345,7 @@ lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
     apply y_dvd
 
   obtain ⟨b, hb, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 sorry sorry dvd
-  by_cases b_eq_0 : b = 0
-  · sorry
-  refine ⟨N + 1, Fin.cons b x, Fin.cons j d, ?_, ?_, ?_, ⟨K, ?_⟩⟩
-  · intro i
-    refine Fin.cases ?_ ?_ i
-    · simpa
-    · intro i
-      simp only [Fin.cons_succ, Function.comp_apply, ne_eq, x, N]
-      apply y_ne_zero
+  refine ⟨N + 1, Fin.cons b x, Fin.cons j d, ?_, ?_, ⟨K, ?_⟩⟩
   · intro i
     refine Fin.cases ?_ ?_ i
     · simpa
@@ -386,7 +368,7 @@ lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
 
 lemma elemIsRelevant_of_homogeneous_of_factorisation
     [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a)
-    (n : ℕ) (x : Fin n → A) (d : Fin n → ι) (x_ne_zero : ∀ i, x i ≠ 0)
+    (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
     (mem : ∀ (i : Fin n), x i ∈ 𝒜 (d i))
     (finiteIndex : (AddSubgroup.closure (Set.range d)).FiniteIndex)
     (k : ℕ) (eq : ∏ i : Fin n, x i = a ^ k) :  ElemIsRelevant a ha := by
@@ -399,7 +381,7 @@ lemma elemIsRelevant_of_homogeneous_of_factorisation
   refine AddSubgroup.subset_closure ?_
   simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq]
   exact ⟨x i, ⟨⟨d i, mem i⟩, ⟨a ^ k, by rw [mem_closure_singleton (ha := ha)]; aesop, by
-    rw [← eq]; apply Finset.dvd_prod_of_mem; aesop⟩⟩, x_ne_zero i, mem i⟩
+    rw [← eq]; apply Finset.dvd_prod_of_mem; aesop⟩⟩, mem i⟩
 
 
 variable (𝒜) in
