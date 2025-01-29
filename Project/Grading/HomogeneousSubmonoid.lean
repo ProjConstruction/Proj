@@ -48,7 +48,12 @@ def bar : HomogeneousSubmonoid 𝒜 where
   one_mem' := ⟨SetLike.homogeneous_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
   homogeneous := by rintro x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩; exact hom_x
 
-def deg : Set ι := {i | ∃ x ∈ S.toSubmonoid, x ∈ 𝒜 i}
+def deg : AddSubmonoid ι where
+  carrier := {i | ∃ x ∈ S.toSubmonoid, x ∈ 𝒜 i}
+  add_mem' := by
+    rintro i j ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩
+    exact ⟨x * y, mul_mem hx hy, SetLike.GradedMul.mul_mem hx' hy'⟩
+  zero_mem' := ⟨1, one_mem _, SetLike.GradedOne.one_mem⟩
 
 lemma mem_deg_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)).deg ↔

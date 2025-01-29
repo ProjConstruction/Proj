@@ -96,7 +96,6 @@ lemma exists_finite_generating_set_of_FG' (s : Set M) (h : AddGroup.FG <| AddSub
   refine ⟨𝓉, le1, ?_⟩
 
   refine le_antisymm (AddSubgroup.closure_mono le1) ?_
-  -- rw [← hT]
   intro x hx
   have mem : x ∈ AddSubgroup.closure T := hT ▸ hx
   simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
