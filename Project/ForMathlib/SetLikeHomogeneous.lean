@@ -22,4 +22,46 @@ lemma exists_homogeneous_of_dvd {a c : A}
   rw [← eq]
   rw [DirectSum.coe_of_apply, show i + (j - i) = j by abel, if_pos rfl]
 
+lemma prod {s : Finset A} (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) :
+    SetLike.Homogeneous 𝒜 (∏ i ∈ s, i)  := by
+  classical
+  revert hs
+  refine Finset.induction_on s ?_ ?_
+  · simp only [Finset.not_mem_empty, IsEmpty.forall_iff, implies_true, Finset.prod_empty,
+    forall_const]
+    use 0
+    exact SetLike.GradedOne.one_mem
+  · intro a s ha hs' ih
+    rw [Finset.prod_insert ha]
+    simp? at ih
+    exact SetLike.homogeneous_mul ih.1 <| hs' ih.2
+
+lemma prod' {n : ℕ} (v : Fin n → A) (hs : ∀ i, SetLike.Homogeneous 𝒜 (v i)) :
+    SetLike.Homogeneous 𝒜 (∏ i, v i) := by
+  classical
+  induction n with
+  | zero =>
+    simp only [Finset.univ_eq_empty, Finset.prod_empty]
+    use 0
+    exact SetLike.GradedOne.one_mem
+  | succ n ih =>
+    simp only [Fin.prod_univ_castSucc]
+    apply SetLike.homogeneous_mul ?_ ?_
+    . apply ih
+      intro i
+      apply hs
+    · apply hs
+
+lemma pow {a : A} (ha : SetLike.Homogeneous 𝒜 a) (n : ℕ) :
+    SetLike.Homogeneous 𝒜 (a ^ n) := by
+  obtain ⟨m, h⟩ := ha
+  induction n with
+  | zero =>
+    simp only [pow_zero]
+    use 0
+    exact SetLike.GradedOne.one_mem
+  | succ n ih =>
+    simp only [pow_succ]
+    apply SetLike.homogeneous_mul ih ⟨_, h⟩
+
 end SetLike.Homogeneous
