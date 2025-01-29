@@ -1,0 +1,26 @@
+\section{Homogeneous Submonoids}
+
+Let $A$ be a graded ring.
+
+\begin{definition}
+We say $S$ is a homogeneous submonoid of $A$ if $S$ is a submonoid of $A$ and for every $s \in S$,
+$s$ is a homogeneous element of $A$.
+\leanok
+\lean{HomogeneousSubmonoid}
+\end{definition}
+
+\begin{theorem}
+  If $A$ is graded by $M$ where $M$ is an abelian group written additively, then $A_{S}$ is a graded
+ring by $M$ as well.
+\leanok
+\lean{HomogeneousSubmonoid.LocalizationGrading.instGradedRingLocalizationAddSubgroup}
+\end{theorem}
+
+\begin{definition}
+  Let $S$ be a homogeneous submonoid of $A$, we define $\deg(S)$ to be the submonoid of $M$ to be
+  \[
+    \{i | \exists x \in S, x \in A_i\}.
+  \]
+  \leanok
+  \lean{HomogeneousSubmonoid.deg}
+\end{definition}
