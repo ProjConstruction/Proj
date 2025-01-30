@@ -214,11 +214,106 @@ lemma mem_degree_iff {iA : ιA} {iB : ιB} (x : A ⊗[R] B) :
     exact sum_mem fun i hi ↦ ⟨(c i).1 ⊗ₜ (c i).2, rfl⟩
 
 open HomogeneousSubmonoid in
-lemma tmul_elemIsRelevant [AddGroup.FG ιA] [AddGroup.FG ιB]
+lemma tmul_elemIsRelevant
     {x : A} {y : B} {hom_x : SetLike.Homogeneous 𝒜 x} {hom_y : SetLike.Homogeneous ℬ y}
     (rel_x : ElemIsRelevant x hom_x) (rel_y : ElemIsRelevant y hom_y) :
     ElemIsRelevant (x ⊗ₜ y) (tmul_homogeneous hom_x hom_y) := by
-  sorry
+  delta ElemIsRelevant at rel_x rel_y ⊢
+  rw [isRelevant_iff_isTorsion_quotient] at rel_x rel_y ⊢
+  set M : AddSubgroup ιA := _
+  change AddMonoid.IsTorsion (ιA ⧸ M) at rel_x
+  set N : AddSubgroup ιB := _
+  change AddMonoid.IsTorsion (ιB ⧸ N) at rel_y
+  set X : AddSubgroup (ιA × ιB) := _
+  change AddMonoid.IsTorsion ((ιA × ιB) ⧸ X)
+  let e : (ιA ⧸ M) × (ιB ⧸ N) →+ (ιA × ιB) ⧸ X :=
+    AddMonoidHom.coprod
+      (QuotientAddGroup.lift _
+        (AddMonoidHom.comp (QuotientAddGroup.mk' _) (AddMonoidHom.inl ιA ιB))
+        (by
+          intro i hi
+          simp only [AddMonoidHom.mem_ker, AddMonoidHom.coe_comp, QuotientAddGroup.coe_mk',
+            Function.comp_apply, AddMonoidHom.inl_apply, QuotientAddGroup.eq_zero_iff, M, X] at hi ⊢
+          refine AddSubgroup.closure_induction ?_ ?_ ?_ ?_ hi
+          · rintro i hi
+            simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq,
+              AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk, X, M] at hi ⊢
+            obtain ⟨a, ⟨-, ⟨z, hz1, ⟨z', hz⟩⟩⟩, hi⟩ := hi
+            rw [mem_closure_singleton] at hz1
+            obtain ⟨n, rfl⟩ := hz1
+            refine AddSubgroup.subset_closure ⟨a ⊗ₜ 1,
+              ⟨⟨⟨(i, 0), ⟨⟨a, hi⟩ ⊗ₜ ⟨1, SetLike.GradedOne.one_mem⟩, rfl⟩⟩,
+                ⟨(x ⊗ₜ y) ^ n, ?_, ?_⟩⟩, ?_⟩⟩
+            · refine pow_mem ?_ n
+              rw [mem_closure_singleton]
+              · exact ⟨1, by simp⟩
+              · apply tmul_homogeneous <;> assumption
+            · refine ⟨z' ⊗ₜ (y^n), ?_⟩
+              simp [hz]
+            · exact ⟨⟨a, hi⟩ ⊗ₜ ⟨1, SetLike.GradedOne.one_mem⟩, rfl⟩
+            · assumption
+          · exact zero_mem _
+          · rintro i j hi hj hi' hj'
+            rw [show ((i + j, 0) : ιA × ιB) = (i, 0) + (j, 0) by simp]
+            exact add_mem hi' hj'
+          · rintro i hi hi'
+            rw [show ((-i, 0) : ιA × ιB) = -(i, 0) by simp]
+            exact neg_mem hi'))
+      (QuotientAddGroup.lift _
+        (AddMonoidHom.comp (QuotientAddGroup.mk' _) (AddMonoidHom.inr ιA ιB))
+        (by
+          intro i hi
+          simp only [AddMonoidHom.mem_ker, AddMonoidHom.coe_comp, QuotientAddGroup.coe_mk',
+            Function.comp_apply, AddMonoidHom.inl_apply, QuotientAddGroup.eq_zero_iff, M, X] at hi ⊢
+          refine AddSubgroup.closure_induction ?_ ?_ ?_ ?_ hi
+          · rintro i hi
+            simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq,
+              AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk, AddMonoidHom.inr_apply, X,
+              M] at hi ⊢
+            obtain ⟨a, ⟨-, ⟨z, hz1, ⟨z', hz⟩⟩⟩, hi⟩ := hi
+            rw [mem_closure_singleton] at hz1
+            obtain ⟨n, rfl⟩ := hz1
+            refine AddSubgroup.subset_closure ⟨1 ⊗ₜ a,
+              ⟨⟨⟨(0, i), ⟨⟨1, SetLike.GradedOne.one_mem⟩ ⊗ₜ ⟨a, hi⟩, rfl⟩⟩,
+                ⟨(x ⊗ₜ y) ^ n, ?_, ?_⟩⟩, ?_⟩⟩
+            · refine pow_mem ?_ n
+              rw [mem_closure_singleton]
+              · exact ⟨1, by simp⟩
+              · apply tmul_homogeneous <;> assumption
+            · refine ⟨(x^n) ⊗ₜ z', ?_⟩
+              simp [hz]
+            · exact ⟨⟨1, SetLike.GradedOne.one_mem⟩ ⊗ₜ ⟨a, hi⟩, rfl⟩
+            · assumption
+          · exact zero_mem _
+          · rintro i j hi hj hi' hj'
+            simp only [AddMonoidHom.inr_apply, X, M] at hi' hj' ⊢
+            rw [show ((0, i + j) : ιA × ιB) = (0, i) + (0, j) by simp]
+            exact add_mem hi' hj'
+          · rintro i hi hi'
+            simp only [AddMonoidHom.inr_apply, X, M] at hi' ⊢
+            rw [show ((0, -i) : ιA × ιB) = -(0, i) by simp]
+            exact neg_mem hi'))
+  have he : Function.Surjective e := by
+    rintro x
+    obtain ⟨⟨i, j⟩, rfl⟩ := QuotientAddGroup.mk'_surjective _ x
+    refine ⟨(QuotientAddGroup.mk' _ i, QuotientAddGroup.mk' _ j), ?_⟩
+    simp only [QuotientAddGroup.mk'_apply, AddMonoidHom.coprod_apply, QuotientAddGroup.lift_mk,
+      AddMonoidHom.coe_comp, QuotientAddGroup.coe_mk', Function.comp_apply, AddMonoidHom.inl_apply,
+      AddMonoidHom.inr_apply, e, X, M]
+    rw [← QuotientAddGroup.mk_add]
+    simp
+
+  intro x
+  obtain ⟨⟨i, j⟩, rfl⟩ := he x
+  specialize rel_x i
+  specialize rel_y j
+  rw [isOfFinAddOrder_iff_nsmul_eq_zero] at rel_x rel_y ⊢
+  obtain ⟨n, hn1, hn2⟩ := rel_x
+  obtain ⟨m, hm1, hm2⟩ := rel_y
+  refine ⟨n * m, by positivity, ?_⟩
+  simp only [← map_nsmul, Prod.smul_mk, show (n * m) • i = m • (n • i) by rw [mul_comm, mul_smul],
+    hn2, smul_zero, show (n * m) • j = n • (m • j) by rw [mul_smul], hm2, Prod.mk_zero_zero,
+    map_zero, e, X, M]
 
 -- Proposition 2.5.1
 open HomogeneousSubmonoid in
