@@ -1,10 +1,14 @@
 import Mathlib.RingTheory.GradedAlgebra.Basic
 import Mathlib.RingTheory.TensorProduct.Basic
 
+import Project.Grading.HomogeneousSubmonoid
+
+import Project.ForMathlib.TensorProduct
+
 variable {ιA ιB R A B : Type*}
 variable [DecidableEq ιA] [AddCommGroup ιA]
 variable [DecidableEq ιB] [AddCommGroup ιB]
-variable [CommRing R] [Ring A] [Algebra R A] [Ring B] [Algebra R B]
+variable [CommRing R] [CommRing A] [Algebra R A] [CommRing B] [Algebra R B]
 variable (𝒜 : ιA → Submodule R A) (ℬ : ιB → Submodule R B)
 variable [GradedAlgebra 𝒜] [GradedAlgebra ℬ]
 
@@ -151,5 +155,157 @@ noncomputable instance : DirectSum.Decomposition (𝒜 ⊗ ℬ) where
       simp [hx, hy]
 
 noncomputable instance : GradedAlgebra (𝒜 ⊗ ℬ) where
+
+omit [DecidableEq
+  ιA] [AddCommGroup ιA] [DecidableEq ιB] [AddCommGroup ιB] [GradedAlgebra 𝒜] [GradedAlgebra ℬ] in
+lemma mem_degree_iff {iA : ιA} {iB : ιB} (x : A ⊗[R] B) :
+    x ∈ (𝒜 ⊗ ℬ) (iA, iB) ↔
+    ∃ (c : (𝒜 iA ⊗[R] ℬ iB) →₀ (𝒜 iA × ℬ iB)),
+      x = ∑ i ∈ c.support, (c i).1.1 ⊗ₜ (c i).2.1 := by
+  classical
+  fconstructor
+  · rintro (h : x ∈ LinearMap.range _)
+    simp only [LinearMap.mem_range] at h
+    obtain ⟨x, rfl⟩ := h
+    have : x ∈ (⊤ : Submodule R _) := ⟨⟩
+    rw [← TensorProduct.span_tmul_eq_top, mem_span_set] at this
+    obtain ⟨c, hc, (rfl : ∑ i ∈ c.support, _ • _ = _)⟩ := this
+    choose x' y' hxy' using hc
+    let x : c.support → 𝒜 iA := fun i ↦ x' i.2
+    let y : c.support → ℬ iB := fun i ↦ y' i.2
+    have hxy : ∀ i, x i ⊗ₜ[R] y i = i := fun i ↦ hxy' i.2
+    rw [← Finset.sum_attach (s := c.support)]
+    simp_rw [← hxy]
+    simp only [smul_tmul', map_sum, map_tmul, map_smul, Submodule.coe_subtype]
+
+    let C : (𝒜 iA ⊗[R] ℬ iB) →₀ (𝒜 iA × ℬ iB) :=
+      Finsupp.onFinset c.support
+        (fun i ↦ if h : i ∈ c.support then (c i • x' h, y' h) else 0)
+        (by simp only [ne_eq, dite_eq_right_iff, Prod.mk_eq_zero, not_forall, not_and,
+            forall_exists_index]; aesop)
+    use C
+    rw [Finset.sum_subset (Finsupp.support_onFinset_subset : C.support ⊆ c.support) (by
+      intro i hi hi'
+      simp only [Finsupp.mem_support_iff, ne_eq, dite_not, Finsupp.onFinset_apply, dite_eq_left_iff,
+        Prod.mk_eq_zero, not_forall, not_and, not_exists, Classical.not_imp, Decidable.not_not,
+        C] at hi hi' ⊢
+      rw [dif_neg hi]
+      specialize hi' hi
+      obtain ⟨h, h'⟩ := hi'
+      simp only [h, ZeroMemClass.coe_zero, h', tmul_zero, C])]
+    rw [← Finset.sum_attach (s := c.support)]
+    refine Finset.sum_congr rfl ?_
+    rintro ⟨i, hi⟩ -
+    simp only [Finsupp.mem_support_iff, ne_eq, dite_not, Finsupp.onFinset_apply, C] at hi ⊢
+    rw [dif_neg hi]
+    simp only [SetLike.val_smul, x, y, C, hxy']
+  · rintro ⟨c, rfl⟩
+    exact sum_mem fun i hi ↦ ⟨(c i).1 ⊗ₜ (c i).2, rfl⟩
+
+-- Proposition 2.5.1
+open HomogeneousSubmonoid in
+lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
+    (x : A ⊗[R] B) (hom_x : SetLike.Homogeneous (𝒜 ⊗ ℬ) x)
+    (rel_x : ElemIsRelevant x hom_x) :
+    ∃ (n : ℕ) (sA : Fin n → A) (sB : Fin n → B)
+      (hom_sA : ∀ i, SetLike.Homogeneous 𝒜 (sA i))
+      (hom_sB : ∀ i, SetLike.Homogeneous ℬ (sB i))
+      (rel_sA : ∀ i, ElemIsRelevant (sA i) (hom_sA i))
+      (rel_sB : ∀ i, ElemIsRelevant (sB i) (hom_sB i))
+      (k : ℕ),
+      x ^ k = ∑ i : Fin n, sA i ⊗ₜ sB i:= by
+  rw [elemIsRelevant_iff] at rel_x
+  obtain ⟨N, y, d, mem_d, fin_index, ⟨k, hk⟩⟩ := rel_x
+  let dA : Fin N → ιA := Prod.fst ∘ d
+  let dB : Fin N → ιB := Prod.snd ∘ d
+  have hdA : (AddSubgroup.closure (Set.range dA)).FiniteIndex := by
+    have := AddSubgroup.index_map_dvd (f := AddMonoidHom.fst ιA ιB)
+      (AddSubgroup.closure (Set.range d)) (fun i ↦ ⟨⟨i, 0⟩, rfl⟩)
+    rw [show (AddSubgroup.map (AddMonoidHom.fst ιA ιB) (AddSubgroup.closure (Set.range d))) =
+      AddSubgroup.closure (Set.range dA) by
+      refine le_antisymm ?_ ?_
+      · simp only [AddSubgroup.map_le_iff_le_comap, AddSubgroup.closure_le, AddSubgroup.coe_comap,
+        AddMonoidHom.coe_fst]
+        rintro _ ⟨i, rfl⟩
+        simp only [Set.mem_preimage, SetLike.mem_coe]
+        refine AddSubgroup.subset_closure ⟨i, rfl⟩
+      · simp only [AddSubgroup.closure_le, AddSubgroup.coe_map, AddMonoidHom.coe_fst]
+        rintro _ ⟨i, rfl⟩
+        simp only [Set.mem_image, SetLike.mem_coe, Prod.exists, exists_and_right, exists_eq_right]
+        refine ⟨dB i, AddSubgroup.subset_closure ⟨i, rfl⟩⟩] at this
+    constructor
+    intro h
+    rw [h] at this
+    simp only [zero_dvd_iff] at this
+    have := fin_index.1
+    contradiction
+  have hdB : (AddSubgroup.closure (Set.range dB)).FiniteIndex := by
+    have := AddSubgroup.index_map_dvd (f := AddMonoidHom.snd ιA ιB)
+      (AddSubgroup.closure (Set.range d)) (fun i ↦ ⟨⟨0, i⟩, rfl⟩)
+    rw [show (AddSubgroup.map (AddMonoidHom.snd ιA ιB) (AddSubgroup.closure (Set.range d))) =
+      AddSubgroup.closure (Set.range dB) by
+      refine le_antisymm ?_ ?_
+      · simp only [AddSubgroup.map_le_iff_le_comap, AddSubgroup.closure_le, AddSubgroup.coe_comap,
+        AddMonoidHom.coe_fst]
+        rintro _ ⟨i, rfl⟩
+        simp only [Set.mem_preimage, SetLike.mem_coe]
+        refine AddSubgroup.subset_closure ⟨i, rfl⟩
+      · simp only [AddSubgroup.closure_le, AddSubgroup.coe_map, AddMonoidHom.coe_fst]
+        rintro _ ⟨i, rfl⟩
+        simp only [AddMonoidHom.coe_snd, Set.mem_image, SetLike.mem_coe, Prod.exists,
+          exists_eq_right]
+        refine ⟨dA i, AddSubgroup.subset_closure ⟨i, rfl⟩⟩] at this
+    constructor
+    intro h
+    rw [h] at this
+    simp only [zero_dvd_iff] at this
+    have := fin_index.1
+    contradiction
+  have hy (i : Fin N) : y i ∈ (𝒜 ⊗ ℬ) (dA i, dB i) := by apply mem_d
+  simp_rw [mem_degree_iff] at hy
+  choose c hc using hy
+  simp_rw [hc] at hk
+  rw [Finset.prod_sum] at hk
+  simp only [Finset.prod_attach_univ, ← prod_tmul_prod] at hk
+
+  let t := (Finset.univ.pi fun x ↦ (c x).support)
+
+  let M := t.card
+  let sA : Fin M → A :=
+    (fun x ↦ ∏ i : Fin N, (c i (x.1 i (by simp))).1) ∘ t.equivFin.symm
+  let sB : Fin M → B :=
+    (fun x ↦ ∏ i : Fin N, (c i (x.1 i (by simp))).2) ∘
+    (Finset.univ.pi fun x ↦ (c x).support).equivFin.symm
+  have hom_sA : ∀ i, SetLike.Homogeneous 𝒜 (sA i) := by
+    intro i
+    simp only [Function.comp_apply, sA, M]
+    apply SetLike.Homogeneous.prod'
+    intro j
+    simp only [SetLike.homogeneous_coe, sA, M]
+  have hom_sB : ∀ i, SetLike.Homogeneous ℬ (sB i) := by
+    intro i
+    simp only [Function.comp_apply, sB, M]
+    apply SetLike.Homogeneous.prod'
+    intro j
+    simp only [SetLike.homogeneous_coe, sB, M]
+  have rel_sA : ∀ i, ElemIsRelevant (sA i) (hom_sA i) := by
+    intro i
+    rw [elemIsRelevant_iff]
+    refine ⟨N, (fun j ↦ ((c j) (t.equivFin.symm i |>.1 j (by simp))).1.1), dA, ?_, hdA, 1, by
+      simp [pow_one, sA]⟩
+    simp only [SetLike.coe_mem, implies_true, sA, t, sB, M]
+  have rel_sB : ∀ i, ElemIsRelevant (sB i) (hom_sB i) := by
+    intro i
+    rw [elemIsRelevant_iff]
+    refine ⟨N, (fun j ↦ ((c j) (t.equivFin.symm i |>.1 j (by simp))).2.1), dB, ?_, hdB, 1, by
+      simp [pow_one, sB]⟩
+    simp only [SetLike.coe_mem, implies_true, sA, t, sB, M]
+  use M, sA, sB, hom_sA, hom_sB, rel_sA, rel_sB, k
+  rw [← hk, ← Finset.sum_attach]
+  fapply Fintype.sum_bijective
+  · exact t.equivFin.toFun
+  · exact t.equivFin.bijective
+  · rintro ⟨x, hx⟩
+    simp only [Equiv.toFun_as_coe, Function.comp_apply, Equiv.symm_apply_apply, sA, t, sB, M]
 
 end TensorProduct

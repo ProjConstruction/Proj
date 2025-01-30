@@ -28,7 +28,7 @@ end Subgroup
 
 namespace AddGroup
 
-variable (M : Type*) [AddCommGroup M] [AddGroup.FG M]
+variable (M N : Type*) [AddCommGroup M] [AddCommGroup N] [AddGroup.FG M] [AddGroup.FG N]
 
 lemma exists_finite_generating_set_of_FG (s : Set M) (h : AddSubgroup.closure s = ⊤) :
     ∃ (t : Finset M), (t : Set M) ⊆ s ∧ AddSubgroup.closure (t : Set M) = ⊤ := by
@@ -113,5 +113,40 @@ lemma exists_finite_generating_set_of_FG' (s : Set M) (h : AddGroup.FG <| AddSub
   refine AddSubgroup.subset_closure ?_
   simp only [Set.Finite.coe_toFinset, Set.mem_iUnion, Finset.mem_coe, Subtype.exists, 𝓉]
   exact ⟨i, hd hi, hj⟩
+
+instance : AddGroup.FG (M × N) := by
+  classical
+  obtain ⟨⟨s, h⟩⟩ : FG M := inferInstance
+  obtain ⟨⟨t, h'⟩⟩ : FG N := inferInstance
+  refine ⟨⟨(s.product {(0 : N)}) ∪ (Finset.product {(0 : M)} t), ?_⟩⟩
+  -- have := (s.product {(0 : N)}) ∪ (Finset.product {(0 : M)} t)
+  rw [eq_top_iff] at h h' ⊢
+  rintro ⟨m, n⟩ -
+  specialize @h m ⟨⟩
+  specialize @h' n ⟨⟩
+  rw [show (m, n) = (m, 0) + (0, n) by simp]
+  refine add_mem ?_ ?_
+  · refine AddSubgroup.closure_induction ?_ ?_ ?_ ?_ h
+    · intro x hx
+      refine AddSubgroup.subset_closure ?_
+      aesop
+    · exact zero_mem _
+    · intro x y hx hy hx' hy'
+      convert add_mem hx' hy' using 1
+      simp
+    · intro x hx hx'
+      convert neg_mem hx' using 1
+      simp
+  · refine AddSubgroup.closure_induction ?_ ?_ ?_ ?_ h'
+    · intro x hx
+      refine AddSubgroup.subset_closure ?_
+      aesop
+    · exact zero_mem _
+    · intro x y hx hy hx' hy'
+      convert add_mem hx' hy' using 1
+      simp
+    · intro x hx hx'
+      convert neg_mem hx' using 1
+      simp
 
 end AddGroup

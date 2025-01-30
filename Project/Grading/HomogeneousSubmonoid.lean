@@ -247,8 +247,7 @@ attribute [to_additive] Subgroup.closure_mul_image_eq_top'
 attribute [to_additive] Subgroup.exists_finset_card_le_mul
 attribute [to_additive] Subgroup.fg_of_index_ne_zero
 
-set_option maxHeartbeats 500000 in
-lemma exists_factorisation_of_elemIsRelevant [Nontrivial A]
+lemma exists_factorisation_of_elemIsRelevant
     [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a) (a_rel : ElemIsRelevant a ha) :
     ∃ (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
       (_ : ∀ (i : Fin n), x i ∈ 𝒜 (d i)),
@@ -326,6 +325,18 @@ lemma elemIsRelevant_of_homogeneous_of_factorisation
   exact ⟨x i, ⟨⟨d i, mem i⟩, ⟨a ^ k, by rw [mem_closure_singleton (ha := ha)]; aesop, by
     rw [← eq]; apply Finset.dvd_prod_of_mem; aesop⟩⟩, mem i⟩
 
+lemma elemIsRelevant_iff [AddGroup.FG ι]
+    (a : A) (ha : SetLike.Homogeneous 𝒜 a) :
+    ElemIsRelevant a ha ↔
+    ∃ (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
+      (_ : ∀ (i : Fin n), x i ∈ 𝒜 (d i)),
+      (AddSubgroup.closure (Set.range d)).FiniteIndex ∧
+      (∃ (k : ℕ), ∏ i : Fin n, x i = a ^ k) := by
+  fconstructor
+  · intro h
+    exact exists_factorisation_of_elemIsRelevant _ ha h
+  · rintro ⟨n, x, d, mem, finiteIndex, k, eq⟩
+    exact elemIsRelevant_of_homogeneous_of_factorisation _ ha n x d mem finiteIndex k eq
 
 variable (𝒜) in
 def daggerIdeal : HomogeneousIdeal 𝒜 where
