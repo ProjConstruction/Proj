@@ -156,6 +156,17 @@ noncomputable instance : DirectSum.Decomposition (𝒜 ⊗ ℬ) where
 
 noncomputable instance : GradedAlgebra (𝒜 ⊗ ℬ) where
 
+variable {𝒜 ℬ}
+omit [DecidableEq
+  ιA] [AddCommGroup ιA] [DecidableEq ιB] [AddCommGroup ιB] [GradedAlgebra 𝒜] [GradedAlgebra ℬ] in
+lemma tmul_homogeneous {a : A} {b : B}
+    (ha : SetLike.Homogeneous 𝒜 a) (hb : SetLike.Homogeneous ℬ b) :
+    SetLike.Homogeneous (𝒜 ⊗ ℬ) (a ⊗ₜ b) := by
+  rcases ha with ⟨i, ha⟩
+  rcases hb with ⟨j, hb⟩
+  use (i, j), ⟨a, ha⟩ ⊗ₜ ⟨b, hb⟩
+  simp
+
 omit [DecidableEq
   ιA] [AddCommGroup ιA] [DecidableEq ιB] [AddCommGroup ιB] [GradedAlgebra 𝒜] [GradedAlgebra ℬ] in
 lemma mem_degree_iff {iA : ιA} {iB : ιB} (x : A ⊗[R] B) :
@@ -202,6 +213,13 @@ lemma mem_degree_iff {iA : ιA} {iB : ιB} (x : A ⊗[R] B) :
   · rintro ⟨c, rfl⟩
     exact sum_mem fun i hi ↦ ⟨(c i).1 ⊗ₜ (c i).2, rfl⟩
 
+open HomogeneousSubmonoid in
+lemma tmul_elemIsRelevant [AddGroup.FG ιA] [AddGroup.FG ιB]
+    {x : A} {y : B} {hom_x : SetLike.Homogeneous 𝒜 x} {hom_y : SetLike.Homogeneous ℬ y}
+    (rel_x : ElemIsRelevant x hom_x) (rel_y : ElemIsRelevant y hom_y) :
+    ElemIsRelevant (x ⊗ₜ y) (tmul_homogeneous hom_x hom_y) := by
+  sorry
+
 -- Proposition 2.5.1
 open HomogeneousSubmonoid in
 lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
@@ -210,8 +228,8 @@ lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
     ∃ (n : ℕ) (sA : Fin n → A) (sB : Fin n → B)
       (hom_sA : ∀ i, SetLike.Homogeneous 𝒜 (sA i))
       (hom_sB : ∀ i, SetLike.Homogeneous ℬ (sB i))
-      (rel_sA : ∀ i, ElemIsRelevant (sA i) (hom_sA i))
-      (rel_sB : ∀ i, ElemIsRelevant (sB i) (hom_sB i))
+      (_ : ∀ i, ElemIsRelevant (sA i) (hom_sA i))
+      (_ : ∀ i, ElemIsRelevant (sB i) (hom_sB i))
       (k : ℕ),
       x ^ k = ∑ i : Fin n, sA i ⊗ₜ sB i:= by
   rw [elemIsRelevant_iff] at rel_x
@@ -298,8 +316,8 @@ lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
     intro i
     rw [elemIsRelevant_iff]
     refine ⟨N, (fun j ↦ ((c j) (t.equivFin.symm i |>.1 j (by simp))).2.1), dB, ?_, hdB, 1, by
-      simp [pow_one, sB]⟩
-    simp only [SetLike.coe_mem, implies_true, sA, t, sB, M]
+      simp [pow_one, sB, t]⟩
+    simp only [SetLike.coe_mem, implies_true, t, sB, sA, M]
   use M, sA, sB, hom_sA, hom_sB, rel_sA, rel_sB, k
   rw [← hk, ← Finset.sum_attach]
   fapply Fintype.sum_bijective
@@ -307,5 +325,106 @@ lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
   · exact t.equivFin.bijective
   · rintro ⟨x, hx⟩
     simp only [Equiv.toFun_as_coe, Function.comp_apply, Equiv.symm_apply_apply, sA, t, sB, M]
+
+variable (𝒜 ℬ) in
+open HomogeneousSubmonoid in
+protected noncomputable def dagger : Ideal (A ⊗[R] B) :=
+{ __ := (LinearMap.range
+  (map (Submodule.subtype 𝒜†.toIdeal) (Submodule.subtype ℬ†.toIdeal) :
+    ((dagger 𝒜).toIdeal ⊗[R] (dagger ℬ).toIdeal) →ₗ[R] (A ⊗[R] B)))
+  smul_mem' := by
+    intro r x hx
+    simp only [AddSubsemigroup.mem_carrier, AddSubmonoid.mem_toSubsemigroup,
+      Submodule.mem_toAddSubmonoid, LinearMap.mem_range, smul_eq_mul] at hx ⊢
+    obtain ⟨x, rfl⟩ := hx
+    induction x using TensorProduct.induction_on with
+    | zero =>
+      use 0
+      simp only [map_zero, mul_zero]
+    | tmul a b =>
+      simp only [map_tmul, LinearMap.coe_restrictScalars, Submodule.coe_subtype]
+      induction r using TensorProduct.induction_on with
+      | zero =>
+        use 0
+        simp only [map_zero, zero_mul]
+      | tmul a' b' =>
+        simp only [Algebra.TensorProduct.tmul_mul_tmul]
+        use (a' • a) ⊗ₜ (b' • b)
+        simp only [map_tmul, LinearMap.coe_restrictScalars, map_smul, Submodule.coe_subtype,
+          smul_eq_mul]
+      | add x y hx hy =>
+        obtain ⟨y₁, eq1⟩ := hx
+        obtain ⟨y₂, eq₂⟩ := hy
+        use y₁ + y₂
+        simp only [map_add, eq1, eq₂, add_mul]
+    | add x y hx hy =>
+      obtain ⟨y₁, eq₁⟩ := hx
+      obtain ⟨y₂, eq₂⟩ := hy
+      use y₁ + y₂
+      simp only [map_add, eq₁, eq₂, mul_add] }
+
+open HomogeneousSubmonoid in
+lemma rad_dagger [AddGroup.FG ιA] [AddGroup.FG ιB] :
+    (dagger (𝒜 ⊗ ℬ)).toIdeal.radical =
+    Ideal.radical (TensorProduct.dagger 𝒜 ℬ)  := by
+  refine le_antisymm ?_ ?_
+  · rw [Ideal.radical_le_radical_iff]
+    change Ideal.span _ ≤ _
+    rw [Ideal.span_le]
+    rintro x ⟨hom, rel⟩
+    simp only [Submodule.coe_set_mk, Submodule.coe_toAddSubmonoid, SetLike.mem_coe,
+      LinearMap.mem_range]
+    obtain ⟨n, a, b, hom_a, hom_b, rel_a, rel_b, ⟨k, eq⟩⟩ := elemIsRelevant_of_exists x hom rel
+    rw [Ideal.mem_radical_iff]
+    use k
+    rw [eq]
+    refine sum_mem fun i _ ↦ ?_
+    simp only [TensorProduct.dagger, Submodule.mem_mk, Submodule.mem_toAddSubmonoid,
+      LinearMap.mem_range]
+    use ⟨a i, Ideal.subset_span ⟨hom_a i, rel_a i⟩⟩ ⊗ₜ ⟨b i, Ideal.subset_span ⟨hom_b i, rel_b i⟩⟩
+    rfl
+  · apply Ideal.radical_mono
+    let M : Submodule R (A ⊗[R] B) :=
+    { carrier := (𝒜⊗ℬ)†.toIdeal
+      smul_mem' r x hx := by
+        simp only [SetLike.mem_coe, HomogeneousIdeal.mem_iff] at hx ⊢
+        rw [_root_.Algebra.smul_def]
+        exact Ideal.mul_mem_left _ _ hx
+      add_mem' := add_mem
+      zero_mem' := zero_mem _ }
+    change LinearMap.range _ ≤ M
+    rw [LinearMap.range_eq_map, Submodule.map_le_iff_le_comap]
+
+    rintro x -
+    simp only [Submodule.mem_comap]
+    change _ ∈ Submodule.span _ _
+
+    induction x using TensorProduct.induction_on with
+    | zero => simp
+    | tmul a b =>
+      rcases a with ⟨a, ha⟩
+      rcases b with ⟨b, hb⟩
+      simp only [map_tmul, LinearMap.coe_restrictScalars, Submodule.coe_subtype,
+        HomogeneousIdeal.mem_iff]
+      change a ∈ Submodule.span _ _ at ha
+      change b ∈ Submodule.span _ _ at hb
+      change _ ∈ Ideal.span _
+      rw [mem_span_set] at ha hb
+      obtain ⟨c, hc, (rfl : ∑ i ∈ c.support, _ • _ = _)⟩ := ha
+      obtain ⟨d, hd, (rfl : ∑ i ∈ d.support, _ • _ = _)⟩ := hb
+      simp only [smul_eq_mul, tmul_sum, sum_tmul]
+      refine sum_mem fun i hi ↦ sum_mem fun j hj ↦ ?_
+      specialize hc hj
+      specialize hd hi
+      obtain ⟨hj, hj'⟩ := hc
+      obtain ⟨hi, hi'⟩ := hd
+      rw [show (c j * j) ⊗ₜ[R] (d i * i) = (c j ⊗ₜ d i) * (j ⊗ₜ i) by
+        simp only [Algebra.TensorProduct.tmul_mul_tmul]]
+      apply Ideal.mul_mem_left
+      refine Ideal.subset_span ?_
+      refine ⟨tmul_homogeneous hj hi, tmul_elemIsRelevant hj' hi'⟩
+    | add x y hx hy =>
+      simp only [map_add, LinearMap.map_add]
+      exact Submodule.add_mem _ hx hy
 
 end TensorProduct

@@ -339,10 +339,10 @@ lemma elemIsRelevant_iff [AddGroup.FG ι]
     exact elemIsRelevant_of_homogeneous_of_factorisation _ ha n x d mem finiteIndex k eq
 
 variable (𝒜) in
-def daggerIdeal : HomogeneousIdeal 𝒜 where
+def dagger : HomogeneousIdeal 𝒜 where
   __ := Ideal.span { x | ∃ (h : SetLike.Homogeneous 𝒜 x), ElemIsRelevant x h }
   is_homogeneous' := Ideal.homogeneous_span _ _ (by rintro x ⟨h, _⟩; exact h)
 
-scoped postfix:max "†" => daggerIdeal
+scoped postfix:max "†" => dagger
 
 end HomogeneousSubmonoid
