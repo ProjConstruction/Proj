@@ -58,6 +58,10 @@ def bar : HomogeneousSubmonoid 𝒜 where
   one_mem' := ⟨SetLike.homogeneous_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
   homogeneous := by rintro x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩; exact hom_x
 
+lemma le_bar : S.toSubmonoid ≤ S.bar.toSubmonoid := by
+  rintro x hx
+  exact ⟨S.2 hx, x, hx, by rfl⟩
+
 lemma mem_bot_bar (x : A) :
     x ∈ HomogeneousSubmonoid.bot.bar (𝒜 := 𝒜).toSubmonoid ↔
     SetLike.Homogeneous 𝒜 x ∧ ∃ (y : A), x * y = 1 := by
