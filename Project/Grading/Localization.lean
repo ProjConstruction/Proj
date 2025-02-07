@@ -358,8 +358,9 @@ noncomputable instance : DirectSum.Decomposition S.LocalizationGrading where
 
 noncomputable instance : GradedRing S.LocalizationGrading where
 
--- sanity check
-example (x : Localization S.toSubmonoid) (i : ι) :
+end LocalizationGrading
+
+lemma mem_localizationGrading_iff (x : Localization S.toSubmonoid) (i : ι) :
     x ∈ S.LocalizationGrading i ↔
     ∃ (m n : ι) (_ : m - n = i) (a : 𝒜 m) (b : 𝒜 n) (hb : b.1 ∈ S.toSubmonoid),
     x = Localization.mk a.1 ⟨b, hb⟩ := by
@@ -370,7 +371,5 @@ example (x : Localization S.toSubmonoid) (i : ι) :
       x.den.2, rfl⟩
   · rintro ⟨m, n, rfl, ⟨a, ha⟩, ⟨b, hb⟩, hb', rfl⟩
     exact ⟨AddCon.mk' _ ⟨a, ⟨b, hb'⟩, m, n, ha, hb, rfl⟩, rfl⟩
-
-end LocalizationGrading
 
 end HomogeneousSubmonoid
