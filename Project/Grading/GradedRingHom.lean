@@ -97,6 +97,33 @@ lemma commutes_apply (f : 𝒜 →+* ℬ) (x) :
     DirectSum.decompose ℬ (f x) = f.asDirectSum (DirectSum.decompose 𝒜 x) :=
   congr_fun (commutes f) x
 
+variable {𝒜 ℬ} in
+@[simp]
+lemma decompose_apply_decompose (f : 𝒜 →+* ℬ) (x) (i) :
+    decompose ℬ (f (decompose 𝒜 x i)) =
+    of _ i ⟨f (decompose 𝒜 x i), f.map_mem (SetLike.coe_mem _)⟩ := by
+  rw [commutes_apply]
+  simp only [decompose_coe, asDirectSum_apply_of]
+
+variable {𝒜 ℬ} in
+lemma homogeneous_of_apply_homogeneous
+      (f : 𝒜 →+* ℬ) {i : ι} {a : A} (hom : f a ∈ ℬ i) :
+    ∃ (a' : A), a' ∈ 𝒜 i ∧ f a' = f a := by
+  classical
+  have eq1 : f a = decompose ℬ (f a) i := by
+    simp [decompose_of_mem _ hom, coe_of_apply]
+  change f a = decomposeAddEquiv ℬ (f a) i at eq1
+  conv_rhs at eq1 => rw [← sum_support_decompose 𝒜 a]
+  simp only [map_sum, decomposeAddEquiv_apply, decompose_apply_decompose] at eq1
+  rw [DFinsupp.finset_sum_apply] at eq1
+  simp only [AddSubmonoidClass.coe_finset_sum, coe_of_apply, apply_ite, ZeroMemClass.coe_zero,
+    Finset.sum_ite_eq', DFinsupp.mem_support_toFun, ne_eq, ite_not] at eq1
+
+  split_ifs at eq1 with h
+  · exact ⟨0, zero_mem _, eq1 ▸ map_zero _⟩
+  · exact ⟨decompose 𝒜 a i, SetLike.coe_mem _, eq1.symm⟩
+
+
 end GradedRingHom
 
 structure GradedRingEquiv extends RingEquiv A B where
