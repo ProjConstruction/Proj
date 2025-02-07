@@ -1,5 +1,7 @@
 import Mathlib.RingTheory.GradedAlgebra.Basic
 
+open DirectSum
+
 variable {ι A B σ τ : Type*}
 variable [AddCommMonoid ι] [DecidableEq ι]
 variable [CommSemiring A] [SetLike σ A] [AddSubmonoidClass σ A] (𝒜 : ι → σ) [GradedRing 𝒜]
@@ -42,6 +44,58 @@ lemma map_homogeneous (f : 𝒜 →+* ℬ) {a : A} (hom_a : SetLike.Homogeneous 
     SetLike.Homogeneous ℬ (f a) := by
   obtain ⟨i, hi⟩ := hom_a
   exact ⟨_, f.map_mem hi⟩
+
+variable {𝒜 ℬ} in
+def asDirectSum (f : 𝒜 →+* ℬ) : (⨁ i, 𝒜 i) →+* (⨁ i, ℬ i) :=
+toSemiring (fun i ↦
+  { toFun x := of _ i ⟨f x, f.map_mem x.2⟩
+    map_zero' := by
+      simp only [ZeroMemClass.coe_zero, map_zero]
+      ext
+      simp only [coe_of_apply, zero_apply, ZeroMemClass.coe_zero, ZeroMemClass.coe_eq_zero,
+        ite_eq_right_iff]
+      aesop
+    map_add' _ _ := by
+      simp only [AddMemClass.coe_add, map_add]
+      ext
+      simp only [coe_of_apply, add_apply, AddMemClass.coe_add]
+      aesop })
+  (by
+    ext i
+    simp only [AddMonoidHom.coe_mk, ZeroHom.coe_mk, SetLike.coe_gOne, map_one, coe_of_apply,
+      one_def, SetLike.coe_eq_coe]
+    rfl)
+  (by
+    intro i j a b
+    ext k
+    simp only [AddMonoidHom.coe_mk, ZeroHom.coe_mk, SetLike.coe_gMul, map_mul, coe_of_apply,
+      of_mul_of, SetLike.coe_eq_coe]
+    rfl)
+
+variable {𝒜 ℬ} in
+@[simp]
+lemma asDirectSum_apply_of (f : 𝒜 →+* ℬ) {i : ι} (x : 𝒜 i) :
+    f.asDirectSum (of _ i x) = of _ i ⟨f x, f.map_mem x.2⟩ := by
+  delta asDirectSum
+  simp only [toSemiring_apply, toAddMonoid_of, AddMonoidHom.coe_mk, ZeroHom.coe_mk]
+
+variable {𝒜 ℬ} in
+lemma commutes (f : 𝒜 →+* ℬ) :
+    DirectSum.decompose ℬ ∘ f = f.asDirectSum ∘ (DirectSum.decompose 𝒜) := by
+  ext x : 1
+  induction x using Decomposition.inductionOn 𝒜 with
+  | h_zero => simp
+  | @h_homogeneous j x  =>
+    simp only [Function.comp_apply, decompose_coe]
+    simp [decompose_of_mem _ (f.map_mem x.2)]
+  | h_add a a' iha iha' =>
+    simp only [Function.comp_apply] at iha iha'
+    simp only [Function.comp_apply, map_add, decompose_add, iha, iha']
+
+variable {𝒜 ℬ} in
+lemma commutes_apply (f : 𝒜 →+* ℬ) (x) :
+    DirectSum.decompose ℬ (f x) = f.asDirectSum (DirectSum.decompose 𝒜 x) :=
+  congr_fun (commutes f) x
 
 end GradedRingHom
 
