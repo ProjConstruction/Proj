@@ -35,6 +35,14 @@ variable {𝒜 ℬ} in
 lemma map_mem (f : 𝒜 →+* ℬ) {i : ι} {x : A} (hx : x ∈ 𝒜 i) : f x ∈ ℬ i :=
   f.map_mem' hx
 
+variable {𝒜 ℬ} in
+omit [AddCommMonoid ι] [DecidableEq ι] [AddSubmonoidClass σ A] [GradedRing 𝒜]
+  [AddSubmonoidClass τ B] [GradedRing ℬ] in
+lemma map_homogeneous (f : 𝒜 →+* ℬ) {a : A} (hom_a : SetLike.Homogeneous 𝒜 a)  :
+    SetLike.Homogeneous ℬ (f a) := by
+  obtain ⟨i, hi⟩ := hom_a
+  exact ⟨_, f.map_mem hi⟩
+
 end GradedRingHom
 
 structure GradedRingEquiv extends RingEquiv A B where

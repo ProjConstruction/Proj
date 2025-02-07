@@ -383,65 +383,65 @@ def dagger : HomogeneousIdeal 𝒜 where
 
 scoped postfix:max "†" => dagger
 
-variable (𝒜) in
-@[simps]
-def relevantAddSubmonoid [AddGroup.FG ι] : Submonoid A where
-  carrier := { x : A | x = 1 ∨ ∃ (h : SetLike.Homogeneous 𝒜 x), ElemIsRelevant x h }
-  mul_mem' := by
-    classical
-    rintro x y (rfl|⟨hom_x, rel_x⟩) (rfl|⟨hom_y, rel_y⟩)
-    · simp
-    · aesop
-    · aesop
-    right
-    refine ⟨SetLike.homogeneous_mul hom_x hom_y, ?_⟩
-    intro i
-    specialize rel_x i
-    specialize rel_y i
-    obtain ⟨n, hn, hn'⟩ := rel_x
-    obtain ⟨m, hm, hm'⟩ := rel_y
-    refine ⟨n + m, (by positivity), ?_⟩
-    rw [agrDeg, ← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-      mem_span_set] at hn'
-    obtain ⟨s, hs, (eq_s : ∑ _ ∈ _, _ • _ = _)⟩ := hn'
-    rw [agrDeg, ← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-      mem_span_set] at hm'
-    obtain ⟨t, ht, (eq_t : ∑ _ ∈ _, _ • _ = _)⟩ := hm'
-    rw [add_smul, ← eq_s, ← eq_t]
-    refine add_mem ?_ ?_
-    · refine sum_mem fun j hj => ?_
-      specialize hs hj
-      refine zsmul_mem (AddSubgroup.subset_closure ?_) _
-      simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq,
-        AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk] at hs
-      obtain ⟨a, ⟨-, ⟨z, hz1, hz⟩⟩, ha⟩ := hs
-      rw [mem_closure_singleton (ha := hom_x)] at hz1
-      obtain ⟨n, rfl⟩ := hz1
-      refine ⟨a, ?_, ha⟩
-      simp   only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
-      refine ⟨⟨j, ha⟩, ((x * y) ^ n), ?_, ?_⟩
-      · rw [mem_closure_singleton (ha := SetLike.homogeneous_mul hom_x hom_y)]
-        use n
-      rw [mul_pow]
-      exact Dvd.dvd.mul_right hz (y ^ n)
-    · refine sum_mem fun j hj => ?_
-      specialize ht hj
-      refine zsmul_mem (AddSubgroup.subset_closure ?_) _
-      simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq,
-        AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk] at ht
-      obtain ⟨a, ⟨-, ⟨z, hz1, hz⟩⟩, ha⟩ := ht
-      rw [mem_closure_singleton (ha := hom_y)] at hz1
-      obtain ⟨n, rfl⟩ := hz1
-      refine ⟨a, ?_, ha⟩
-      simp   only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
-      refine ⟨⟨j, ha⟩, ((x * y) ^ n), ?_, ?_⟩
-      · rw [mem_closure_singleton (ha := SetLike.homogeneous_mul hom_x hom_y)]
-        use n
-      rw [mul_pow]
-      exact Dvd.dvd.mul_left hz (x ^ n)
-  one_mem' := by left; aesop
+-- variable (𝒜) in
+-- @[simps]
+-- def relevantAddSubmonoid [AddGroup.FG ι] : Submonoid A where
+--   carrier := { x : A | x = 1 ∨ ∃ (h : SetLike.Homogeneous 𝒜 x), ElemIsRelevant x h }
+--   mul_mem' := by
+--     classical
+--     rintro x y (rfl|⟨hom_x, rel_x⟩) (rfl|⟨hom_y, rel_y⟩)
+--     · simp
+--     · aesop
+--     · aesop
+--     right
+--     refine ⟨SetLike.homogeneous_mul hom_x hom_y, ?_⟩
+--     intro i
+--     specialize rel_x i
+--     specialize rel_y i
+--     obtain ⟨n, hn, hn'⟩ := rel_x
+--     obtain ⟨m, hm, hm'⟩ := rel_y
+--     refine ⟨n + m, (by positivity), ?_⟩
+--     rw [agrDeg, ← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
+--       mem_span_set] at hn'
+--     obtain ⟨s, hs, (eq_s : ∑ _ ∈ _, _ • _ = _)⟩ := hn'
+--     rw [agrDeg, ← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
+--       mem_span_set] at hm'
+--     obtain ⟨t, ht, (eq_t : ∑ _ ∈ _, _ • _ = _)⟩ := hm'
+--     rw [add_smul, ← eq_s, ← eq_t]
+--     refine add_mem ?_ ?_
+--     · refine sum_mem fun j hj => ?_
+--       specialize hs hj
+--       refine zsmul_mem (AddSubgroup.subset_closure ?_) _
+--       simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq,
+--         AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk] at hs
+--       obtain ⟨a, ⟨-, ⟨z, hz1, hz⟩⟩, ha⟩ := hs
+--       rw [mem_closure_singleton (ha := hom_x)] at hz1
+--       obtain ⟨n, rfl⟩ := hz1
+--       refine ⟨a, ?_, ha⟩
+--       simp   only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
+--       refine ⟨⟨j, ha⟩, ((x * y) ^ n), ?_, ?_⟩
+--       · rw [mem_closure_singleton (ha := SetLike.homogeneous_mul hom_x hom_y)]
+--         use n
+--       rw [mul_pow]
+--       exact Dvd.dvd.mul_right hz (y ^ n)
+--     · refine sum_mem fun j hj => ?_
+--       specialize ht hj
+--       refine zsmul_mem (AddSubgroup.subset_closure ?_) _
+--       simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq,
+--         AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk] at ht
+--       obtain ⟨a, ⟨-, ⟨z, hz1, hz⟩⟩, ha⟩ := ht
+--       rw [mem_closure_singleton (ha := hom_y)] at hz1
+--       obtain ⟨n, rfl⟩ := hz1
+--       refine ⟨a, ?_, ha⟩
+--       simp   only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
+--       refine ⟨⟨j, ha⟩, ((x * y) ^ n), ?_, ?_⟩
+--       · rw [mem_closure_singleton (ha := SetLike.homogeneous_mul hom_x hom_y)]
+--         use n
+--       rw [mul_pow]
+--       exact Dvd.dvd.mul_left hz (x ^ n)
+--   one_mem' := by left; aesop
 
-scoped prefix:max "ℱ_" => relevantAddSubmonoid
+-- scoped prefix:max "ℱ_" => relevantAddSubmonoid
 
 
 end HomogeneousSubmonoid
