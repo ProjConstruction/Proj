@@ -55,6 +55,38 @@ def setoid : Setoid (M.PreDialation) where
     symm {x y} := r_symm x y
     trans {x y z} := r_trans x y z }
 
-def dialation := Quotient M.setoid
+variable (M) in
+def Dialation := Quotient M.setoid
+
+scoped notation:max A"["M"]" => Dialation (A := A) M
+
+instance : Add A[M] where
+  add := Quotient.map₂ sorry sorry
+
+instance : Mul A[M] where
+  mul := Quotient.map₂ sorry sorry
+
+instance : Zero A[M] where
+  zero := sorry
+
+instance : One A[M] where
+  one := sorry
+
+instance : AddCommMonoid A[M] where
+  add_assoc := sorry
+  zero_add := sorry
+  add_zero := sorry
+  add_comm := sorry
+  nsmul := nsmulRec
+
+
+instance : Semiring A[M] where
+  left_distrib := sorry
+  right_distrib := sorry
+  zero_mul := sorry
+  mul_zero := sorry
+  mul_assoc := sorry
+  one_mul := sorry
+  mul_one := sorry
 
 end Multicenter
