@@ -61,9 +61,9 @@ def setoid : Setoid (M.PreDialation) where
     trans {x y z} := r_trans x y z }
 
 variable (M) in
-def Dialation := Quotient M.setoid
+def Dilatation := Quotient M.setoid
 
-scoped notation:max A"["M"]" => Dialation (A := A) M
+scoped notation:max A"["M"]" => Dilatation (A := A) M
 
 instance : Add A[M] where
   add := Quotient.map₂ sorry sorry
