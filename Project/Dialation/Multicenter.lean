@@ -3,6 +3,8 @@ import Mathlib.Algebra.DirectSum.Basic
 
 open DirectSum
 
+section defs
+
 variable (A : Type*) [CommSemiring A]
 
 structure Multicenter where
@@ -11,10 +13,13 @@ structure Multicenter where
   (elem : index → A)
   (mem : ∀ i : index, elem i ∈ ideal i)
 
+end defs
+
 namespace Multicenter
 
-variable {A}
-variable (M : Multicenter A)
+section semiring
+
+variable {A : Type*} [CommSemiring A] (M : Multicenter A)
 
 scoped notation:max M"^ℕ" => DirectSum (Multicenter.index M) (fun _ => ℕ)
 
@@ -80,7 +85,7 @@ instance : AddCommMonoid A[M] where
   nsmul := nsmulRec
 
 
-instance : Semiring A[M] where
+instance instCommSemiring : CommSemiring A[M] where
   left_distrib := sorry
   right_distrib := sorry
   zero_mul := sorry
@@ -88,5 +93,22 @@ instance : Semiring A[M] where
   mul_assoc := sorry
   one_mul := sorry
   mul_one := sorry
+  mul_comm := sorry
+
+end semiring
+
+section ring
+
+variable {A : Type*} [CommRing A] (M : Multicenter A) [DecidableEq M.index]
+
+instance : Neg A[M] where
+  neg := Quotient.map sorry sorry
+
+instance : CommRing A[M] where
+  __ := instCommSemiring
+  zsmul := zsmulRec
+  neg_add_cancel := sorry
+
+end ring
 
 end Multicenter
