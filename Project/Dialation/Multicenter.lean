@@ -10,7 +10,7 @@ section defs
 variable (A : Type*) [CommSemiring A]
 
 structure Multicenter where
-  (index : Type)
+  (index : Type*)
   (ideal : index → Ideal A)
   (elem : index → A)
   (mem : ∀ i : index, elem i ∈ ideal i)
@@ -166,12 +166,14 @@ instance : Add A[F] where
    rw [mk_eq_mk]
    use α + β
    simp only [mul_assoc, ← prodElemPow_add] at eq''
-   simp only [add'_num, mul_comm _ x.num, mul_comm _ x'.num, add'_pow, add_mul, mul_assoc, ←
-     prodElemPow_add, mul_comm _ y.num, mul_comm _ y'.num]
+   simp only [add'_num, add'_pow, add_mul]
+   rw [mul_comm _ x.num, mul_comm _ x'.num, mul_assoc, ← prodElemPow_add,
+    mul_assoc, ← prodElemPow_add]
+   rw [mul_comm _ y.num, mul_comm _ y'.num, mul_assoc, ← prodElemPow_add,
+    mul_assoc, ← prodElemPow_add]
    convert eq'' using 1 <;>
    · rw [add_comm]
      congr 3 <;> abel
-
 
 lemma mk_add_mk (x y : F.PreDil) : mk x + mk y = mk (add' x y) := rfl
 
