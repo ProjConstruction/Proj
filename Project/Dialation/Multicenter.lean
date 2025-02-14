@@ -158,23 +158,17 @@ def add' (x y : F.PreDil) : F.PreDil where
 
 instance : Add A[F] where
   add := descFun₂ (fun x y ↦ mk ( add' x y))  <| by
-   rintro a b x y ⟨α, hα⟩ ⟨β, hβ⟩
+   rintro x y x' y' ⟨α, hα⟩ ⟨β, hβ⟩
+   have eq := congr($hβ * 𝐚^(α+ β))
+   have eq' := congr($hα * 𝐚^(α+β))
+   --have eq'': LHS of eq + LHS of eq'= RHS of eq + RHS of eq':= by rw [eq, eq']
    simp only
    rw [mk_eq_mk]
    use α + β
-   simp only [add'_num, add'_pow]
-   rw[add_mul]
-   rw[show (α + β + (b.pow + y.pow))=(α + b.pow)+(β + y.pow) by abel]
-   rw[prodElemPow_add]
-   rw[show  F.prodElemPower x.pow * a.num *
-     (F.prodElemPower (α + b.pow) *
-     F.prodElemPower (β + y.pow))= (a.num * F.prodElemPower (α + b.pow))
-     *((F.prodElemPower x.pow)*F.prodElemPower (β + y.pow)) by ring]
-   rw[hα]
-   simp [add_mul, prodElemPow_add]
+   -- apply eq'' + distrib tricks
    ring
+   abel
    sorry
-
 
 lemma mk_add_mk (x y : F.PreDil) : mk x + mk y = mk (add' x y) := rfl
 
@@ -184,7 +178,15 @@ def mul' (x y : F.PreDil) : F.PreDil where
   num := x.num * y.num
   num_mem := prod_mem_prodLargeIdealPower_add x.num_mem y.num_mem
 
-
+lemma dist' (x y z : F.PreDil) : F.r (mul' x (add' y z))
+                                (add' (mul' x y) (mul' x z))  := by
+  use 0
+  simp [mul'_num, add'_num, add'_pow, mul'_pow, zero_add]
+  rw [ prodElemPow_add,  mul_assoc, mul_comm (𝐚^ _), ← mul_assoc,
+    mul_assoc, ← prodElemPow_add,  prodElemPow_add]
+  ring
+  -- MORE RING DISTRIB TRICKS REQUIRED
+  sorry
 
 instance : Mul A[F] where
   mul := descFun₂ (fun x y ↦ mk <| mul' x y) <| by
@@ -225,6 +227,13 @@ instance : One A[F] where
     num := 1
     num_mem := by exact Submodule.one_le.mp fun ⦃x⦄ a ↦ a
   }
+
+  lemma one_def :  (1 :A[F]) =  (mk {
+    pow := 0
+    num := 1
+    num_mem := by simp only [Finsupp.prod_zero_index, Ideal.one_eq_top,
+    Submodule.mem_top]
+  } :A[F]):= rfl
 
 instance : AddCommMonoid A[F] where
   add_assoc := by
@@ -273,15 +282,96 @@ instance : AddCommMonoid A[F] where
 
 
 instance instCommSemiring : CommSemiring A[F] where
-  left_distrib := sorry
-  right_distrib := sorry
-  zero_mul := sorry
-  mul_zero := sorry
-  mul_assoc := sorry
-  one_mul := sorry
-  mul_one := sorry
-  mul_comm := sorry
+  left_distrib := by
+   rintro a b c
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+   induction c using induction_on with |h z =>
+    rw[mk_add_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    simp[dist']
+  right_distrib := by
+   rintro a b c
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+   induction c using induction_on with |h z =>
+    rw[mk_add_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    -- SMALL COMMUTATIVITY TRICK REQUIRED
+    simp[dist']
+    sorry
+  zero_mul := by
+   rintro a
+   induction a using induction_on with |h x =>
+    rw[zero_def]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp only [mul'_num, zero_mul, add_zero, Finsupp.prod_zero_index, mul_one, mul'_pow, zero_add]
 
+  mul_zero := by
+   rintro a
+   induction a using induction_on with |h x =>
+    rw[zero_def]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp only [mul'_num, mul_zero, add_zero, Finsupp.prod_zero_index, mul_one, mul'_pow, zero_add,
+      zero_mul]
+
+  mul_assoc := by
+   intro a b c
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+   induction c using induction_on with |h z =>
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp only [mul'_num, mul'_pow, zero_add]
+    -- SMALL DISTRIB TRICK REQUIRED
+    sorry
+  one_mul := by
+   intro a
+   induction a using induction_on with |h x =>
+    rw[one_def]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp only [mul'_num, one_mul, zero_add, mul'_pow]
+
+  mul_one := by
+   intro a
+   induction a using induction_on with |h x =>
+    rw[one_def]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp only [mul'_num, mul_one, zero_add, mul'_pow, add_zero]
+
+
+  --HEART TRICK required
+  set_option synthInstance.maxHeartbeats 500000 in
+  set_option maxHeartbeats 2000000 in
+  mul_comm := by
+   intro a b
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp?
+    sorry
 end Dilatation
 
 end semiring
