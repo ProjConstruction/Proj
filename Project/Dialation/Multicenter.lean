@@ -360,9 +360,6 @@ instance instCommSemiring : CommSemiring A[F] where
     simp only [mul'_num, mul_one, zero_add, mul'_pow, add_zero]
 
 
-  --HEART TRICK required
-  set_option synthInstance.maxHeartbeats 500000 in
-  set_option maxHeartbeats 2000000 in
   mul_comm := by
    intro a b
    induction a using induction_on with |h x =>
