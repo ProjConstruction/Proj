@@ -159,16 +159,19 @@ def add' (x y : F.PreDil) : F.PreDil where
 instance : Add A[F] where
   add := descFun₂ (fun x y ↦ mk ( add' x y))  <| by
    rintro x y x' y' ⟨α, hα⟩ ⟨β, hβ⟩
-   have eq := congr($hβ * 𝐚^(α+ β))
-   have eq' := congr($hα * 𝐚^(α+β))
-   --have eq'': LHS of eq + LHS of eq'= RHS of eq + RHS of eq':= by rw [eq, eq']
+   have eq := congr($hβ * 𝐚^(x.pow + y.pow + α))
+   have eq' := congr($hα * 𝐚^(x'.pow + y'.pow + β))
+   have eq'' := congr($eq + $eq')
    simp only
    rw [mk_eq_mk]
    use α + β
-   -- apply eq'' + distrib tricks
-   ring
-   abel
-   sorry
+   simp only [mul_assoc, ← prodElemPow_add] at eq''
+   simp only [add'_num, mul_comm _ x.num, mul_comm _ x'.num, add'_pow, add_mul, mul_assoc, ←
+     prodElemPow_add, mul_comm _ y.num, mul_comm _ y'.num]
+   convert eq'' using 1 <;>
+   · rw [add_comm]
+     congr 3 <;> abel
+
 
 lemma mk_add_mk (x y : F.PreDil) : mk x + mk y = mk (add' x y) := rfl
 
@@ -181,12 +184,8 @@ def mul' (x y : F.PreDil) : F.PreDil where
 lemma dist' (x y z : F.PreDil) : F.r (mul' x (add' y z))
                                 (add' (mul' x y) (mul' x z))  := by
   use 0
-  simp [mul'_num, add'_num, add'_pow, mul'_pow, zero_add]
-  rw [ prodElemPow_add,  mul_assoc, mul_comm (𝐚^ _), ← mul_assoc,
-    mul_assoc, ← prodElemPow_add,  prodElemPow_add]
+  simp [prodElemPow_add]
   ring
-  -- MORE RING DISTRIB TRICKS REQUIRED
-  sorry
 
 instance : Mul A[F] where
   mul := descFun₂ (fun x y ↦ mk <| mul' x y) <| by
@@ -202,11 +201,7 @@ instance : Mul A[F] where
     congr 2
     abel
 
-
-
 lemma mk_mul_mk (x y : F.PreDil) : mk x * mk y = mk (mul' x y) := rfl
-
-
 
 instance : Zero A[F] where
   zero := mk {
@@ -228,12 +223,12 @@ instance : One A[F] where
     num_mem := by exact Submodule.one_le.mp fun ⦃x⦄ a ↦ a
   }
 
-  lemma one_def :  (1 :A[F]) =  (mk {
-    pow := 0
-    num := 1
-    num_mem := by simp only [Finsupp.prod_zero_index, Ideal.one_eq_top,
-    Submodule.mem_top]
-  } :A[F]):= rfl
+lemma one_def :  (1 :A[F]) =  (mk {
+  pow := 0
+  num := 1
+  num_mem := by simp only [Finsupp.prod_zero_index, Ideal.one_eq_top,
+  Submodule.mem_top]
+} :A[F]):= rfl
 
 instance : AddCommMonoid A[F] where
   add_assoc := by
@@ -249,9 +244,6 @@ instance : AddCommMonoid A[F] where
     use 0
     simp[prodElemPow_add]
     ring
-
-
-
   zero_add := by
    intro a
    induction a using induction_on with |h x=>
@@ -280,53 +272,7 @@ instance : AddCommMonoid A[F] where
     ring
   nsmul := nsmulRec
 
-
-instance instCommSemiring : CommSemiring A[F] where
-  left_distrib := by
-   rintro a b c
-   induction a using induction_on with |h x =>
-   induction b using induction_on with |h y =>
-   induction c using induction_on with |h z =>
-    rw[mk_add_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
-    simp[dist']
-  right_distrib := by
-   rintro a b c
-   induction a using induction_on with |h x =>
-   induction b using induction_on with |h y =>
-   induction c using induction_on with |h z =>
-    rw[mk_add_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
-    -- SMALL COMMUTATIVITY TRICK REQUIRED
-    simp[dist']
-    sorry
-  zero_mul := by
-   rintro a
-   induction a using induction_on with |h x =>
-    rw[zero_def]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
-    use 0
-    simp only [mul'_num, zero_mul, add_zero, Finsupp.prod_zero_index, mul_one, mul'_pow, zero_add]
-
-  mul_zero := by
-   rintro a
-   induction a using induction_on with |h x =>
-    rw[zero_def]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
-    use 0
-    simp only [mul'_num, mul_zero, add_zero, Finsupp.prod_zero_index, mul_one, mul'_pow, zero_add,
-      zero_mul]
-
+instance monoid : Monoid A[F] where
   mul_assoc := by
    intro a b c
    induction a using induction_on with |h x =>
@@ -338,9 +284,8 @@ instance instCommSemiring : CommSemiring A[F] where
     rw[mk_mul_mk]
     rw[mk_eq_mk]
     use 0
-    simp only [mul'_num, mul'_pow, zero_add]
-    -- SMALL DISTRIB TRICK REQUIRED
-    sorry
+    simp [prodElemPow_add]
+    ring
   one_mul := by
    intro a
    induction a using induction_on with |h x =>
@@ -348,8 +293,7 @@ instance instCommSemiring : CommSemiring A[F] where
     rw[mk_mul_mk]
     rw[mk_eq_mk]
     use 0
-    simp only [mul'_num, one_mul, zero_add, mul'_pow]
-
+    simp [prodElemPow_add]
   mul_one := by
    intro a
    induction a using induction_on with |h x =>
@@ -357,33 +301,101 @@ instance instCommSemiring : CommSemiring A[F] where
     rw[mk_mul_mk]
     rw[mk_eq_mk]
     use 0
-    simp only [mul'_num, mul_one, zero_add, mul'_pow, add_zero]
+    simp [prodElemPow_add]
 
-
+instance instCommSemiring : CommSemiring A[F] where
+  __ := monoid
+  left_distrib := by
+   rintro a b c
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+   induction c using induction_on with |h z =>
+    rw[mk_add_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp [prodElemPow_add]
+    ring
+  right_distrib := by
+   rintro a b c
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+   induction c using induction_on with |h z =>
+    rw[mk_add_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_mul_mk]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp [prodElemPow_add]
+    ring
+  zero_mul := by
+   rintro a
+   induction a using induction_on with |h x =>
+    rw[zero_def]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp [prodElemPow_add]
+  mul_zero := by
+   rintro a
+   induction a using induction_on with |h x =>
+    rw[zero_def]
+    rw[mk_mul_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp [prodElemPow_add]
   mul_comm := by
    intro a b
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
     rw[mk_mul_mk]
+    rw[mk_mul_mk]
     rw[mk_eq_mk]
     use 0
-    simp?
-    sorry
+    simp [prodElemPow_add]
+    ring
+
 end Dilatation
 
 end semiring
 
 section ring
 
-variable {A : Type*} [CommRing A] (F : Multicenter A) [DecidableEq F.index]
+namespace Dilatation
+
+variable {A : Type*} [CommRing A] {F : Multicenter A} [DecidableEq F.index]
+
+@[simps]
+def neg' (x : F.PreDil) : F.PreDil where
+  pow := x.pow
+  num := -x.num
+  num_mem := neg_mem x.num_mem
 
 instance : Neg A[F] where
-  neg := Quotient.map sorry sorry
+  neg := descFun (mk ∘ neg') <| by
+    rintro x y ⟨α, hα⟩
+    simp only [Function.comp_apply, mk_eq_mk]
+    use α
+    simp [hα]
+
+lemma mk_neg (x : F.PreDil) : -mk x = mk (neg' x) := rfl
 
 instance : CommRing A[F] where
   __ := instCommSemiring
   zsmul := zsmulRec
-  neg_add_cancel := sorry
+  neg_add_cancel := by
+    intro a
+    induction a using induction_on with |h x =>
+    simp only [mk_neg, mk_add_mk, zero_def, mk_eq_mk]
+    use 0
+    simp
+
+end Dilatation
 
 end ring
 
