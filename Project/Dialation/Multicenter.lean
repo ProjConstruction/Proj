@@ -27,6 +27,12 @@ scoped notation: max F"^ℕ"  => Multicenter.index F  →₀ ℕ
 
 def LargeIdeal (i : F.index) : Ideal A := F.ideal i + Ideal.span {F.elem i}
 
+lemma elem_mem_LargeIdeal (i: F.index) : F.elem i ∈ F.LargeIdeal i := by
+  suffices inequality : Ideal.span {F.elem i} ≤ F.LargeIdeal i by
+   apply inequality
+   exact Ideal.mem_span_singleton_self (F.elem i)
+  simp only [LargeIdeal, Submodule.add_eq_sup, le_sup_right]
+
 abbrev prodLargeIdealPower (v : F^ℕ) : Ideal A :=
   v.prod fun i k ↦ F.LargeIdeal i ^ k
 
@@ -55,6 +61,16 @@ lemma prodElemPow_add (β γ : F^ℕ ) : 𝐚^(β + γ)= 𝐚^β* 𝐚^γ := by
  simp[prodElemPower]
  simp[pow_add, Finset.prod_mul_distrib,
   Finset.prod_subset_one_on_sdiff, Finsupp.prod_add_index]
+
+ omit [DecidableEq F.index] in
+
+lemma prodElemPow_mem (v :F^ℕ) : 𝐚^v ∈ 𝐋^v := by
+  apply Ideal.prod_mem_prod
+  intro i hi
+  simp only
+  apply Ideal.pow_mem_pow
+  exact elem_mem_LargeIdeal F i
+
 
 structure PreDil where
   pow : F^ℕ
@@ -132,14 +148,43 @@ lemma descFun₂_mk_mk {B : Type*} (f : F.PreDil → F.PreDil → B)
     (hf : ∀ a b x y, F.r a b → F.r x y → f a x = f b y) (x y : F.PreDil) :
     descFun₂ f hf (mk x) (mk y) = f x y := rfl
 
+@[simps]
+def add' (x y : F.PreDil) : F.PreDil where
+ pow := x.pow + y.pow
+ num := 𝐚^y.pow * x.num + 𝐚^x.pow * y.num
+ num_mem := Ideal.add_mem _ (by
+  rw[add_comm]
+  exact prod_mem_prodLargeIdealPower_add (prodElemPow_mem F y.pow) x.num_mem) (prod_mem_prodLargeIdealPower_add (prodElemPow_mem F x.pow) y.num_mem)
+
 instance : Add A[F] where
-  add := Quotient.map₂ sorry sorry
+  add := descFun₂ (fun x y ↦ mk ( add' x y))  <| by
+   rintro a b x y ⟨α, hα⟩ ⟨β, hβ⟩
+   simp only
+   rw [mk_eq_mk]
+   use α + β
+   simp only [add'_num, add'_pow]
+   rw[add_mul]
+   rw[show (α + β + (b.pow + y.pow))=(α + b.pow)+(β + y.pow) by abel]
+   rw[prodElemPow_add]
+   rw[show  F.prodElemPower x.pow * a.num *
+     (F.prodElemPower (α + b.pow) *
+     F.prodElemPower (β + y.pow))= (a.num * F.prodElemPower (α + b.pow))
+     *((F.prodElemPower x.pow)*F.prodElemPower (β + y.pow)) by ring]
+   rw[hα]
+   simp [add_mul, prodElemPow_add]
+   ring
+   sorry
+
+
+lemma mk_add_mk (x y : F.PreDil) : mk x + mk y = mk (add' x y) := rfl
 
 @[simps]
 def mul' (x y : F.PreDil) : F.PreDil where
   pow := x.pow + y.pow
   num := x.num * y.num
   num_mem := prod_mem_prodLargeIdealPower_add x.num_mem y.num_mem
+
+
 
 instance : Mul A[F] where
   mul := descFun₂ (fun x y ↦ mk <| mul' x y) <| by
@@ -155,19 +200,75 @@ instance : Mul A[F] where
     congr 2
     abel
 
+
+
 lemma mk_mul_mk (x y : F.PreDil) : mk x * mk y = mk (mul' x y) := rfl
 
+
+
 instance : Zero A[F] where
-  zero := sorry
+  zero := mk {
+    pow := 0
+    num := 0
+    num_mem := by exact Submodule.zero_mem (F.prodLargeIdealPower 0)
+  }
+
+lemma zero_def :  (0 :A[F]) =  (mk {
+    pow := 0
+    num := 0
+    num_mem := by simp only [Finsupp.prod_zero_index, Ideal.one_eq_top, Submodule.zero_mem]
+  } :A[F]):= rfl
 
 instance : One A[F] where
-  one := sorry
+  one := mk {
+    pow := 0
+    num := 1
+    num_mem := by exact Submodule.one_le.mp fun ⦃x⦄ a ↦ a
+  }
 
 instance : AddCommMonoid A[F] where
-  add_assoc := sorry
-  zero_add := sorry
-  add_zero := sorry
-  add_comm := sorry
+  add_assoc := by
+   intro a b c
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+   induction c using induction_on with |h z =>
+    rw[mk_add_mk]
+    rw[mk_add_mk]
+    rw[mk_add_mk]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp[prodElemPow_add]
+    ring
+
+
+
+  zero_add := by
+   intro a
+   induction a using induction_on with |h x=>
+    rw[zero_def]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp[prodElemPow_add]
+  add_zero := by
+   intro a
+   induction a using induction_on with |h x=>
+    rw[zero_def]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp[prodElemPow_add]
+  add_comm := by
+   intro a b
+   induction a using induction_on with |h x =>
+   induction b using induction_on with |h y =>
+    rw[mk_add_mk]
+    rw[mk_add_mk]
+    rw[mk_eq_mk]
+    use 0
+    simp[prodElemPow_add]
+    ring
   nsmul := nsmulRec
 
 
