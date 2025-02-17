@@ -158,7 +158,7 @@ def add' (x y : F.PreDil) : F.PreDil where
   exact prod_mem_prodLargeIdealPower_add (prodElemPow_mem F y.pow) x.num_mem) (prod_mem_prodLargeIdealPower_add (prodElemPow_mem F x.pow) y.num_mem)
 
 instance : Add A[F] where
-  add := descFun₂ (fun x y ↦ mk ( add' x y))  <| by
+  add := descFun₂ (fun x y ↦ mk (add' x y))  <| by
    rintro x y x' y' ⟨α, hα⟩ ⟨β, hβ⟩
    have eq := congr($hβ * 𝐚^(x.pow + y.pow + α))
    have eq' := congr($hα * 𝐚^(x'.pow + y'.pow + β))
@@ -385,6 +385,14 @@ lemma algebraMap_apply (x : A) : algebraMap A A[F] x = mk {
   num_mem := by simp
 } := rfl
 
+lemma smul_mk (x : A) (y : F.PreDil) : x • mk y = mk {
+    pow := y.pow
+    num := x * y.num
+    num_mem := Ideal.mul_mem_left _ _ y.num_mem } := by
+  simp only [Algebra.smul_def, algebraMap_apply, mk_mul_mk, mk_eq_mk]
+  use 0
+  simp
+
 abbrev frac (ν : F^ℕ)  (m: 𝐋^ν) : A[F]:=
   mk {
     pow := ν
@@ -392,9 +400,31 @@ abbrev frac (ν : F^ℕ)  (m: 𝐋^ν) : A[F]:=
     num_mem := by simp
     }
 
-scoped notation:max ν"/[" F"]"m => frac (F := F) ν m
+scoped notation:max m"/.[" F"]"ν => frac (F := F) ν m
 
-scoped notation:max ν"/"m => frac ν m
+scoped notation:max m"/."ν => frac ν m
+
+lemma frac_add_frac (v w : F^ℕ) (m : 𝐋^v) (n : 𝐋^w) :
+    (m/.v) + (n/.w) =
+    (⟨m * 𝐚^w + n * 𝐚^v, Ideal.add_mem _
+      (prod_mem_prodLargeIdealPower_add m.2 (prodElemPow_mem F w))
+      (add_comm v w ▸ prod_mem_prodLargeIdealPower_add n.2 (prodElemPow_mem F v))⟩)/.(v + w) := by
+  simp only [frac, mk_add_mk, mk_eq_mk]
+  use 0
+  simp only [add'_num, zero_add, prodElemPow_add, add'_pow]
+  ring
+
+lemma frac_mul_frac (v w : F^ℕ) (m : 𝐋^v) (n : 𝐋^w) :
+    (m/.v) * (n/.w) =
+    (⟨m * n, prod_mem_prodLargeIdealPower_add m.2 n.2⟩)/.(v + w) := by
+  simp only [frac, mk_mul_mk, mk_eq_mk]
+  use 0
+  simp
+
+lemma smul_frac (a : A) (v : F^ℕ) (m : 𝐋^v) : a • (m/.v) = (a • m)/.v := by
+  simp only [frac, smul_mk, mk_eq_mk]
+  use 0
+  simp
 
 end Dilatation
 
@@ -430,6 +460,11 @@ instance : CommRing A[F] where
     simp only [mk_neg, mk_add_mk, zero_def, mk_eq_mk]
     use 0
     simp
+
+lemma neg_frac (v : F^ℕ) (m : 𝐋^v) : -(m/.v) = (-m)/.v := by
+  simp only [frac, mk_neg, mk_eq_mk]
+  use 0
+  simp
 
 end Dilatation
 
