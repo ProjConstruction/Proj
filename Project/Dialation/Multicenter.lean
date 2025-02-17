@@ -36,7 +36,10 @@ lemma elem_mem_LargeIdeal (i: F.index) : F.elem i ∈ F.LargeIdeal i := by
 abbrev prodLargeIdealPower (v : F^ℕ) : Ideal A :=
   v.prod fun i k ↦ F.LargeIdeal i ^ k
 
-local prefix:max "𝐋^" => prodLargeIdealPower F
+scoped prefix:max "𝐋^" => prodLargeIdealPower _
+
+scoped notation:max "𝐋^["F"]" => prodLargeIdealPower F
+
 
 variable {F} in
 lemma prod_mem_prodLargeIdealPower_add {v w : F^ℕ} {a b : A} (ha : a ∈ 𝐋^v) (hb : b ∈ 𝐋^w) :
@@ -52,17 +55,17 @@ lemma prod_mem_prodLargeIdealPower_add {v w : F^ℕ} {a b : A} (ha : a ∈ 𝐋^
     rw [pow_add]
   exact Ideal.mul_mem_mul ha hb
 
-variable [DecidableEq F.index]
 abbrev prodElemPower (v : F^ℕ) : A := v.prod fun i k ↦ F.elem i ^ k
 
-local prefix:max "𝐚^" => prodElemPower F
+scoped prefix:max "𝐚^" => prodElemPower _
+
+scoped notation:max "𝐚^["F"]" => prodElemPower F
 
 lemma prodElemPow_add (β γ : F^ℕ ) : 𝐚^(β + γ)= 𝐚^β* 𝐚^γ := by
+  classical
  simp[prodElemPower]
  simp[pow_add, Finset.prod_mul_distrib,
   Finset.prod_subset_one_on_sdiff, Finsupp.prod_add_index]
-
- omit [DecidableEq F.index] in
 
 lemma prodElemPow_mem (v :F^ℕ) : 𝐚^v ∈ 𝐋^v := by
   apply Ideal.prod_mem_prod
@@ -82,10 +85,8 @@ def r : F.PreDil → F.PreDil → Prop := fun x y =>
 
 variable {F}
 
-omit [DecidableEq F.index] in
 lemma r_refl (x : F.PreDil) : F.r x x := by simp[r]
 
-omit [DecidableEq F.index] in
 lemma r_symm (x y : F.PreDil) : F.r x y → F.r y x := by
   intro h
   rcases h with ⟨β , hβ⟩
@@ -362,6 +363,33 @@ instance instCommSemiring : CommSemiring A[F] where
     simp [prodElemPow_add]
     ring
 
+variable (F) in
+@[simps]
+def fromBaseRing : A →+* A[F] where
+  toFun x := .mk
+        { pow := 0
+          num := x
+          num_mem := by simp }
+  map_one' := by simp [one_def]
+  map_mul' _ _ := by simp only [mk_mul_mk, mk_eq_mk]; use 0; simp
+  map_zero' := by simp [zero_def]
+  map_add' _ _ := by simp [mk_add_mk, mk_eq_mk]; use 0; simp
+
+instance : Algebra A A[F] := RingHom.toAlgebra (fromBaseRing F)
+
+lemma algebraMap_eq : (algebraMap A A[F]) = fromBaseRing F := rfl
+
+abbrev frac (ν : F^ℕ)  (m: 𝐋^ν) : A[F]:=
+  mk {
+    pow := ν
+    num := m
+    num_mem := by simp
+    }
+
+scoped notation:max ν"/[" F"]"m => frac (F := F) ν m
+
+scoped notation:max ν"/"m => frac ν m
+
 end Dilatation
 
 end semiring
@@ -370,7 +398,7 @@ section ring
 
 namespace Dilatation
 
-variable {A : Type*} [CommRing A] {F : Multicenter A} [DecidableEq F.index]
+variable {A : Type*} [CommRing A] {F : Multicenter A}
 
 @[simps]
 def neg' (x : F.PreDil) : F.PreDil where
