@@ -1,4 +1,5 @@
 import Mathlib.RingTheory.Ideal.Operations
+import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
 
 suppress_compilation
@@ -469,5 +470,40 @@ lemma neg_frac (v : F^ℕ) (m : 𝐋^v) : -(m/.v) = (-m)/.v := by
 end Dilatation
 
 end ring
+
+section universal_property
+
+variable {A B : Type*} [CommSemiring A] [CommSemiring B] (F : Multicenter A)
+
+def desc (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) : A[F] →+* B where
+  toFun := Dilatation.descFun _ _
+  map_one' := _
+  map_mul' := _
+  map_zero' := _
+  map_add' := _
+
+
+open Dilatation in
+lemma desc_apply_frac (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
+    (v : F^ℕ) (m : 𝐋^v) :
+    χ (𝐚^v) * desc F χ non_zero_divisor gen (m /. v) =
+    χ m := by
+  sorry
+
+
+open Dilatation in
+lemma desc_uniq (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
+    (χ' : A[F] →+* B)
+    (h : ∀ (v : F^ℕ) (m : 𝐋^v), χ (𝐚^v) * χ' (m /. v) = χ m) :
+    desc F χ non_zero_divisor gen = χ' := by
+  sorry
+
+end universal_property
 
 end Multicenter
