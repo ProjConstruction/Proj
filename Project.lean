@@ -9,5 +9,6 @@ import Project.Grading.HomogeneousSubmonoid
 import Project.Grading.IsoBar
 import Project.Grading.Localization
 import Project.Grading.LocalizedModule
+import Project.Grading.Potions
 import Project.Grading.TensorProduct
 import Project.Grading.Twisting
