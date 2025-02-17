@@ -379,6 +379,12 @@ instance : Algebra A A[F] := RingHom.toAlgebra (fromBaseRing F)
 
 lemma algebraMap_eq : (algebraMap A A[F]) = fromBaseRing F := rfl
 
+lemma algebraMap_apply (x : A) : algebraMap A A[F] x = mk {
+  pow := 0
+  num := x
+  num_mem := by simp
+} := rfl
+
 abbrev frac (ν : F^ℕ)  (m: 𝐋^ν) : A[F]:=
   mk {
     pow := ν
