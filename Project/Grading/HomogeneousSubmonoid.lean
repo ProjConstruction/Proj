@@ -94,7 +94,10 @@ instance : Mul (HomogeneousSubmonoid 𝒜) where
 
 lemma mem_mul_iff {S T : HomogeneousSubmonoid 𝒜} (x : A) :
     x ∈ (S * T) ↔
-    ∃ s ∈ S, ∃ t ∈ T, x = s * t := by sorry
+    ∃ s ∈ S, ∃ t ∈ T, x = s * t := by
+  fconstructor <;>
+  · rintro ⟨s, hs, t, ht, rfl⟩
+    exact ⟨s, hs, t, ht, rfl⟩
 
 def bar : HomogeneousSubmonoid 𝒜 where
   carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
@@ -113,6 +116,10 @@ lemma mem_bar (x : A) :
 instance : PartialOrder (HomogeneousSubmonoid 𝒜) :=
   PartialOrder.lift (fun S ↦ S.toSubmonoid)
     (injective_of_le_imp_le _ <| by aesop)
+
+lemma bar_mono (S T : HomogeneousSubmonoid 𝒜) : S ≤ T → S.bar ≤ T.bar := by
+  rintro h x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩
+  exact ⟨hom_x, ⟨y, ⟨h hy, hy'⟩⟩⟩
 
 omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
 lemma le_iff (S T : HomogeneousSubmonoid 𝒜) : S ≤ T ↔ S.toSubmonoid ≤ T.toSubmonoid :=
