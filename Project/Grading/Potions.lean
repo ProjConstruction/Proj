@@ -24,6 +24,9 @@ lemma toMul_mk (x) : S.toMul T (.mk x) = .mk ⟨x.deg, x.num, x.den, le_mul_left
 
 instance : Algebra S.Potion (S * T).Potion := RingHom.toAlgebra (toMul S T)
 
+@[simp]
+lemma mul_potion_algebraMap_eq : (algebraMap S.Potion (S * T).Potion) = S.toMul T := rfl
+
 def toBarPotion : S.Potion →+* S.bar.Potion :=
   HomogeneousLocalization.map _ _ (.id A) (by
       erw [Submonoid.comap_id, ← le_iff]
@@ -124,6 +127,9 @@ lemma toMul_equivBarPotion_symm (x) :
 
 instance : Algebra S.Potion S.bar.Potion :=
   RingHom.toAlgebra S.equivBarPotion
+
+@[simp]
+lemma bar_potion_algebraMap_eq : (algebraMap S.Potion S.bar.Potion) = S.equivBarPotion := rfl
 
 structure potionGen where
   (carrier : Set A)
@@ -461,7 +467,6 @@ lemma localizationToPotion_surjective (T' : potionGen S T) :
   rw [IsUnit.coe_liftRight]
   simp only [smul_eq_mul, toMul_equivBarPotion_symm, id_eq, eq_mpr_eq_cast, ne_eq, Int.reduceNeg,
     eq_mp_eq_cast, map_prod, map_pow, MonoidHom.restrict_apply, MonoidHom.coe_coe, num, den, X]
-  -- simp only [← map_pow, ← map_prod]
   apply_fun (S * T).equivBarPotion
   simp only [RingEquiv.apply_symm_apply, map_mul, equivBarPotion_apply, toBarPotion_mk, map_prod,
     map_pow, ← HomogeneousLocalization.mk_pow, HomogeneousLocalization.prod_mk, num, den, X]
@@ -490,5 +495,23 @@ lemma localizationToPotion_surjective (T' : potionGen S T) :
   conv_rhs => rw [show (T'.n ⟨t, hd _ ht⟩ : ℕ) = (T'.n ⟨t, hd _ ht⟩ - 1 + 1 : ℕ) from
     Nat.succ_pred_eq_of_pos (T'.n ⟨t, hd _ ht⟩).2 |>.symm]
   ring
+
+variable {S T} in
+def localizationRingEquivPotion (T' : potionGen S T) :
+    Localization T'.toSubmonoid ≃+* (S * T).Potion :=
+  RingEquiv.ofBijective (localizationToPotion T')
+    ⟨localizationToPotion_injective T', localizationToPotion_surjective T'⟩
+
+variable {S T} in
+def localizationAlgEquivPotion (T' : potionGen S T) :
+    Localization T'.toSubmonoid ≃ₐ[S.Potion] (S * T).Potion :=
+  AlgEquiv.ofRingEquiv (f := localizationRingEquivPotion T') fun x ↦ by
+    simp only [localizationRingEquivPotion, ← Localization.mk_one_eq_algebraMap,
+      RingEquiv.coe_ofBijective, mul_potion_algebraMap_eq]
+    induction x using Quotient.inductionOn' with | h x =>
+    simp [localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk']
+
+instance (T' : potionGen S T) : IsLocalization (T'.toSubmonoid) (S * T).Potion :=
+  IsLocalization.isLocalization_of_algEquiv (T'.toSubmonoid) (localizationAlgEquivPotion T')
 
 end HomogeneousSubmonoid
