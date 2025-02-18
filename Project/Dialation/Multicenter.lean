@@ -483,21 +483,25 @@ lemma  cond_univ_implies_large_cond (χ : A →+* B)
      intro v
      rw[prodElemPower]
      rw[prodLargeIdealPower]
-     simp[Ideal.span_singleton_mul_span_singleton]
+     --d:= cardinal ν.support
+     --induction d
+    -- if d =0 : trivial
+     --otherwise apply induction hypothesis and Ideal.span_singleton_mul_span_singleton
      sorry
 
 lemma  lemma_exists_in_image (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B , { χ 𝐚^ν  }*bm=χ (m) )):= by
+    (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B ,  χ 𝐚^ν *bm=χ (m) )):= by
+     intro v m
   --Ideal.mem_span_singleton' (Mathlib) and cond_univ_implies_large_cond shows existence of bm
   --mul_cancel_right_mem_nonZeroDivisors (Mathlib) shows unicity of bm (it is written for rings so we might restrict to rings here
-   sorry
+    sorry
 
-def def_exists_in_image (χ : A →+* B)
+def def_bm (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):=
-    Exists.choose_spec
+     --(lemma_exists_in_image bm).choose_spec
 
 def desc (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
