@@ -475,9 +475,35 @@ section universal_property
 
 variable {A B : Type*} [CommSemiring A] [CommSemiring B] (F : Multicenter A)
 
+
+lemma  cond_univ_implies_large_cond (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    (∀ (ν : F^ℕ) , (Ideal.span {χ (𝐚^ν)} = Ideal.map χ (𝐋^ν))) :=by
+     intro v
+     rw[prodElemPower]
+     rw[prodLargeIdealPower]
+     simp[Ideal.span_singleton_mul_span_singleton]
+     sorry
+
+lemma  lemma_exists_in_image (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B , { χ 𝐚^ν  }*bm=χ (m) )):= by
+  --Ideal.mem_span_singleton' (Mathlib) and cond_univ_implies_large_cond shows existence of bm
+  --mul_cancel_right_mem_nonZeroDivisors (Mathlib) shows unicity of bm (it is written for rings so we might restrict to rings here
+   sorry
+
+def def_exists_in_image (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):=
+    Exists.choose_spec
+
 def desc (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) : A[F] →+* B where
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) :
+     A[F] →+* B where
+     --m/.ν ↦ bm of cond_univ_implies_large_cond
   toFun := Dilatation.descFun _ _
   map_one' := _
   map_mul' := _
@@ -492,6 +518,7 @@ lemma desc_apply_frac (χ : A →+* B)
     (v : F^ℕ) (m : 𝐋^v) :
     χ (𝐚^v) * desc F χ non_zero_divisor gen (m /. v) =
     χ m := by
+  --explicit_image  and desc both above
   sorry
 
 
@@ -502,6 +529,7 @@ lemma desc_uniq (χ : A →+* B)
     (χ' : A[F] →+* B)
     (h : ∀ (v : F^ℕ) (m : 𝐋^v), χ (𝐚^v) * χ' (m /. v) = χ m) :
     desc F χ non_zero_divisor gen = χ' := by
+  --by desc_apply_frac and mul_cancel_right_mem_nonZeroDivisors (Mathlib)
   sorry
 
 end universal_property
