@@ -14,8 +14,6 @@ structure Multicenter where
   (index : Type*)
   (ideal : index → Ideal A)
   (elem : index → A)
-  (mem : ∀ i : index, elem i ∈ ideal i)
-
 end defs
 
 namespace Multicenter
@@ -535,6 +533,19 @@ lemma desc_uniq (χ : A →+* B)
     desc F χ non_zero_divisor gen = χ' := by
   --by desc_apply_frac and mul_cancel_right_mem_nonZeroDivisors (Mathlib)
   sorry
+
+def image_mult(χ : A →+* B) :=
+  Multicenter where
+  (index : F.index)
+  (ideal : index → Ideal B, i ↦ Ideal.map χ (Ideal A i ))
+  (elem : index → B, i ↦ χ (F.elem i))
+  (mem : ∀ i : index, elem i ∈ ideal i)
+
+
+lemma dilatation_ring_flat_base_change (χ : A →+* B)
+ ( χ is RingHom.Flat ) : A[F] ⊗ A B ≅ B[image_mult χ] := by
+  sorry
+
 
 end universal_property
 
