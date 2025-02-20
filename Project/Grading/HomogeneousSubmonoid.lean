@@ -6,6 +6,7 @@ import Mathlib.LinearAlgebra.TensorProduct.Tower
 import Mathlib.GroupTheory.Torsion
 import Mathlib.GroupTheory.FiniteAbelian.Basic
 import Mathlib.GroupTheory.Schreier
+import Mathlib.Algebra.Group.Submonoid.Pointwise
 
 import Project.ForMathlib.SubgroupBasic
 import Project.ForMathlib.SetLikeHomogeneous
@@ -28,6 +29,23 @@ namespace HomogeneousSubmonoid
 
 variable {𝒜} (S : HomogeneousSubmonoid 𝒜)
 
+instance : SetLike (HomogeneousSubmonoid 𝒜) A where
+  coe S := S.toSubmonoid
+  coe_injective' := by
+    rintro ⟨S, hS⟩ ⟨T, hT⟩ h
+    simpa using h
+
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
+lemma mem_iff (x : A) : x ∈ S ↔ x ∈ S.toSubmonoid := Iff.rfl
+
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
+@[simp]
+lemma mem_toSubmonoid_iff (x : A) : x ∈ S.toSubmonoid ↔ x ∈ S := Iff.rfl
+
+instance : SubmonoidClass (HomogeneousSubmonoid 𝒜) A where
+  mul_mem ha hb := mul_mem (S := Submonoid A) ha hb
+  one_mem S := one_mem S.toSubmonoid
+
 def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) : HomogeneousSubmonoid 𝒜 where
   __ := Submonoid.closure s
   homogeneous {x} (hx : x ∈ Submonoid.closure s) :=
@@ -36,9 +54,9 @@ def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) : Homogen
       (fun _ _ _ _ hx hy => SetLike.homogeneous_mul hx hy) hx
 
 lemma mem_closure_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
-    x ∈ (closure {a} (by simpa)).toSubmonoid ↔
+    x ∈ (closure {a} (by simpa)) ↔
     ∃ (n : ℕ), x = a ^ n := by
-  simp [closure, Submonoid.mem_closure_singleton, eq_comm]
+  simp [closure, Submonoid.mem_closure_singleton, eq_comm, mem_iff]
 
 @[simps]
 protected def bot : HomogeneousSubmonoid 𝒜 where
@@ -49,8 +67,40 @@ protected def bot : HomogeneousSubmonoid 𝒜 where
     simp only [Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_singleton_iff, forall_eq]
     exact ⟨0, SetLike.GradedOne.one_mem⟩
 
+@[simp]
+lemma mem_bot (x : A) : x ∈ HomogeneousSubmonoid.bot (𝒜 := 𝒜) ↔ x = 1 := by rfl
+
+instance : One (HomogeneousSubmonoid 𝒜) where
+  one := HomogeneousSubmonoid.bot
+
+@[simp]
+lemma mem_one (x : A) : x ∈ (1 : HomogeneousSubmonoid 𝒜) ↔ x = 1 := by rfl
+
+open Pointwise in
+instance : Mul (HomogeneousSubmonoid 𝒜) where
+  mul S T :=
+  { carrier := S.toSubmonoid * T.toSubmonoid
+    mul_mem' {a b} ha hb := by
+      simp only [Set.mem_mul, SetLike.mem_coe] at ha hb ⊢
+      obtain ⟨x, hx, y, hy, rfl⟩ := ha
+      obtain ⟨z, hz, w, hw, rfl⟩ := hb
+      refine ⟨x * z, mul_mem hx hz, y * w, mul_mem hy hw, by group⟩
+    one_mem' := ⟨1, one_mem _, 1, one_mem _, by simp⟩
+    homogeneous := by
+      rintro _ ⟨a, ha, b, hb, rfl⟩
+      obtain ⟨i, hi⟩ := S.homogeneous ha
+      obtain ⟨j, hj⟩ := T.homogeneous hb
+      exact ⟨i + j, SetLike.mul_mem_graded hi hj⟩ }
+
+lemma mem_mul_iff {S T : HomogeneousSubmonoid 𝒜} (x : A) :
+    x ∈ (S * T) ↔
+    ∃ s ∈ S, ∃ t ∈ T, x = s * t := by
+  fconstructor <;>
+  · rintro ⟨s, hs, t, ht, rfl⟩
+    exact ⟨s, hs, t, ht, rfl⟩
+
 def bar : HomogeneousSubmonoid 𝒜 where
-  carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S.toSubmonoid, x ∣ y}
+  carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
   mul_mem' := by
     rintro x y ⟨hom_x, ⟨ax, ⟨hax, hax'⟩⟩⟩ ⟨hom_y, ⟨ay, ⟨hay, hay'⟩⟩⟩
     exact ⟨SetLike.homogeneous_mul hom_x hom_y, ⟨ax * ay, ⟨mul_mem hax hay,
@@ -58,12 +108,62 @@ def bar : HomogeneousSubmonoid 𝒜 where
   one_mem' := ⟨SetLike.homogeneous_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
   homogeneous := by rintro x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩; exact hom_x
 
-lemma le_bar : S.toSubmonoid ≤ S.bar.toSubmonoid := by
+@[simp]
+lemma mem_bar (x : A) :
+    x ∈ S.bar ↔
+    SetLike.Homogeneous 𝒜 x ∧ ∃ (y : A), y ∈ S ∧ x ∣ y := by rfl
+
+instance : PartialOrder (HomogeneousSubmonoid 𝒜) :=
+  PartialOrder.lift (fun S ↦ S.toSubmonoid)
+    (injective_of_le_imp_le _ <| by aesop)
+
+lemma bar_mono (S T : HomogeneousSubmonoid 𝒜) : S ≤ T → S.bar ≤ T.bar := by
+  rintro h x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩
+  exact ⟨hom_x, ⟨y, ⟨h hy, hy'⟩⟩⟩
+
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
+lemma le_iff (S T : HomogeneousSubmonoid 𝒜) : S ≤ T ↔ S.toSubmonoid ≤ T.toSubmonoid :=
+  Iff.rfl
+
+lemma le_mul_left (S T : HomogeneousSubmonoid 𝒜) : S ≤ S * T := by
+  rintro x hx
+  exact ⟨x, hx, 1, one_mem _, by simp⟩
+
+lemma le_mul_right (S T : HomogeneousSubmonoid 𝒜) : T ≤ S * T := by
+  rintro x hx
+  exact ⟨1, one_mem _, x, hx, by simp⟩
+
+instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
+  mul_one S := by
+    ext x
+    simp [mem_mul_iff]
+  one_mul S := by
+    ext x
+    simp [mem_mul_iff]
+  mul_comm S T := by
+    ext x
+    simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, mem_toSubmonoid_iff,
+      mem_mul_iff]
+    fconstructor <;>
+    · rintro ⟨s, hs, t, ht, rfl⟩
+      exact ⟨t, ht, s, hs, mul_comm _ _⟩
+  mul_assoc R S T := by
+    ext x
+    fconstructor
+    · rintro ⟨_, ⟨a, ha, b, hb, rfl⟩, c, hc, rfl⟩
+      simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, mem_toSubmonoid_iff]
+      exact ⟨a, ha, ⟨b * c, ⟨b, hb, c, hc, rfl⟩, mul_assoc _ _ _ |>.symm⟩⟩
+    · rintro ⟨a, ha, _, ⟨b, hb, c, hc, rfl⟩, rfl⟩
+      simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, mem_toSubmonoid_iff]
+      rw [← mul_assoc]
+      exact ⟨a * b, ⟨a, ha, b, hb, rfl⟩, c, hc, rfl⟩
+
+lemma le_bar : S ≤ S.bar := by
   rintro x hx
   exact ⟨S.2 hx, x, hx, by rfl⟩
 
 lemma mem_bot_bar (x : A) :
-    x ∈ HomogeneousSubmonoid.bot.bar (𝒜 := 𝒜).toSubmonoid ↔
+    x ∈ HomogeneousSubmonoid.bot.bar (𝒜 := 𝒜) ↔
     SetLike.Homogeneous 𝒜 x ∧ ∃ (y : A), x * y = 1 := by
   simp only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
   fconstructor
@@ -72,17 +172,20 @@ lemma mem_bot_bar (x : A) :
     exact hz.symm
   · rintro ⟨hx, y, hy⟩
     use hx
-    simp only [HomogeneousSubmonoid.bot, Submonoid.mem_mk, Subsemigroup.mem_mk,
-      Set.mem_singleton_iff, exists_eq_left]
+    simp only [mem_bot, exists_eq_left]
     use y
     exact hy.symm
 
+@[simps]
 def deg : AddSubmonoid ι where
-  carrier := {i | ∃ x ∈ S.toSubmonoid, x ∈ 𝒜 i}
+  carrier := {i | ∃ x ∈ S, x ∈ 𝒜 i}
   add_mem' := by
     rintro i j ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩
     exact ⟨x * y, mul_mem hx hy, SetLike.GradedMul.mul_mem hx' hy'⟩
   zero_mem' := ⟨1, one_mem _, SetLike.GradedOne.one_mem⟩
+
+@[simp]
+lemma mem_deg_iff (i : ι) : i ∈ S.deg ↔ ∃ x ∈ S, x ∈ 𝒜 i := Iff.rfl
 
 @[simp]
 lemma closure_one :
@@ -90,13 +193,14 @@ lemma closure_one :
       (by simpa using ⟨0,SetLike.GradedOne.one_mem (A := 𝒜)⟩)) = HomogeneousSubmonoid.bot := by
   ext x
   simp [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, bot_carrier,
-    Set.mem_singleton_iff, closure, Submonoid.mem_closure_singleton, eq_comm]
+    Set.mem_singleton_iff, closure, Submonoid.mem_closure_singleton, eq_comm,
+    HomogeneousSubmonoid.bot]
 
 
 lemma mem_deg_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)).deg ↔
     (∃ n : ℕ, a ^ n ∈ 𝒜 x) := by
-  simp only [deg, ne_eq, Set.mem_setOf_eq, exists_and_right]
+  simp only [mem_deg_iff]
   fconstructor
   · rintro ⟨y, hy, h⟩
     rw [mem_closure_singleton (ha := ha)] at hy
@@ -107,7 +211,7 @@ lemma mem_deg_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
     rw [mem_closure_singleton (ha := ha)]
     aesop
 
-lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S.toSubmonoid, x ∈ 𝒜 i := Iff.rfl
+lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S, x ∈ 𝒜 i := Iff.rfl
 
 lemma zero_mem_deg [Nontrivial A] : 0 ∈ S.deg :=
   ⟨1, one_mem _, SetLike.GradedOne.one_mem⟩
@@ -303,7 +407,7 @@ lemma exists_factorisation_of_elemIsRelevant
     specialize hs1 hi
     simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq] at hs1
     obtain ⟨y, ⟨_, ⟨z, hz1, hz2⟩⟩, hy⟩ := hs1
-    rw [mem_closure_singleton (ha := ha)] at hz1
+    simp only [mem_toSubmonoid_iff, mem_closure_singleton (ha := ha)] at hz1
     obtain ⟨n, rfl⟩ := hz1
     exact ⟨y, hy, n, hz2⟩
 
@@ -360,7 +464,7 @@ lemma elemIsRelevant_of_homogeneous_of_factorisation
   rintro _ ⟨i, rfl⟩
   refine AddSubgroup.subset_closure ?_
   simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq]
-  exact ⟨x i, ⟨⟨d i, mem i⟩, ⟨a ^ k, by rw [mem_closure_singleton (ha := ha)]; aesop, by
+  exact ⟨x i, ⟨⟨d i, mem i⟩, ⟨a ^ k, by simp [mem_closure_singleton (ha := ha)], by
     rw [← eq]; apply Finset.dvd_prod_of_mem; aesop⟩⟩, mem i⟩
 
 lemma elemIsRelevant_iff [AddGroup.FG ι]
