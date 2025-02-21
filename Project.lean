@@ -1,5 +1,6 @@
 import Project.Example
 import Project.ForMathlib.HomogeneousLocalization
+import Project.ForMathlib.LocalizationAway
 import Project.ForMathlib.SetLikeHomogeneous
 import Project.ForMathlib.SubgroupBasic
 import Project.ForMathlib.TensorProduct
