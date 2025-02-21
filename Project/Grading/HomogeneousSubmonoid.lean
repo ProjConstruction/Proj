@@ -99,6 +99,34 @@ lemma mem_mul_iff {S T : HomogeneousSubmonoid 𝒜} (x : A) :
   · rintro ⟨s, hs, t, ht, rfl⟩
     exact ⟨s, hs, t, ht, rfl⟩
 
+@[simp]
+lemma mul_self (S : HomogeneousSubmonoid 𝒜) : S * S = S := by
+  ext x
+  simp [mem_mul_iff]
+  fconstructor
+  · rintro ⟨s, hs, t, ht, rfl⟩
+    exact mul_mem hs ht
+  · rintro hx
+    exact ⟨x, hx, 1, one_mem _, by simp⟩
+
+instance : CommSemigroup (HomogeneousSubmonoid 𝒜) where
+  mul_assoc R S T:= by
+    ext x
+    simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, mem_toSubmonoid_iff]
+    fconstructor
+    · rintro ⟨_, ⟨a, ha, b, hb, rfl⟩, c, hc, rfl⟩
+      exact ⟨a, ha, ⟨b * c, ⟨b, hb, c, hc, rfl⟩, (mul_assoc _ _ _).symm⟩⟩
+    · rintro ⟨a, ha, _, ⟨b, hb, c, hc, rfl⟩, rfl⟩
+      exact ⟨a * b, ⟨a, ha, b, hb, rfl⟩, c, hc, mul_assoc _ _ _⟩
+  mul_comm R S := by
+    ext x
+    simp [mem_mul_iff]
+    fconstructor
+    · rintro ⟨s, hs, t, ht, rfl⟩
+      exact ⟨t, ht, s, hs, _root_.mul_comm s t⟩
+    · rintro ⟨t, ht, s, hs, rfl⟩
+      exact ⟨s, hs, t, ht, _root_.mul_comm t s⟩
+
 def bar : HomogeneousSubmonoid 𝒜 where
   carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
   mul_mem' := by

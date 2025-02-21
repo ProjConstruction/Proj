@@ -5,6 +5,9 @@ import Project.ForMathlib.HomogeneousLocalization
 
 import Project.ForMathlib.LocalizationAway
 
+import Mathlib.AlgebraicGeometry.Gluing
+import Mathlib.AlgebraicGeometry.GammaSpecAdjunction
+
 suppress_compilation
 
 namespace HomogeneousSubmonoid
@@ -16,18 +19,47 @@ variable (S T : HomogeneousSubmonoid 𝒜)
 
 abbrev Potion := HomogeneousLocalization 𝒜 S.toSubmonoid
 
-def toMul : S.Potion →+* (S * T).Potion :=
+def potionEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃+* T.Potion :=
+  RingEquiv.ofHomInv
+    (HomogeneousLocalization.map _ _ (RingHom.id _)
+      (by subst eq; erw [Submonoid.comap_id])
+      (by simp) : S.Potion →+* T.Potion)
+    (HomogeneousLocalization.map _ _ (RingHom.id _)
+      (by subst eq; erw [Submonoid.comap_id])
+      (by simp) : T.Potion →+* S.Potion)
+    (by
+      ext x
+      induction x using Quotient.inductionOn' with | h x =>
+      simp [← show HomogeneousLocalization.mk x = Quotient.mk'' x by rfl,
+        HomogeneousLocalization.map_mk])
+    (by
+      ext x
+      induction x using Quotient.inductionOn' with | h x =>
+      simp [← show HomogeneousLocalization.mk x = Quotient.mk'' x by rfl,
+        HomogeneousLocalization.map_mk])
+
+@[simp]
+lemma potionEquiv_refl : S.potionEquiv rfl = RingEquiv.refl S.Potion := by
+  ext x
+  induction x using Quotient.inductionOn' with | h x =>
+  simp [← show HomogeneousLocalization.mk x = Quotient.mk'' x by rfl,
+    HomogeneousLocalization.map_mk, potionEquiv]
+
+def potionToMul : S.Potion →+* (S * T).Potion :=
   HomogeneousLocalization.map _ _ (RingHom.id _) (by
     erw [Submonoid.comap_id, ← le_iff]
     exact le_mul_left S T) fun i a hi ↦ hi
 
-@[simp]
-lemma toMul_mk (x) : S.toMul T (.mk x) = .mk ⟨x.deg, x.num, x.den, le_mul_left _ _ x.den_mem⟩ := rfl
-
-instance : Algebra S.Potion (S * T).Potion := RingHom.toAlgebra (toMul S T)
+def potionToMulSelf : S.Potion ≃+* (S * S).Potion :=
+  potionEquiv (by simp)
 
 @[simp]
-lemma mul_potion_algebraMap_eq : (algebraMap S.Potion (S * T).Potion) = S.toMul T := rfl
+lemma toMul_mk (x) : S.potionToMul T (.mk x) = .mk ⟨x.deg, x.num, x.den, le_mul_left _ _ x.den_mem⟩ := rfl
+
+instance : Algebra S.Potion (S * T).Potion := RingHom.toAlgebra (potionToMul S T)
+
+@[simp]
+lemma mul_potion_algebraMap_eq : (algebraMap S.Potion (S * T).Potion) = S.potionToMul T := rfl
 
 def toBarPotion : S.Potion →+* S.bar.Potion :=
   HomogeneousLocalization.map _ _ (.id A) (by
@@ -112,7 +144,7 @@ lemma equivBarPotion_symm_apply
     ring
 
 lemma toMul_equivBarPotion_symm (x) :
-    S.toMul T (S.equivBarPotion.symm <| .mk x) =
+    S.potionToMul T (S.equivBarPotion.symm <| .mk x) =
     (S * T).equivBarPotion.symm (.mk
       { deg := x.deg
         num := x.num
@@ -168,7 +200,7 @@ def localizationToPotion (T' : PotionGen S T) :
     (M :=  _)
     (S :=  _)
     (P := (S * T).Potion)
-    (g := S.toMul T) _ _ _ _
+    (g := S.potionToMul T) _ _ _ _
     (Localization.isLocalization (R := S.Potion) (M := T'.toSubmonoid)) <| by
     rintro ⟨y, hy⟩
     simp only [RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply]
@@ -193,7 +225,7 @@ def localizationToPotion (T' : PotionGen S T) :
       have t_deg : (t : A)^(n : ℕ) ∈ 𝒜 (i - i') := T'.t_deg ⟨t, ht⟩
       have s_deg : s ∈ 𝒜 i := T'.s_deg ⟨t, ht⟩
       have s'_deg : s' ∈ 𝒜 i' := T'.s'_deg ⟨t, ht⟩
-      change IsUnit <| S.toMul T <| S.equivBarPotion.symm <| .mk ⟨i, ⟨t^(n : ℕ) * s', _⟩, ⟨s, _⟩, _⟩
+      change IsUnit <| S.potionToMul T <| S.equivBarPotion.symm <| .mk ⟨i, ⟨t^(n : ℕ) * s', _⟩, ⟨s, _⟩, _⟩
       rw [equivBarPotion_symm_apply (z_mem := hj) (hz := hy), toMul_mk]
       simp only [eq_mp_eq_cast]
       refine isUnit_of_mul_eq_one _ (.mk ⟨i + j', ⟨s * z', SetLike.mul_mem_graded s_deg hj'⟩,
@@ -597,10 +629,10 @@ lemma finitePotionGen_finite (S_rel : IsRelevant S) (T_fg : T.FG)  :
 
 open AlgebraicGeometry
 lemma IsOpenImmersion.of_isRelevant_FG (S_rel : IsRelevant S) (T_fg : T.FG) :
-    IsOpenImmersion <| Spec.map <| CommRingCat.ofHom (S.toMul T) := by
+    IsOpenImmersion <| Spec.map <| CommRingCat.ofHom (S.potionToMul T) := by
   classical
   let T' : PotionGen S T := finitePotionGen S_rel T_fg
-  have eq : S.toMul T =
+  have eq : S.potionToMul T =
     RingHom.comp (localizationRingEquivPotion T')
       (algebraMap S.Potion (Localization T'.toSubmonoid)) := by
     ext x
@@ -641,7 +673,8 @@ end HomogeneousSubmonoid
 
 section
 
-variable {ι R A : Type*}
+universe u
+variable {ι R A : Type u}
 variable [AddCommGroup ι] [CommRing R] [CommRing A] [Algebra R A] {𝒜 : ι → Submodule R A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
@@ -652,11 +685,86 @@ structure GoodPotionIngredient extends (HomogeneousSubmonoid 𝒜) where
 
 namespace GoodPotionIngredient
 
+open AlgebraicGeometry
+
+lemma toHomogeneousSubmonoid_inj :
+    Function.Injective (toHomogeneousSubmonoid : GoodPotionIngredient 𝒜 → _) := by
+  rintro ⟨x, hx⟩ ⟨y, hy⟩ h
+  simp only at h
+  subst h
+  rfl
+
+open Pointwise in
 instance : Mul (GoodPotionIngredient 𝒜) where
   mul x y :=
   { toHomogeneousSubmonoid := x.toHomogeneousSubmonoid * y.toHomogeneousSubmonoid
     relevant := x.relevant.mul y.relevant
-    fg := by sorry }
+    fg := by
+      obtain ⟨S, hS⟩ := x.fg
+      obtain ⟨T, hT⟩ := y.fg
+      rw [Submonoid.fg_iff]
+      refine ⟨(S : Set A) ∪ (T : Set A) ∪ (S * T), ?_, Set.Finite.union (by aesop) <|
+        Set.Finite.mul (by aesop) (by aesop)⟩
+      refine le_antisymm ?_ ?_
+      · rw [Submonoid.closure_le]
+        rintro z ((hz|hz)|⟨a, ha, b, hb, rfl⟩)
+        · simp only [SetLike.mem_coe, HomogeneousSubmonoid.mem_toSubmonoid_iff]
+          refine ⟨z, hS ▸ Submonoid.subset_closure hz, 1, one_mem _, by simp⟩
+        · simp only [SetLike.mem_coe, HomogeneousSubmonoid.mem_toSubmonoid_iff]
+          refine ⟨1, one_mem _, z, hT ▸ Submonoid.subset_closure hz, by simp⟩
+        · refine ⟨a, hS ▸ Submonoid.subset_closure ha, b, hT ▸ Submonoid.subset_closure hb, rfl⟩
+
+      intro z
+      simp only [HomogeneousSubmonoid.mem_toSubmonoid_iff]
+      rintro ⟨a, ha, b, hb, (rfl : a * b = _)⟩
+      simp only [← hS, SetLike.mem_coe] at ha
+      simp only [← hT, SetLike.mem_coe] at hb
+      rw [Submonoid.mem_closure_iff] at ha hb
+      obtain ⟨c, hc, rfl⟩ := ha
+      obtain ⟨d, hd, rfl⟩ := hb
+      refine mul_mem (prod_mem fun i hi ↦ pow_mem (Submonoid.subset_closure ?_) _)
+        (prod_mem fun i hi ↦ pow_mem (Submonoid.subset_closure ?_) _)
+      · left; left; refine hc _ hi
+      · left; right; refine hd _ hi }
+
+@[simp]
+lemma mul_toHomogeneousSubmonoid (x y : GoodPotionIngredient 𝒜) :
+    (x * y).toHomogeneousSubmonoid = x.toHomogeneousSubmonoid * y.toHomogeneousSubmonoid := rfl
+
+instance : CommSemigroup (GoodPotionIngredient 𝒜) where
+  mul_assoc R S T := by
+    apply_fun GoodPotionIngredient.toHomogeneousSubmonoid using toHomogeneousSubmonoid_inj
+    simp [mul_assoc]
+  mul_comm R S := by
+    apply_fun GoodPotionIngredient.toHomogeneousSubmonoid using toHomogeneousSubmonoid_inj
+    simp [mul_comm]
+
+open CategoryTheory AlgebraicGeometry
+
+instance isOpenImmersion (S T : GoodPotionIngredient 𝒜) :
+    IsOpenImmersion (Spec.map <| CommRingCat.ofHom <| S.1.potionToMul T.1) :=
+  HomogeneousSubmonoid.IsOpenImmersion.of_isRelevant_FG _ _ S.relevant T.fg
+
+def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
+  J := ℱ
+  U S := Spec <| CommRingCat.of S.1.Potion
+  V pair := Spec <| CommRingCat.of (pair.1.1 * pair.2.1).Potion
+  f S T := Spec.map <| CommRingCat.ofHom <| S.1.1.potionToMul T.1.1
+  f_id S := by
+    dsimp only
+    rw [show CommRingCat.ofHom (S.1.1.potionToMul S.1.1) =
+      S.1.potionToMulSelf.toCommRingCatIso.hom by rfl]
+    infer_instance
+  f_open := by
+    rintro (S T : ℱ)
+    exact isOpenImmersion S.1 T.1
+  t S T := Spec.map <| CommRingCat.ofHom <| (HomogeneousSubmonoid.potionEquiv <| by rw [mul_comm]).toRingHom
+  t_id S := by
+    erw [← Scheme.Spec.map_id]
+    simp
+  t' R S T := sorry
+  t_fac := sorry
+  cocycle := sorry
 
 end GoodPotionIngredient
 
