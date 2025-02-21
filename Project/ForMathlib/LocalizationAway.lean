@@ -3,7 +3,6 @@ import Mathlib.AlgebraicGeometry.OpenImmersion
 
 open AlgebraicGeometry CategoryTheory
 
-#check Scheme.basic_open_isOpenImmersion
 namespace Localization
 
 variable {R : Type*} [CommRing R] (s : Finset R) {t : Set R} (fin : Set.Finite t)

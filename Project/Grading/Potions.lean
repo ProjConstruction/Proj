@@ -638,3 +638,26 @@ lemma IsOpenImmersion.of_isRelevant_FG (S_rel : IsRelevant S) (T_fg : T.FG) :
   exact ⟨1, by simp⟩
 
 end HomogeneousSubmonoid
+
+section
+
+variable {ι R A : Type*}
+variable [AddCommGroup ι] [CommRing R] [CommRing A] [Algebra R A] {𝒜 : ι → Submodule R A}
+variable [DecidableEq ι] [GradedAlgebra 𝒜]
+
+variable (𝒜) in
+structure GoodPotionIngredient extends (HomogeneousSubmonoid 𝒜) where
+  relevant : toHomogeneousSubmonoid.IsRelevant
+  [fg : toSubmonoid.FG]
+
+namespace GoodPotionIngredient
+
+instance : Mul (GoodPotionIngredient 𝒜) where
+  mul x y :=
+  { toHomogeneousSubmonoid := x.toHomogeneousSubmonoid * y.toHomogeneousSubmonoid
+    relevant := x.relevant.mul y.relevant
+    fg := by sorry }
+
+end GoodPotionIngredient
+
+end

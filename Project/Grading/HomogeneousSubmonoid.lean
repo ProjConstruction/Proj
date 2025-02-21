@@ -187,6 +187,10 @@ def deg : AddSubmonoid ι where
 @[simp]
 lemma mem_deg_iff (i : ι) : i ∈ S.deg ↔ ∃ x ∈ S, x ∈ 𝒜 i := Iff.rfl
 
+lemma deg_mono (S T : HomogeneousSubmonoid 𝒜) : S ≤ T → S.deg ≤ T.deg := by
+  rintro h i ⟨x, hx, hx'⟩
+  exact ⟨x, h hx, hx'⟩
+
 @[simp]
 lemma closure_one :
     (closure (𝒜 := 𝒜) {(1 : A)}
@@ -340,6 +344,23 @@ lemma mem_convMonDeg [Nontrivial A] (x) :
     exact ⟨a i ⊗ₜ[ℕ] ⟨i, AddSubmonoid.subset_closure (ha i hi)⟩, rfl⟩
 
 def IsRelevant : Prop := ∀ (i : ι), ∃ (n : ℕ), 0 < n ∧ n • i ∈ ι[S.bar]
+
+lemma IsRelevant.mul {S T : HomogeneousSubmonoid 𝒜}
+    (S_rel : S.IsRelevant) (T_rel : T.IsRelevant) : (S * T).IsRelevant := by
+  intro i
+  obtain ⟨m, hm1, hm2⟩ := S_rel i
+  obtain ⟨n, hn1, hn2⟩ := T_rel i
+  delta agrDeg at hm2 hn2 ⊢
+  simp_rw [← SetLike.mem_coe, AddSubgroup.closure_addSubmonoid] at hm2 hn2 ⊢
+  obtain ⟨⟨a, ha⟩, ⟨b, hb⟩, hab⟩ := hm2
+  obtain ⟨⟨c, hc⟩, ⟨d, hd⟩, hcd⟩ := hn2
+  have le1 : S.bar.deg ≤ (S * T).bar.deg := deg_mono _ _ <| bar_mono _ _ <| le_mul_left S T
+  have le2 : T.bar.deg ≤ (S * T).bar.deg := deg_mono _ _ <| bar_mono _ _ <| le_mul_right S T
+  refine ⟨m + n, by omega, ⟨⟨a + c, add_mem (le1 ha) (le2 hc)⟩,
+    ⟨b + d, add_mem (le1 hb) (le2 hd)⟩, ?_⟩⟩
+  simp only [← sub_eq_add_neg, add_smul, neg_add_rev, add_sub] at hab hcd ⊢
+  rw [hab, hcd]
+  abel
 
 lemma isRelevant_iff_isTorsion_quotient : S.IsRelevant ↔ AddMonoid.IsTorsion (ι ⧸ ι[S.bar]) := by
   fconstructor
