@@ -3,6 +3,8 @@ import Project.Grading.IsoBar
 
 import Project.ForMathlib.HomogeneousLocalization
 
+import Project.ForMathlib.LocalizationAway
+
 suppress_compilation
 
 namespace HomogeneousSubmonoid
@@ -131,7 +133,7 @@ instance : Algebra S.Potion S.bar.Potion :=
 @[simp]
 lemma bar_potion_algebraMap_eq : (algebraMap S.Potion S.bar.Potion) = S.equivBarPotion := rfl
 
-structure potionGen where
+structure PotionGen where
   (carrier : Set A)
   (subset : carrier ⊆ T)
   (gen : Submonoid.closure carrier = T.toSubmonoid)
@@ -144,10 +146,10 @@ structure potionGen where
   (s_deg : ∀ t, s t ∈ 𝒜 (i t))
   (s'_deg : ∀ t, s' t ∈ 𝒜 (i' t))
 
-instance : CoeSort (potionGen S T) (Type _) := ⟨fun T => T.carrier⟩
+instance : CoeSort (PotionGen S T) (Type _) := ⟨fun T => T.carrier⟩
 
 variable {S T} in
-def potionGen.toSubmonoid (T' : potionGen S T) : Submonoid S.Potion :=
+def PotionGen.toSubmonoid (T' : PotionGen S T) : Submonoid S.Potion :=
   Submonoid.closure
     {x | ∃ (t : T'), x =
       S.equivBarPotion.symm (HomogeneousLocalization.mk
@@ -158,7 +160,7 @@ def potionGen.toSubmonoid (T' : potionGen S T) : Submonoid S.Potion :=
           den_mem := T'.s_mem_bar t }) }
 
 variable {S T} in
-def localizationToPotion (T' : potionGen S T) :
+def localizationToPotion (T' : PotionGen S T) :
     Localization T'.toSubmonoid →+*
     (S * T).Potion :=
   @IsLocalization.lift
@@ -216,14 +218,14 @@ def localizationToPotion (T' : potionGen S T) :
       tauto
 
 variable {S T} in
-lemma localizationToPotion_injective (T' : potionGen S T) :
+lemma localizationToPotion_injective (T' : PotionGen S T) :
     Function.Injective (localizationToPotion T') := by
   rw [RingHom.injective_iff_ker_eq_bot, eq_bot_iff]
   intro x hx
   induction x using Localization.induction_on with | H x =>
   rcases x with ⟨a, b, hb⟩
   have hb' := hb
-  rw [potionGen.toSubmonoid, Submonoid.mem_closure_iff] at hb'
+  rw [PotionGen.toSubmonoid, Submonoid.mem_closure_iff] at hb'
   obtain ⟨y, hy, rfl⟩ := hb'
   have hy' := hy
   simp only [Subtype.exists, Set.mem_setOf_eq] at hy'
@@ -321,7 +323,7 @@ lemma localizationToPotion_injective (T' : potionGen S T) :
   simp
 
 variable {S T} in
-lemma localizationToPotion_surjective (T' : potionGen S T) :
+lemma localizationToPotion_surjective (T' : PotionGen S T) :
     Function.Surjective (localizationToPotion T') := by
   intro x
   induction x using Quotient.inductionOn' with | h x =>
@@ -497,13 +499,18 @@ lemma localizationToPotion_surjective (T' : potionGen S T) :
   ring
 
 variable {S T} in
-def localizationRingEquivPotion (T' : potionGen S T) :
+def localizationRingEquivPotion (T' : PotionGen S T) :
     Localization T'.toSubmonoid ≃+* (S * T).Potion :=
   RingEquiv.ofBijective (localizationToPotion T')
     ⟨localizationToPotion_injective T', localizationToPotion_surjective T'⟩
 
 variable {S T} in
-def localizationAlgEquivPotion (T' : potionGen S T) :
+@[simp]
+lemma localizationRingEquivPotion_apply (T' : PotionGen S T) (x) :
+    localizationRingEquivPotion T' x = localizationToPotion T' x := rfl
+
+variable {S T} in
+def localizationAlgEquivPotion (T' : PotionGen S T) :
     Localization T'.toSubmonoid ≃ₐ[S.Potion] (S * T).Potion :=
   AlgEquiv.ofRingEquiv (f := localizationRingEquivPotion T') fun x ↦ by
     simp only [localizationRingEquivPotion, ← Localization.mk_one_eq_algebraMap,
@@ -511,7 +518,123 @@ def localizationAlgEquivPotion (T' : potionGen S T) :
     induction x using Quotient.inductionOn' with | h x =>
     simp [localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk']
 
-instance (T' : potionGen S T) : IsLocalization (T'.toSubmonoid) (S * T).Potion :=
+instance (T' : PotionGen S T) : IsLocalization (T'.toSubmonoid) (S * T).Potion :=
   IsLocalization.isLocalization_of_algEquiv (T'.toSubmonoid) (localizationAlgEquivPotion T')
+
+variable {S} in
+lemma finite_potionGen_exists_aux₁ (S_rel : IsRelevant S) (t : A) (m : ι) (ht : t ∈ 𝒜 m) : ∃ (n : ℕ+) (s s' : A) (i i' : ι),
+    t^(n : ℕ) ∈ 𝒜 (i - i') ∧ s ∈ 𝒜 i ∧ s' ∈ 𝒜 i' ∧ s ∈ S.bar ∧ s' ∈ S.bar := by
+  obtain ⟨n, n_pos, hm⟩ := S_rel m
+  delta agrDeg at hm
+  rw [← SetLike.mem_coe] at hm
+  rw [AddSubgroup.closure_addSubmonoid (N := S.bar.deg)] at hm
+  obtain ⟨⟨i, ⟨s, hs₁, hs₂⟩⟩, ⟨i', ⟨s', hs'₁, hs'₂⟩⟩, (hii' : _ = i + -i')⟩ := hm
+  refine ⟨⟨n, n_pos⟩, s, s', i, i', ?_, hs₂, hs'₂, hs₁, hs'₁⟩
+  have ht' : t ^ n ∈ 𝒜 (n • m) := SetLike.pow_mem_graded _ ‹_›
+  rw [hii'] at ht'
+  rw [← sub_eq_add_neg] at ht'
+  simpa
+
+variable {S} in
+lemma finite_potionGen_exists_aux₂ (S_rel : IsRelevant S) (t : A) (ht : SetLike.Homogeneous 𝒜 t) :
+  ∃ (n : ℕ+) (s s' : A) (i i' : ι),
+    t^(n : ℕ) ∈ 𝒜 (i - i') ∧ s ∈ 𝒜 i ∧ s' ∈ 𝒜 i' ∧ s ∈ S.bar ∧ s' ∈ S.bar :=
+  finite_potionGen_exists_aux₁ S_rel t ht.choose ht.choose_spec
+
+variable {S T} in
+def finitePotionGen (S_rel : IsRelevant S) (T_fg : T.FG) : PotionGen S T :=
+  let carrier := T_fg.choose
+  let subset : (carrier : Set _) ⊆ T.carrier := by
+      intro x hx
+      have := T_fg.choose_spec ▸ Submonoid.subset_closure hx
+      exact this
+  let gen : Submonoid.closure carrier = T.toSubmonoid := T_fg.choose_spec
+  let n : carrier → ℕ+ := fun t ↦ (finite_potionGen_exists_aux₂ S_rel t <| T.2 <| subset t.2).choose
+  let s : carrier → A :=
+    fun t ↦ (finite_potionGen_exists_aux₂ S_rel t <| T.2 <| subset t.2).choose_spec.choose
+  let s' : carrier → A := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <| subset t.2).choose_spec.choose_spec.choose
+  let i : carrier → ι := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose
+  let i' : carrier → ι := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose
+  let t_deg : ∀ (x : carrier), x.1 ^ (n x : ℕ) ∈ 𝒜 (i x - i' x) := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.1
+  let s_deg : ∀ (x : carrier), s x ∈ 𝒜 (i x) := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.1
+  let s'_deg : ∀ (x : carrier), s' x ∈ 𝒜 (i' x) := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.2.1
+  let s_mem_bar : ∀ (x : carrier), s x ∈ S.bar := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.2.2.1
+  let s'_mem_bar : ∀ (x : carrier), s' x ∈ S.bar := fun t ↦
+    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+      subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.2.2.2
+  {
+    carrier := carrier
+    subset := subset
+    gen := gen
+    n := n
+    s := s
+    s' := s'
+    s_mem_bar := s_mem_bar
+    s'_mem_bar := s'_mem_bar
+    i := i
+    i' := i'
+    t_deg := t_deg
+    s_deg := s_deg
+    s'_deg := s'_deg
+  }
+
+variable {S T} in
+lemma finitePotionGen_finite (S_rel : IsRelevant S) (T_fg : T.FG)  :
+  Set.Finite (finitePotionGen S_rel T_fg).carrier := T_fg.choose.finite_toSet
+
+open AlgebraicGeometry
+lemma IsOpenImmersion.of_isRelevant_FG (S_rel : IsRelevant S) (T_fg : T.FG) :
+    IsOpenImmersion <| Spec.map <| CommRingCat.ofHom (S.toMul T) := by
+  classical
+  let T' : PotionGen S T := finitePotionGen S_rel T_fg
+  have eq : S.toMul T =
+    RingHom.comp (localizationRingEquivPotion T')
+      (algebraMap S.Potion (Localization T'.toSubmonoid)) := by
+    ext x
+    induction x using Quotient.inductionOn' with | h x =>
+    simp [← Localization.mk_one_eq_algebraMap, localizationToPotion, Localization.mk_eq_mk',
+      IsLocalization.lift_mk']
+  rw [eq]
+  simp only [CommRingCat.ofHom_comp, Spec.map_comp]
+  apply (config := {allowSynthFailures := true}) IsOpenImmersion.comp
+  ·
+    rw [show (CommRingCat.ofHom (localizationRingEquivPotion T') :
+      CommRingCat.of (Localization T'.toSubmonoid) ⟶ CommRingCat.of (S * T).Potion) =
+      (localizationRingEquivPotion T').toCommRingCatIso.hom by rfl]
+    apply IsOpenImmersion.of_isIso
+  apply AlgebraicGeometry.IsOpenImmersion.of_map_localization_finite_closure
+  set lhs := _
+  change Set.Finite lhs
+  suffices Fintype lhs by exact Set.toFinite lhs
+  let f : lhs → T' := fun x ↦ x.2.choose
+  have hf (i : lhs) : i.1 = S.equivBarPotion.symm
+    (.mk ⟨T'.i (f i), ⟨(f i) ^ (T'.n (f i) : ℕ) * T'.s' (f i), _⟩, ⟨T'.s (f i), _⟩,
+      _⟩) := i.2.choose_spec
+  haveI : Fintype T' := (finitePotionGen_finite S_rel T_fg).fintype
+  apply Fintype.ofInjective f
+  rintro ⟨x, hx⟩ ⟨y, hy⟩ eq
+  ext : 1
+  rw [hf ⟨x, hx⟩, hf ⟨y, hy⟩]
+  simp_rw [eq]
+
+  simp only [EmbeddingLike.apply_eq_iff_eq]
+  apply Quotient.sound'
+  rw [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,
+    HomogeneousLocalization.NumDenSameDeg.embedding,
+    Localization.mk_eq_mk_iff, Localization.r_iff_exists]
+  exact ⟨1, by simp⟩
 
 end HomogeneousSubmonoid
