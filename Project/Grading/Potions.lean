@@ -7,6 +7,7 @@ import Project.ForMathlib.LocalizationAway
 
 import Mathlib.AlgebraicGeometry.Gluing
 import Mathlib.AlgebraicGeometry.GammaSpecAdjunction
+import Mathlib.AlgebraicGeometry.Pullbacks
 
 suppress_compilation
 
@@ -739,11 +740,14 @@ instance : CommSemigroup (GoodPotionIngredient 𝒜) where
     apply_fun GoodPotionIngredient.toHomogeneousSubmonoid using toHomogeneousSubmonoid_inj
     simp [mul_comm]
 
-open CategoryTheory AlgebraicGeometry
+open CategoryTheory AlgebraicGeometry TensorProduct
 
 instance isOpenImmersion (S T : GoodPotionIngredient 𝒜) :
     IsOpenImmersion (Spec.map <| CommRingCat.ofHom <| S.1.potionToMul T.1) :=
   HomogeneousSubmonoid.IsOpenImmersion.of_isRelevant_FG _ _ S.relevant T.fg
+
+instance (S T : GoodPotionIngredient 𝒜) : Algebra S.Potion (S * T).Potion :=
+  RingHom.toAlgebra (S.potionToMul T.1)
 
 def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
   J := ℱ
@@ -762,7 +766,13 @@ def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
   t_id S := by
     erw [← Scheme.Spec.map_id]
     simp
-  t' R S T := sorry
+  t' R S T :=
+    (AlgebraicGeometry.pullbackSpecIso _ _ _).hom ≫
+    Spec.map (CommRingCat.ofHom <|
+      (sorry :
+          ((S.1 * T.1).Potion ⊗[S.1.Potion] (S.1 * R.1).Potion) →+*
+          ((R.1 * S.1).Potion ⊗[R.1.Potion] (R.1 * T.1).Potion))) ≫
+    (AlgebraicGeometry.pullbackSpecIso _ _ _).inv
   t_fac := sorry
   cocycle := sorry
 
