@@ -46,6 +46,23 @@ lemma potionEquiv_refl : S.potionEquiv rfl = RingEquiv.refl S.Potion := by
   simp [← show HomogeneousLocalization.mk x = Quotient.mk'' x by rfl,
     HomogeneousLocalization.map_mk, potionEquiv]
 
+@[simp high]
+lemma potionEquiv_refl_apply (x) : S.potionEquiv rfl x = x := by
+  simp
+
+@[simp]
+lemma potionEquiv_trans {R S T : HomogeneousSubmonoid 𝒜} (eq1 : R = S) (eq2 : S = T) :
+    (R.potionEquiv eq1).trans (S.potionEquiv eq2) = R.potionEquiv (eq1.trans eq2) := by
+  subst eq1 eq2
+  simp only [potionEquiv_refl]
+  rfl
+
+@[simp]
+lemma potionEquiv_trans_apply {R S T : HomogeneousSubmonoid 𝒜} (eq1 : R = S) (eq2 : S = T) (x) :
+    S.potionEquiv eq2 (R.potionEquiv eq1 x) =
+    R.potionEquiv (eq1.trans eq2) x :=
+  congr($(potionEquiv_trans eq1 eq2) x)
+
 def potionToMul : S.Potion →+* (S * T).Potion :=
   HomogeneousLocalization.map _ _ (RingHom.id _) (by
     erw [Submonoid.comap_id, ← le_iff]
@@ -837,6 +854,39 @@ def mixing {R S T : GoodPotionIngredient 𝒜} (R' : PotionGen S.1 R.1) (T' : Po
   mixingAux₃ R' T' |>.trans <|
   mixingAux₄ R S T
 
+def t'Aux₀ (R S T : GoodPotionIngredient 𝒜) :
+    (S * T).Potion ⊗[S.Potion] (S * R).Potion ≃+* (R * S * T).Potion :=
+  mixing (finitePotionGen S.relevant R.fg) (finitePotionGen S.relevant T.fg)
+
+def t'Aux₁ (R S T : GoodPotionIngredient 𝒜) :
+    (R * S).Potion ⊗[R.Potion] (R * T).Potion ≃+* (R * S * T).Potion :=
+  (mixing (finitePotionGen R.relevant T.fg) (finitePotionGen R.relevant S.fg)).toRingEquiv.trans <|
+    potionEquiv (by rw [mul_comm T, mul_assoc, mul_comm T, ← mul_assoc])
+
+def t' (R S T : GoodPotionIngredient 𝒜) :
+    ((S * T).Potion ⊗[S.Potion] (S * R).Potion) ≃+*
+    ((R * S).Potion ⊗[R.Potion] (R * T).Potion) :=
+  (t'Aux₀ R S T).trans (t'Aux₁ R S T).symm
+
+lemma t'_cocycle (R S T : GoodPotionIngredient 𝒜) :
+    (T.t' R S).trans ((S.t' T R).trans (R.t' S T))  = RingEquiv.refl _ := by
+  delta t'
+  ext x
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, t'Aux₀, t'Aux₁,
+    AlgEquiv.toRingEquiv_eq_coe, RingEquiv.coe_trans, AlgEquiv.coe_ringEquiv, Function.comp_apply,
+    RingEquiv.symm_trans_apply, RingEquiv.refl_apply]
+  erw [Equiv.symm_apply_eq]
+  erw [Equiv.symm_apply_eq]
+  simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe, AlgEquiv.coe_ringEquiv,
+    mul_toHomogeneousSubmonoid, mul_toSubmonoid]
+  erw [RingEquiv.apply_symm_apply]
+  erw [RingEquiv.apply_symm_apply]
+  erw [Equiv.symm_apply_eq]
+  erw [Equiv.symm_apply_eq]
+  simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  simp only [potionEquiv_trans_apply, mul_toSubmonoid, potionEquiv_refl, RingEquiv.refl_apply]
+
+open Limits in
 def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
   J := ℱ
   U S := Spec <| CommRingCat.of S.1.Potion
@@ -856,13 +906,23 @@ def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
     simp
   t' R S T :=
     (AlgebraicGeometry.pullbackSpecIso _ _ _).hom ≫
-    Spec.map (CommRingCat.ofHom <|
-      (sorry :
-          ((S.1 * T.1).Potion ⊗[S.1.Potion] (S.1 * R.1).Potion) →+*
-          ((R.1 * S.1).Potion ⊗[R.1.Potion] (R.1 * T.1).Potion))) ≫
+    Spec.map (CommRingCat.ofHom <| t' R.1 S.1 T.1) ≫
     (AlgebraicGeometry.pullbackSpecIso _ _ _).inv
-  t_fac := sorry
-  cocycle := sorry
+  t_fac R S T := by
+    sorry
+  cocycle R S T := by
+    dsimp only
+    simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, mul_potion_algebraMap_eq,
+      RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc,
+      Iso.inv_hom_id_assoc]
+    rw [← Spec.map_comp_assoc, ← Spec.map_comp_assoc]
+    rw [← Category.assoc, Iso.comp_inv_eq_id]
+    convert Category.comp_id _ using 2
+    convert Spec.map_id (CommRingCat.of <| (R.1 * S.1).Potion ⊗[R.1.Potion] (R.1 * T.1).Potion) using 2
+    rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+    convert CommRingCat.ofHom_id using 2
+    ext x
+    simpa using congr($(t'_cocycle R.1 S.1 T.1) x)
 
 end GoodPotionIngredient
 
