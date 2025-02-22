@@ -9,6 +9,7 @@ import Mathlib.GroupTheory.Schreier
 import Mathlib.Algebra.Group.Submonoid.Pointwise
 
 import Project.ForMathlib.SubgroupBasic
+import Project.ForMathlib.Submonoid
 import Project.ForMathlib.SetLikeHomogeneous
 import Project.GR.Basic
 
@@ -28,6 +29,15 @@ open scoped GR
 namespace HomogeneousSubmonoid
 
 variable {𝒜} (S : HomogeneousSubmonoid 𝒜)
+
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
+variable (𝒜) in
+lemma toSubmonoid_injective :
+    Function.Injective (toSubmonoid : HomogeneousSubmonoid 𝒜 → Submonoid A) := by
+  rintro ⟨S, hS⟩ ⟨T, hT⟩ h
+  simp only at h
+  subst h
+  rfl
 
 instance : SetLike (HomogeneousSubmonoid 𝒜) A where
   coe S := S.toSubmonoid
@@ -79,18 +89,15 @@ lemma mem_one (x : A) : x ∈ (1 : HomogeneousSubmonoid 𝒜) ↔ x = 1 := by rf
 open Pointwise in
 instance : Mul (HomogeneousSubmonoid 𝒜) where
   mul S T :=
-  { carrier := S.toSubmonoid * T.toSubmonoid
-    mul_mem' {a b} ha hb := by
-      simp only [Set.mem_mul, SetLike.mem_coe] at ha hb ⊢
-      obtain ⟨x, hx, y, hy, rfl⟩ := ha
-      obtain ⟨z, hz, w, hw, rfl⟩ := hb
-      refine ⟨x * z, mul_mem hx hz, y * w, mul_mem hy hw, by group⟩
-    one_mem' := ⟨1, one_mem _, 1, one_mem _, by simp⟩
+  { toSubmonoid := S.toSubmonoid * T.toSubmonoid
     homogeneous := by
       rintro _ ⟨a, ha, b, hb, rfl⟩
       obtain ⟨i, hi⟩ := S.homogeneous ha
       obtain ⟨j, hj⟩ := T.homogeneous hb
       exact ⟨i + j, SetLike.mul_mem_graded hi hj⟩ }
+
+@[simp]
+lemma mul_toSubmonoid (S T : HomogeneousSubmonoid 𝒜) : (S * T).toSubmonoid = S.toSubmonoid * T.toSubmonoid := rfl
 
 lemma mem_mul_iff {S T : HomogeneousSubmonoid 𝒜} (x : A) :
     x ∈ (S * T) ↔
@@ -109,23 +116,11 @@ lemma mul_self (S : HomogeneousSubmonoid 𝒜) : S * S = S := by
   · rintro hx
     exact ⟨x, hx, 1, one_mem _, by simp⟩
 
-instance : CommSemigroup (HomogeneousSubmonoid 𝒜) where
-  mul_assoc R S T:= by
-    ext x
-    simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, mem_toSubmonoid_iff]
-    fconstructor
-    · rintro ⟨_, ⟨a, ha, b, hb, rfl⟩, c, hc, rfl⟩
-      exact ⟨a, ha, ⟨b * c, ⟨b, hb, c, hc, rfl⟩, (mul_assoc _ _ _).symm⟩⟩
-    · rintro ⟨a, ha, _, ⟨b, hb, c, hc, rfl⟩, rfl⟩
-      exact ⟨a * b, ⟨a, ha, b, hb, rfl⟩, c, hc, mul_assoc _ _ _⟩
-  mul_comm R S := by
-    ext x
-    simp [mem_mul_iff]
-    fconstructor
-    · rintro ⟨s, hs, t, ht, rfl⟩
-      exact ⟨t, ht, s, hs, _root_.mul_comm s t⟩
-    · rintro ⟨t, ht, s, hs, rfl⟩
-      exact ⟨s, hs, t, ht, _root_.mul_comm t s⟩
+instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
+  mul_assoc R S T:= toSubmonoid_injective _ <| mul_assoc _ _ _
+  mul_comm S T :=  toSubmonoid_injective _ <| mul_comm _ _
+  one_mul _ := toSubmonoid_injective _ <| one_mul _
+  mul_one _ := toSubmonoid_injective _ <| mul_one _
 
 def bar : HomogeneousSubmonoid 𝒜 where
   carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
@@ -153,13 +148,9 @@ omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜
 lemma le_iff (S T : HomogeneousSubmonoid 𝒜) : S ≤ T ↔ S.toSubmonoid ≤ T.toSubmonoid :=
   Iff.rfl
 
-lemma le_mul_left (S T : HomogeneousSubmonoid 𝒜) : S ≤ S * T := by
-  rintro x hx
-  exact ⟨x, hx, 1, one_mem _, by simp⟩
+lemma left_le_mul (S T : HomogeneousSubmonoid 𝒜) : S ≤ S * T := Submonoid.left_le_mul
 
-lemma le_mul_right (S T : HomogeneousSubmonoid 𝒜) : T ≤ S * T := by
-  rintro x hx
-  exact ⟨1, one_mem _, x, hx, by simp⟩
+lemma right_le_mul (S T : HomogeneousSubmonoid 𝒜) : T ≤ S * T := Submonoid.right_le_mul
 
 instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
   mul_one S := by
@@ -382,8 +373,8 @@ lemma IsRelevant.mul {S T : HomogeneousSubmonoid 𝒜}
   simp_rw [← SetLike.mem_coe, AddSubgroup.closure_addSubmonoid] at hm2 hn2 ⊢
   obtain ⟨⟨a, ha⟩, ⟨b, hb⟩, hab⟩ := hm2
   obtain ⟨⟨c, hc⟩, ⟨d, hd⟩, hcd⟩ := hn2
-  have le1 : S.bar.deg ≤ (S * T).bar.deg := deg_mono _ _ <| bar_mono _ _ <| le_mul_left S T
-  have le2 : T.bar.deg ≤ (S * T).bar.deg := deg_mono _ _ <| bar_mono _ _ <| le_mul_right S T
+  have le1 : S.bar.deg ≤ (S * T).bar.deg := deg_mono _ _ <| bar_mono _ _ <| left_le_mul S T
+  have le2 : T.bar.deg ≤ (S * T).bar.deg := deg_mono _ _ <| bar_mono _ _ <| right_le_mul S T
   refine ⟨m + n, by omega, ⟨⟨a + c, add_mem (le1 ha) (le2 hc)⟩,
     ⟨b + d, add_mem (le1 hb) (le2 hd)⟩, ?_⟩⟩
   simp only [← sub_eq_add_neg, add_smul, neg_add_rev, add_sub] at hab hcd ⊢
