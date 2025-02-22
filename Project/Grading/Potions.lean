@@ -40,6 +40,16 @@ def potionEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃+* 
         HomogeneousLocalization.map_mk])
 
 @[simp]
+lemma potionEquiv_mk {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) (x) :
+    S.potionEquiv eq (.mk x) = .mk ⟨x.deg, ⟨x.num, eq ▸ x.num.2⟩, ⟨x.den, eq ▸ x.den.2⟩,
+      by subst eq; exact x.den_mem⟩ := rfl
+
+@[simp]
+lemma potionEquiv_mk' {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) (x) :
+    S.potionEquiv eq (Quotient.mk'' x) = .mk ⟨x.deg, ⟨x.num, eq ▸ x.num.2⟩, ⟨x.den, eq ▸ x.den.2⟩,
+      by subst eq; exact x.den_mem⟩ := rfl
+
+@[simp]
 lemma potionEquiv_refl : S.potionEquiv rfl = RingEquiv.refl S.Potion := by
   ext x
   induction x using Quotient.inductionOn' with | h x =>
@@ -49,6 +59,18 @@ lemma potionEquiv_refl : S.potionEquiv rfl = RingEquiv.refl S.Potion := by
 @[simp high]
 lemma potionEquiv_refl_apply (x) : S.potionEquiv rfl x = x := by
   simp
+
+@[simp]
+lemma potionEquiv_symm {R S : HomogeneousSubmonoid 𝒜} (eq : R = S) :
+    (R.potionEquiv eq).symm = S.potionEquiv eq.symm := by
+  subst eq
+  simp only [potionEquiv_refl]
+  rfl
+
+@[simp]
+lemma potionEquiv_symm_apply {R S : HomogeneousSubmonoid 𝒜} (eq : R = S) (x) :
+    (R.potionEquiv eq).symm x = S.potionEquiv eq.symm x :=
+  congr($(potionEquiv_symm eq) x)
 
 @[simp]
 lemma potionEquiv_trans {R S T : HomogeneousSubmonoid 𝒜} (eq1 : R = S) (eq2 : S = T) :
@@ -854,19 +876,68 @@ def mixing {R S T : GoodPotionIngredient 𝒜} (R' : PotionGen S.1 R.1) (T' : Po
   mixingAux₃ R' T' |>.trans <|
   mixingAux₄ R S T
 
+lemma mixing_left (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (T' : PotionGen S.1 T.1)
+    (x : (S * T).Potion) :
+    mixing R' T' (x ⊗ₜ 1) =
+    potionEquiv (by rw [mul_comm R, mul_assoc, mul_comm R, ← mul_assoc]; rfl) (potionToMul _ R.1 x) := by
+  sorry
+
+lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (T' : PotionGen S.1 T.1)
+    (x : (S * R).Potion) :
+    mixing R' T' (1 ⊗ₜ x) =
+    potionEquiv (by simp [mul_comm R]) (potionToMul _ T.1 x) := by
+  sorry
+
 def t'Aux₀ (R S T : GoodPotionIngredient 𝒜) :
     (S * T).Potion ⊗[S.Potion] (S * R).Potion ≃+* (R * S * T).Potion :=
   mixing (finitePotionGen S.relevant R.fg) (finitePotionGen S.relevant T.fg)
+
+@[simp]
+lemma t'Aux₀_SR (R S T : GoodPotionIngredient 𝒜) (x : (S * R).Potion) :
+    t'Aux₀ R S T (1 ⊗ₜ x) =
+    potionEquiv (by simp [mul_comm R.1]) (potionToMul _ T.1 x) := by
+  delta t'Aux₀
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, AlgEquiv.coe_ringEquiv]
+  erw [mixing_right _ _ _ (finitePotionGen S.relevant R.fg) (finitePotionGen S.relevant T.fg) x]
+  rfl
 
 def t'Aux₁ (R S T : GoodPotionIngredient 𝒜) :
     (R * S).Potion ⊗[R.Potion] (R * T).Potion ≃+* (R * S * T).Potion :=
   (mixing (finitePotionGen R.relevant T.fg) (finitePotionGen R.relevant S.fg)).toRingEquiv.trans <|
     potionEquiv (by rw [mul_comm T, mul_assoc, mul_comm T, ← mul_assoc])
 
+@[simp]
+lemma t'Aux₁_RS (R S T : GoodPotionIngredient 𝒜) (x : (R * S).Potion) :
+    t'Aux₁ R S T (x ⊗ₜ 1) =
+    potionEquiv (by simp [mul_comm T.1]) (potionToMul _ T.1 x) := by
+  delta t'Aux₁
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, AlgEquiv.toRingEquiv_eq_coe,
+    RingEquiv.coe_trans, AlgEquiv.coe_ringEquiv, Function.comp_apply, potionEquiv_refl,
+    RingEquiv.refl_apply]
+  erw [mixing_left]
+  simp
+
 def t' (R S T : GoodPotionIngredient 𝒜) :
     ((S * T).Potion ⊗[S.Potion] (S * R).Potion) ≃+*
     ((R * S).Potion ⊗[R.Potion] (R * T).Potion) :=
   (t'Aux₀ R S T).trans (t'Aux₁ R S T).symm
+
+@[simp]
+lemma t'_apply_SR (R S T : GoodPotionIngredient 𝒜) (x : (S * R).Potion) :
+    t' R S T (1 ⊗ₜ x) = (potionEquiv (by rw [mul_comm]) x) ⊗ₜ 1 := by
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, t', RingEquiv.coe_trans,
+    Function.comp_apply]
+  erw [t'Aux₀_SR R S T x]
+  apply_fun (R.t'Aux₁ S T)
+  erw [RingEquiv.apply_symm_apply]
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid]
+  erw [t'Aux₁_RS R S T _]
+  induction x using Quotient.inductionOn' with | h x =>
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, potionEquiv_refl, RingEquiv.refl_apply]
+  erw [toMul_mk]
+  erw [toMul_mk]
+  rw [potionEquiv_mk']
+  simp
 
 lemma t'_cocycle (R S T : GoodPotionIngredient 𝒜) :
     (T.t' R S).trans ((S.t' T R).trans (R.t' S T))  = RingEquiv.refl _ := by
@@ -886,6 +957,14 @@ lemma t'_cocycle (R S T : GoodPotionIngredient 𝒜) :
   simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
   simp only [potionEquiv_trans_apply, mul_toSubmonoid, potionEquiv_refl, RingEquiv.refl_apply]
 
+lemma t'_fac (R S T : GoodPotionIngredient 𝒜) :
+    ((R.t' S T)).toRingHom.comp Algebra.TensorProduct.includeRight.toRingHom =
+    Algebra.TensorProduct.includeLeftRingHom.comp
+    (potionEquiv <| by rw [mul_comm]).toRingHom := by
+  ext x
+  simp
+
+set_option maxHeartbeats 1000000 in
 open Limits in
 def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
   J := ℱ
@@ -909,7 +988,14 @@ def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
     Spec.map (CommRingCat.ofHom <| t' R.1 S.1 T.1) ≫
     (AlgebraicGeometry.pullbackSpecIso _ _ _).inv
   t_fac R S T := by
-    sorry
+    dsimp only
+    simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, ← mul_potion_algebraMap_eq,
+      Category.assoc, pullbackSpecIso_inv_snd, RingEquiv.toRingHom_eq_coe]
+    rw [← Iso.eq_inv_comp]
+    rw [pullbackSpecIso_inv_fst_assoc]
+    rw [← Spec.map_comp, ← Spec.map_comp, ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+    congr 2
+    exact t'_fac R.1 S.1 T.1
   cocycle R S T := by
     dsimp only
     simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, mul_potion_algebraMap_eq,
