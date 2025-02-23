@@ -8,6 +8,8 @@
 /blueprint/web/
 /blueprint/src/web.paux
 /blueprint/src/web.bbl
+/blueprint/src/web.pdf
+/blueprint/src/print.pdf
 /blueprint/print/
 ## TeX
 *.aux
