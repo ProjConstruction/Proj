@@ -3,7 +3,7 @@ import Mathlib.RingTheory.Localization.Basic
 import Mathlib.RingTheory.TensorProduct.Basic
 import Mathlib.Tactic.Abel
 
-import Project.Formathlib.SubgroupBasic
+import Project.ForMathlib.SubgroupBasic
 
 namespace Submonoid
 
