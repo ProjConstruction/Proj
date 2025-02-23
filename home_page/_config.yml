@@ -20,7 +20,7 @@
 
 title: Proj
 #email: your-email@example.com
-description: by TBD
+description: by Arnaud Mayeux and Jujian Zhang
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://ProjConstruction.github.io/Proj" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username:
@@ -28,7 +28,7 @@ github_username: ProjConstruction
 repository: ProjConstruction/Proj
 
 # Build settings
-remote_theme: pages-themes/cayman@v0.2.0 
+remote_theme: pages-themes/cayman@v0.2.0
 plugins:
   - jekyll-remote-theme
   - jekyll-github-metadata
