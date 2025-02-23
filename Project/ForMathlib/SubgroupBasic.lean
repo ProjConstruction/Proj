@@ -150,3 +150,35 @@ instance : AddGroup.FG (M × N) := by
       simp
 
 end AddGroup
+
+namespace Submonoid
+
+variable (M : Type*) [CommMonoid M]
+
+lemma mem_closure_iff (S : Set M) (x) :
+    x ∈ closure S ↔ ∃ (n : M →₀ ℕ) (_ : ∀ i ∈ n.support, i ∈ S), n.prod (fun y i ↦ y ^ i) = x := by
+  fconstructor
+  · apply Submonoid.closure_induction
+    · intro x hx
+      refine ⟨Finsupp.single x 1, ?_, by simp⟩
+      intro i hi
+      simp only [Finsupp.mem_support_iff, ne_eq, Finsupp.single_apply_eq_zero, one_ne_zero,
+        imp_false, not_not] at hi
+      subst hi
+      assumption
+    · use 0
+      simp
+    · rintro _ _ hx hy ⟨x, hx', rfl⟩ ⟨y, hy', rfl⟩
+      refine ⟨x + y, ?_, ?_⟩
+      · simp only [Finsupp.mem_support_iff, Finsupp.coe_add, Pi.add_apply, ne_eq,
+        AddLeftCancelMonoid.add_eq_zero, not_and]
+        intro z hz
+        by_cases hz' : x z = 0
+        · specialize hz hz'
+          exact @hy' z (by simpa)
+        · exact hx' z (by simpa)
+      rw [Finsupp.prod_add_index'] <;> simp [pow_add]
+  · rintro ⟨m, hm, rfl⟩
+    exact prod_mem _ fun i hi ↦ pow_mem (subset_closure <| hm i hi) _
+
+end Submonoid

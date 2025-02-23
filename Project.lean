@@ -1,6 +1,9 @@
 import Project.Example
+import Project.ForMathlib.HomogeneousLocalization
+import Project.ForMathlib.LocalizationAway
 import Project.ForMathlib.SetLikeHomogeneous
 import Project.ForMathlib.SubgroupBasic
+import Project.ForMathlib.Submonoid
 import Project.ForMathlib.TensorProduct
 import Project.GR.Basic
 import Project.Grading.Dagger
@@ -9,5 +12,6 @@ import Project.Grading.HomogeneousSubmonoid
 import Project.Grading.IsoBar
 import Project.Grading.Localization
 import Project.Grading.LocalizedModule
+import Project.Grading.Potions
 import Project.Grading.TensorProduct
 import Project.Grading.Twisting
