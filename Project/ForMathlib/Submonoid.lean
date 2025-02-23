@@ -112,6 +112,24 @@ variable {A : Type*} [CommRing A] (S T : Submonoid A)
 variable (A_S : Type*) [CommRing A_S] [Algebra A A_S] [IsLocalization S A_S]
 variable (A_T : Type*) [CommRing A_T] [Algebra A A_T] [IsLocalization T A_T]
 
+lemma prod_mk {ι : Type*} (s : Finset ι) (t : ι → A) (t' : ι → S) :
+    ∏ i ∈ s, mk (t i) (t' i) =
+    mk (∏ i ∈ s, t i) (∏ i ∈ s, t' i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp only [Finset.prod_empty]; exact Eq.symm mk_one
+  | @insert i s hi ih =>
+    rw [Finset.prod_insert hi, ih, mk_mul, mk_eq_mk_iff, r_iff_exists]
+    use 1
+    simp only [OneMemClass.coe_one, SubmonoidClass.coe_finset_prod, one_mul, Submonoid.coe_mul]
+    rw [Finset.prod_insert hi, Finset.prod_insert hi]
+
+lemma split_den (x : A) (s t : S) :
+    mk x s * mk 1 t = mk x (s * t) := by
+  rw [mk_mul, mk_eq_mk_iff, r_iff_exists]
+  use 1
+  simp
+
 noncomputable def mulToTensor : Localization (S * T) →ₐ[A] (Localization S ⊗[A] Localization T) :=
   IsLocalization.liftAlgHom
     (R := A)
@@ -221,6 +239,24 @@ lemma tensorToLocalization_tmul_mk_mk (a b : A) (s : S) (t : T) :
     MonoidHom.coe_coe, RingHom.coe_coe, Algebra.ofId_apply, mk_eq_mk_iff, r_iff_exists,
     OneMemClass.coe_one, one_mul, Subtype.exists, exists_prop]
   refine ⟨1, one_mem _, by simp only [one_mul]; ring⟩
+
+@[simp]
+lemma tensorToLocalization_tmul_mk_one (a : A) (s : S) :
+    tensorToLocalization S T (.mk a s ⊗ₜ 1) =
+    .mk a ⟨s, ⟨_, s.2, _, one_mem _, by simp⟩⟩ := by
+  convert tensorToLocalization_tmul_mk_mk _ _ a 1 s 1
+  · exact Eq.symm mk_one
+  · simp
+  · simp
+
+@[simp]
+lemma tensorToLocalization_tmul_one_mk (b : A) (t : T) :
+    tensorToLocalization S T (1 ⊗ₜ .mk b t) =
+    .mk b ⟨t, ⟨_, one_mem _, _, t.2, by simp⟩⟩ := by
+  convert tensorToLocalization_tmul_mk_mk _ _ 1 b 1 t
+  · exact Eq.symm mk_one
+  · simp
+  · simp
 
 noncomputable def mulEquivTensor : Localization (S * T) ≃ₐ[A] (Localization S ⊗[A] Localization T) :=
   AlgEquiv.ofAlgHom (mulToTensor S T) (tensorToLocalization S T)

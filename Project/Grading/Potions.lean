@@ -96,6 +96,14 @@ def potionToMulSelf : S.Potion ≃+* (S * S).Potion :=
 @[simp]
 lemma toMul_mk (x) : S.potionToMul T (.mk x) = .mk ⟨x.deg, x.num, x.den, left_le_mul _ _ x.den_mem⟩ := rfl
 
+
+@[simp]
+lemma potionEquiv_potionToMul_assoc {R S T : HomogeneousSubmonoid 𝒜} (x : R.Potion):
+  ((R*S).potionToMul T (R.potionToMul S x)) =
+  potionEquiv (by rw [mul_assoc]) (R.potionToMul (S * T) x) := by
+  induction x using Quotient.inductionOn' with | h x =>
+  rw [toMul_mk, toMul_mk, toMul_mk, potionEquiv_mk]
+
 instance : Algebra S.Potion (S * T).Potion := RingHom.toAlgebra (potionToMul S T)
 
 @[simp]
@@ -225,7 +233,7 @@ variable {S T} in
 def PotionGen.genSubmonoid (T' : PotionGen S T) : Submonoid S.Potion :=
   Submonoid.closure
     {x | ∃ (t : T'.index), x =
-      S.equivBarPotion.symm (HomogeneousLocalization.mk
+      S.equivBarPotion.symm (.mk
         { deg := T'.i t,
           num := ⟨(T'.elem t) ^ (T'.n t : ℕ) * T'.s' t,
             by simpa using SetLike.mul_mem_graded (T'.t_deg t) (T'.s'_deg t)⟩,
@@ -290,6 +298,55 @@ def localizationToPotion (T' : PotionGen S T) :
     · intro x y hx hy ihx ihy
       simp only [map_mul, IsUnit.mul_iff]
       tauto
+
+lemma localizationToPotion_mk (T' : PotionGen S T)
+    (x)
+    (t : T'.index) (n : ℕ)  :
+    localizationToPotion T' (.mk (.mk x) <|
+      ⟨(S.equivBarPotion.symm (.mk
+        { deg := T'.i t,
+          num := ⟨(T'.elem t) ^ (T'.n t : ℕ) * T'.s' t,
+            by simpa using SetLike.mul_mem_graded (T'.t_deg t) (T'.s'_deg t)⟩,
+          den := ⟨T'.s t, T'.s_deg t⟩,
+          den_mem := T'.s_mem_bar t })) ^ n,
+            pow_mem (Submonoid.subset_closure
+              (by simp only [Set.mem_setOf_eq, EmbeddingLike.apply_eq_iff_eq]; use t)) _⟩) =
+    (.mk ⟨x.deg, x.num, x.den, Submonoid.left_le_mul x.den_mem⟩) *
+    (S * T).equivBarPotion.symm
+      ((.mk ⟨T'.i t, ⟨T'.s t, T'.s_deg t⟩,
+        ⟨T'.elem t ^ (T'.n t : ℕ) * T'.s' t, by simpa using SetLike.mul_mem_graded (T'.t_deg t) (T'.s'_deg t)⟩,
+        mul_mem (pow_mem (bar_mono _ _ (right_le_mul _ _) (T.le_bar <| T'.elem_mem t)) _)
+          (bar_mono _ _ (left_le_mul _ _) (T'.s'_mem_bar t))⟩) ^ n) := by
+  simp only [mul_toSubmonoid, localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk',
+    toMul_mk, RingHom.toMonoidHom_eq_coe]
+  rw [Units.mul_inv_eq_iff_eq_mul, IsUnit.coe_liftRight]
+  simp only [MonoidHom.restrict_apply, MonoidHom.coe_coe]
+  have := T'.s_mem_bar t
+  simp only [mem_bar] at this
+  obtain ⟨-, y, h_mem, dvd⟩ := this
+  obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s_deg _⟩ (S.2 h_mem) dvd
+  rw [equivBarPotion_symm_apply (z_mem := hj) (hz := h_mem)]
+
+  simp only [map_pow, mul_toSubmonoid, toMul_mk, eq_mp_eq_cast]
+  have := T'.s'_mem_bar t
+  simp only [mem_bar] at this
+  obtain ⟨-, y, h_mem', dvd'⟩ := this
+  obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s'_deg _⟩ (S.2 h_mem') dvd'
+
+  rw [equivBarPotion_symm_apply (S * T) (z_mem := hj') (hz := by
+    rw [mul_assoc]
+    exact mul_mem (pow_mem (right_le_mul _ _ (T'.elem_mem t)) _) <| left_le_mul _ _ h_mem')]
+  simp only [mul_toSubmonoid, ← HomogeneousLocalization.mk_mul]
+  apply Quotient.sound'
+  simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding, eq_mp_eq_cast, id_eq,
+    mul_toSubmonoid, eq_mpr_eq_cast, HomogeneousLocalization.NumDenSameDeg.deg_mul,
+    HomogeneousLocalization.NumDenSameDeg.deg_pow, HomogeneousLocalization.NumDenSameDeg.num_mul,
+    HomogeneousLocalization.NumDenSameDeg.num_pow, HomogeneousLocalization.NumDenSameDeg.den_mul,
+    HomogeneousLocalization.NumDenSameDeg.den_pow, Localization.mk_eq_mk_iff,
+    Localization.r_iff_exists, Subtype.exists, exists_prop]
+  refine ⟨1, one_mem _, ?_⟩
+  simp only [one_mul]
+  ring
 
 variable {S T} in
 lemma localizationToPotion_injective (T' : PotionGen S T) :
@@ -600,6 +657,44 @@ def localizationAlgEquivPotion (T' : PotionGen S T) :
     induction x using Quotient.inductionOn' with | h x =>
     simp [localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk']
 
+lemma localizationAlgEquivPotion_apply (T' : PotionGen S T) (x) :
+    localizationAlgEquivPotion T' x = localizationToPotion T' x := rfl
+
+
+lemma localizationToPotion_mk' (T' : PotionGen S T)
+    (x)
+    {ι : Type*} (s : Finset ι) (t : ι → T'.index) (n : ι → ℕ) :
+    localizationToPotion T' (.mk (.mk x) (∏ y ∈ s,
+      ⟨(S.equivBarPotion.symm (.mk
+        { deg := T'.i (t y),
+          num := ⟨(T'.elem (t y)) ^ (T'.n (t y) : ℕ) * T'.s' (t y),
+            by simpa using SetLike.mul_mem_graded (T'.t_deg (t y)) (T'.s'_deg (t y))⟩,
+          den := ⟨T'.s (t y), T'.s_deg (t y)⟩,
+          den_mem := T'.s_mem_bar (t y) })) ^ (n y), pow_mem (Submonoid.subset_closure
+            (by simp only [Set.mem_setOf_eq, EmbeddingLike.apply_eq_iff_eq]; use (t y))) _⟩)) =
+    (.mk ⟨x.deg, x.num, x.den, Submonoid.left_le_mul x.den_mem⟩) *
+    (S * T).equivBarPotion.symm (∏ y ∈ s,
+      (.mk ⟨T'.i (t y), ⟨T'.s (t y), T'.s_deg (t y)⟩,
+        ⟨T'.elem (t y) ^ (T'.n (t y) : ℕ) * T'.s' (t y), by simpa using SetLike.mul_mem_graded (T'.t_deg (t y)) (T'.s'_deg (t y))⟩,
+        mul_mem (pow_mem (bar_mono _ _ (right_le_mul _ _) (T.le_bar <| T'.elem_mem (t y))) _)
+          (bar_mono _ _ (left_le_mul _ _) (T'.s'_mem_bar (t y)))⟩) ^ (n y)) := by
+  classical
+  induction s using Finset.induction_on generalizing x with
+  | empty =>
+    simp only [mul_toSubmonoid, Finset.prod_empty, map_one, mul_one]
+    rw [Localization.mk_one_eq_algebraMap]
+    rw [← localizationAlgEquivPotion_apply]
+    simp
+  | @insert y s hy ih =>
+    rw [Finset.prod_insert hy, Finset.prod_insert hy]
+    rw [← Localization.split_den, map_mul]
+    rw [localizationToPotion_mk, show (1 : S.Potion) = .mk 1 by rfl, ih]
+    have : (1 : (S * T).Potion) = .mk ⟨_, _, _, _⟩ := HomogeneousLocalization.one_eq (𝒜 := 𝒜) (x := (S * T).toSubmonoid)
+    erw [← this]
+    simp only [mul_toSubmonoid, map_pow, map_prod, one_mul, map_mul]
+    rw [mul_assoc]
+
+
 instance (T' : PotionGen S T) : IsLocalization (T'.genSubmonoid) (S * T).Potion :=
   IsLocalization.isLocalization_of_algEquiv (T'.genSubmonoid) (localizationAlgEquivPotion T')
 
@@ -876,17 +971,229 @@ def mixing {R S T : GoodPotionIngredient 𝒜} (R' : PotionGen S.1 R.1) (T' : Po
   mixingAux₃ R' T' |>.trans <|
   mixingAux₄ R S T
 
+set_option maxHeartbeats 1000000 in
 lemma mixing_left (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (T' : PotionGen S.1 T.1)
     (x : (S * T).Potion) :
     mixing R' T' (x ⊗ₜ 1) =
     potionEquiv (by rw [mul_comm R, mul_assoc, mul_comm R, ← mul_assoc]; rfl) (potionToMul _ R.1 x) := by
-  sorry
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, mixing, AlgEquiv.trans_apply]
+  delta mixingAux₄
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, AlgEquiv.ofRingEquiv_apply]
+  erw [Equiv.apply_eq_iff_eq_symm_apply]
+  erw [potionEquiv_symm_apply]
+  swap
+  · rw [mul_comm _ R.1, ← mul_assoc, mul_comm S.1]
+  simp only [mul_toSubmonoid, potionEquiv_trans_apply]
+  simp only [mixingAux₀, mul_toHomogeneousSubmonoid, mul_toSubmonoid,
+    Algebra.TensorProduct.congr_apply, Algebra.TensorProduct.map_tmul, AlgHom.coe_coe, map_one]
+  simp only [mixingAux₁, Localization.mulEquivTensor_symm_apply]
+  set y := (localizationAlgEquivPotion T').symm x
+  have hy : x = (localizationAlgEquivPotion T') y := by simp [y]
+  simp only [hy, mul_toSubmonoid]
+  clear_value y
+  clear hy x
+  induction y using Localization.induction_on with | H y =>
+  rcases y with ⟨y, t⟩
+  simp only [Localization.tensorToLocalization_tmul_mk_one]
+  simp only [mixingAux₃, localizationAlgEquivPotion, mul_toSubmonoid, mixingAux₂,
+    Localization.equivEq_apply, Localization.mapEq_mk, AlgEquiv.ofRingEquiv_apply,
+    localizationRingEquivPotion_apply]
+  induction y using Quotient.inductionOn' with | h x =>
+  rcases t with ⟨t, ht⟩
+  erw [Submonoid.mem_closure_iff] at ht
+  obtain ⟨c, hc, rfl⟩ := ht
+  have ht' := hc
+  choose i hi using hc
+  simp only
+  set f : (i : S.Potion) → i ∈ c.support → S.bar.Potion := _
+  change ∀ (x : S.Potion) (hx : x ∈ c.support), x = S.equivBarPotion.symm (f x hx) at hi
+  rw [show Localization.mk (HomogeneousLocalization.mk x) ⟨_, ht⟩ =
+    (HomogeneousLocalization.mk x) • ∏ x ∈ c.support.attach,
+      Localization.mk 1 ⟨(S.equivBarPotion.symm <| f x.1 x.2) ^ (c x.1),
+        pow_mem (Submonoid.subset_closure (by
+        simp only [Set.mem_setOf_eq, EmbeddingLike.apply_eq_iff_eq, f]
+        use i x.1 x.2)) _⟩ by
+      rw [Localization.prod_mk]
+      simp only [Finset.prod_const_one, f]
+      rw [Localization.smul_mk]
+      simp only [smul_eq_mul, mul_one, f]
+      congr 1
+      ext : 1
+      simp only [Finsupp.prod, SubmonoidClass.coe_finset_prod, f]
+      rw [← Finset.prod_attach]
+      refine Finset.prod_congr rfl ?_
+      rintro ⟨x, hx⟩ _
+      simp only [f]
+      conv_rhs => rw [← hi _ hx]]
+  simp only [← localizationAlgEquivPotion_apply]
+  rw [map_smul]
+  simp only [localizationAlgEquivPotion_apply]
+  simp_rw [show (1 : S.Potion) = .mk 1 by rfl]
+  have := localizationToPotion_mk' (𝒜 := 𝒜) S.1 T.1 T' 1 c.support.attach (fun x ↦ i _ x.2) (fun x ↦ c x.1)
+  simp only [mul_toSubmonoid, HomogeneousLocalization.mk_one, Localization.prod_mk,
+    Finset.prod_const_one, f]
+  erw [this]
+  have : (1 : (S * T).Potion) = .mk ⟨_, _, _, _⟩ := HomogeneousLocalization.one_eq (𝒜 := 𝒜) (x := (S * T).toSubmonoid)
+  erw [← this]
 
+  simp only [mul_toSubmonoid, map_prod, map_pow, one_mul, f]
+  simp only [Finsupp.prod, f]
+  have eq := localizationToPotion_mk' (𝒜 := 𝒜) S.1 _ (T'.disjUnion R') x c.support.attach
+    (fun x ↦ .inl <| i _ x.2) (fun x ↦ c x.1)
+  simp only [mul_toSubmonoid, map_prod, map_pow, f] at eq
+  simp_rw [show ∏ x ∈ c.support, x ^ c x = ∏ x ∈ c.support.attach,
+      (S.equivBarPotion.symm <| f x.1 x.2) ^ (c x.1) by
+      rw [← Finset.prod_attach]
+      refine Finset.prod_congr rfl ?_
+      intro j _
+      rw [← hi _ j.2]]
+  simp only [f]
+  convert eq using 1
+  · congr 2
+    ext : 1
+    simp only [SubmonoidClass.coe_finset_prod, f]
+    rfl
+  · erw [smul_eq_mul]
+    simp only [mul_toSubmonoid, toMul_mk, map_mul, map_prod, map_pow, f]
+    rw [toMul_mk, potionEquiv_mk]
+    simp only [mul_toSubmonoid, Subtype.coe_eta, f]
+    congr 1
+    refine Finset.prod_congr rfl ?_
+    rintro ⟨x, hx⟩ _
+    simp only [f]
+    congr 1
+    simp only [PotionGen.disjUnion, f]
+    have := T'.s'_mem_bar (i _ hx)
+    simp only [mem_bar] at this
+    obtain ⟨hom, y, hy, dvd⟩ := this
+    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜  ⟨_, T'.s'_deg (i _ hx)⟩
+      (S.1.2 hy) dvd
+    rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
+      rw [mul_assoc]
+      apply mul_mem
+      · apply pow_mem
+        exact right_le_mul _ _ (T'.elem_mem _)
+      exact left_le_mul _ _ hy)]
+
+    rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
+      rw [mul_assoc]
+      apply mul_mem
+      · apply pow_mem
+        exact right_le_mul _ _ <| left_le_mul _ _ (T'.elem_mem _)
+      exact left_le_mul _ _ hy)]
+    rw [toMul_mk, potionEquiv_mk]
+
+set_option maxHeartbeats 1000000 in
 lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (T' : PotionGen S.1 T.1)
     (x : (S * R).Potion) :
     mixing R' T' (1 ⊗ₜ x) =
     potionEquiv (by simp [mul_comm R]) (potionToMul _ T.1 x) := by
-  sorry
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, mixing, AlgEquiv.trans_apply]
+  delta mixingAux₄
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, AlgEquiv.ofRingEquiv_apply]
+  erw [Equiv.apply_eq_iff_eq_symm_apply]
+  erw [potionEquiv_symm_apply]
+  swap
+  · rw [mul_comm _ R.1, ← mul_assoc, mul_comm S.1]
+  simp only [mul_toSubmonoid, potionEquiv_trans_apply]
+  simp only [mixingAux₀, mul_toHomogeneousSubmonoid, mul_toSubmonoid,
+    Algebra.TensorProduct.congr_apply, Algebra.TensorProduct.map_tmul, AlgHom.coe_coe, map_one]
+  simp only [mixingAux₁, Localization.mulEquivTensor_symm_apply]
+  set y := (localizationAlgEquivPotion R').symm x
+  have hy : x = (localizationAlgEquivPotion R') y := by simp [y]
+  simp only [hy, mul_toSubmonoid]
+  clear_value y
+  clear hy x
+  induction y using Localization.induction_on with | H y =>
+  rcases y with ⟨y, t⟩
+  simp only [Localization.tensorToLocalization_tmul_mk_one]
+  simp only [mixingAux₃, localizationAlgEquivPotion, mul_toSubmonoid, mixingAux₂,
+    Localization.equivEq_apply, Localization.mapEq_mk, AlgEquiv.ofRingEquiv_apply,
+    localizationRingEquivPotion_apply]
+  induction y using Quotient.inductionOn' with | h x =>
+  rcases t with ⟨t, ht⟩
+  erw [Submonoid.mem_closure_iff] at ht
+  obtain ⟨c, hc, rfl⟩ := ht
+  have ht' := hc
+  choose i hi using hc
+  simp only [Localization.tensorToLocalization_tmul_one_mk, Localization.mapEq_mk]
+  set f : (i : S.Potion) → i ∈ c.support → S.bar.Potion := _
+  change ∀ (x : S.Potion) (hx : x ∈ c.support), x = S.equivBarPotion.symm (f x hx) at hi
+  rw [show Localization.mk (HomogeneousLocalization.mk x) ⟨_, ht⟩ =
+    (HomogeneousLocalization.mk x) • ∏ x ∈ c.support.attach,
+      Localization.mk 1 ⟨(S.equivBarPotion.symm <| f x.1 x.2) ^ (c x.1),
+        pow_mem (Submonoid.subset_closure (by
+        simp only [Set.mem_setOf_eq, EmbeddingLike.apply_eq_iff_eq, f]
+        use i x.1 x.2)) _⟩ by
+      rw [Localization.prod_mk]
+      simp only [Finset.prod_const_one, f]
+      rw [Localization.smul_mk]
+      simp only [smul_eq_mul, mul_one, f]
+      congr 1
+      ext : 1
+      simp only [Finsupp.prod, SubmonoidClass.coe_finset_prod, f]
+      rw [← Finset.prod_attach]
+      refine Finset.prod_congr rfl ?_
+      rintro ⟨x, hx⟩ _
+      simp only [f]
+      conv_rhs => rw [← hi _ hx]]
+  simp only [← localizationAlgEquivPotion_apply]
+  rw [map_smul]
+  simp only [localizationAlgEquivPotion_apply]
+  simp_rw [show (1 : S.Potion) = .mk 1 by rfl]
+  have := localizationToPotion_mk' (𝒜 := 𝒜) S.1 _ R' 1 c.support.attach (fun x ↦ i _ x.2) (fun x ↦ c x.1)
+  simp only [mul_toSubmonoid, HomogeneousLocalization.mk_one, Localization.prod_mk,
+    Finset.prod_const_one, f]
+  erw [this]
+  have : (1 : (S * R).Potion) = .mk ⟨_, _, _, _⟩ := HomogeneousLocalization.one_eq (𝒜 := 𝒜) (x := (S * R).toSubmonoid)
+  erw [← this]
+
+  simp only [mul_toSubmonoid, map_prod, map_pow, one_mul, f]
+  simp only [Finsupp.prod, f]
+  have eq := localizationToPotion_mk' (𝒜 := 𝒜) S.1 _ (T'.disjUnion R') x c.support.attach
+    (fun x ↦ .inr <| i _ x.2) (fun x ↦ c x.1)
+  simp only [mul_toSubmonoid, map_prod, map_pow, f] at eq
+  simp_rw [show ∏ x ∈ c.support, x ^ c x = ∏ x ∈ c.support.attach,
+      (S.equivBarPotion.symm <| f x.1 x.2) ^ (c x.1) by
+      rw [← Finset.prod_attach]
+      refine Finset.prod_congr rfl ?_
+      intro j _
+      rw [← hi _ j.2]]
+  simp only [f]
+  convert eq using 1
+  · congr 2
+    ext : 1
+    simp only [SubmonoidClass.coe_finset_prod, f]
+    rfl
+  · erw [smul_eq_mul]
+    simp only [mul_toSubmonoid, toMul_mk, map_mul, map_prod, map_pow, f]
+    rw [toMul_mk, potionEquiv_mk]
+    simp only [mul_toSubmonoid, Subtype.coe_eta, f]
+    congr 1
+    refine Finset.prod_congr rfl ?_
+    rintro ⟨x, hx⟩ _
+    simp only [f]
+    congr 1
+    simp only [PotionGen.disjUnion, f]
+    have := R'.s'_mem_bar (i _ hx)
+    simp only [mem_bar] at this
+    obtain ⟨hom, y, hy, dvd⟩ := this
+    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜  ⟨_, R'.s'_deg (i _ hx)⟩
+      (S.1.2 hy) dvd
+    rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
+      rw [mul_assoc]
+      apply mul_mem
+      · apply pow_mem
+        exact right_le_mul _ _ (R'.elem_mem _)
+      exact left_le_mul _ _ hy)]
+
+    rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
+      rw [mul_assoc]
+      apply mul_mem
+      · apply pow_mem
+        exact right_le_mul _ _ <| right_le_mul _ _ (R'.elem_mem _)
+      exact left_le_mul _ _ hy)]
+    rw [toMul_mk, potionEquiv_mk]
 
 def t'Aux₀ (R S T : GoodPotionIngredient 𝒜) :
     (S * T).Potion ⊗[S.Potion] (S * R).Potion ≃+* (R * S * T).Potion :=
@@ -962,7 +1269,11 @@ lemma t'_fac (R S T : GoodPotionIngredient 𝒜) :
     Algebra.TensorProduct.includeLeftRingHom.comp
     (potionEquiv <| by rw [mul_comm]).toRingHom := by
   ext x
-  simp
+  simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, RingEquiv.toRingHom_eq_coe,
+    AlgHom.toRingHom_eq_coe, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+    Algebra.TensorProduct.includeRight_apply, Algebra.TensorProduct.includeLeftRingHom_apply]
+  erw [t'_apply_SR]
+  rfl
 
 set_option maxHeartbeats 1000000 in
 open Limits in
@@ -1009,6 +1320,8 @@ def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
     convert CommRingCat.ofHom_id using 2
     ext x
     simpa using congr($(t'_cocycle R.1 S.1 T.1) x)
+
+def Proj (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme := glueData ℱ |>.glued
 
 end GoodPotionIngredient
 
