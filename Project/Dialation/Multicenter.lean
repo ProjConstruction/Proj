@@ -586,20 +586,23 @@ def desc (χ : A →+* B)
                               rcases h with ⟨β, hβ⟩
                               simp only
                               apply def_unique_elem_unique
-                              apply_fun (fun z => χ (𝐚^ β) * z)
+                              apply_fun (fun z => χ (𝐚^ (β + y.pow)) * z)
                               · simp only [mul_assoc, hβ]
-                                simp[← mul_assoc, ← map_mul, ← prodElemPow_add, hβ]
-                                rw[ prodElemPow_add]
-                                rw[mul_comm _ x.num]
-                                rw[map_mul]
-                                rw[← def_unique_elem_spec F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
-                                conv_rhs => simp[← mul_assoc, ← map_mul, ← prodElemPow_add, hβ]
-
-                                sorry
-                              ·
-
-
-                              sorry)
+                                rw[← map_mul, mul_comm _ x.num]
+                                rw [hβ]
+                                simp only [map_mul]
+                                rw[← def_unique_elem_spec F χ y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
+                                simp only [prodElemPow_add, map_mul]
+                                ring
+                              · intro x y hx
+                                simp only at hx
+                                rwa [mul_cancel_left_mem_nonZeroDivisors] at hx
+                                simp only [prodElemPower, Finsupp.prod, Finsupp.coe_add,
+                                  Pi.add_apply, map_prod, map_pow]
+                                apply prod_mem
+                                intro i hi
+                                apply pow_mem
+                                apply non_zero_divisor)
   map_one' := _
   map_mul' := _
   map_zero' := _
