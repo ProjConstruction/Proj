@@ -1,7 +1,7 @@
 import Mathlib.RingTheory.Ideal.Operations
 import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
-
+import Project.Dialation.lemma
 suppress_compilation
 
 open DirectSum
@@ -425,6 +425,47 @@ lemma smul_frac (a : A) (v : F^ℕ) (m : 𝐋^v) : a • (m/.v) = (a • m)/.v :
   use 0
   simp
 
+
+lemma nonzerodiv_image (v :F^ℕ) :
+   algebraMap A A[F] 𝐚^v ∈ nonZeroDivisors A[F] := by
+    intro x h
+    induction x using induction_on with |h x =>
+    rw[algebraMap_apply] at h
+    rw[mk_mul_mk] at h
+    rw[zero_def]  at h
+    rw[mk_eq_mk] at h
+    rcases h with ⟨ α, hα ⟩
+    simp at hα
+    rw[zero_def]
+    rw[mk_eq_mk]
+    use v +α
+    simp [prodElemPow_add, ← mul_assoc, hα]
+
+--lemma eq below ?
+
+lemma image_elem_LargeIdeal_equal  (v : F^ℕ) :
+ Ideal.span ({algebraMap A A[F] (𝐚^v)}) =
+    Ideal.map (algebraMap A A[F]) (𝐋^v):= by
+    refine le_antisymm ?_  ?_
+    · rw [Ideal.span_le]
+      simp
+      apply  Ideal.mem_map_of_mem
+      exact prodElemPow_mem F v
+    · rw [Ideal.map_le_iff_le_comap]
+      intro x hx
+      have eq: algebraMap A A[F] x =
+       algebraMap A A[F] 𝐚^v * ⟨ x , hx⟩  /.v := by
+       simp  [algebraMap_apply, frac, mk_mul_mk, mk_eq_mk]
+       use 0
+       simp [mul_comm]
+      simp only [Ideal.mem_comap]
+      rw [eq]
+      apply Ideal.mul_mem_right
+      apply Ideal.subset_span
+      simp only [Set.mem_singleton_iff]
+
+
+
 end Dilatation
 
 end semiring
@@ -471,81 +512,139 @@ end ring
 
 section universal_property
 
-variable {A B : Type*} [CommSemiring A] [CommSemiring B] (F : Multicenter A)
+variable {A B : Type*} [CommRing A] [CommRing B] (F : Multicenter A)
 
 
 lemma  cond_univ_implies_large_cond (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
     (∀ (ν : F^ℕ) , (Ideal.span {χ (𝐚^ν)} = Ideal.map χ (𝐋^ν))) :=by
+     classical
      intro v
-     rw[prodElemPower]
-     rw[prodLargeIdealPower]
-     --d:= cardinal ν.support
-     --induction d
-    -- if d =0 : trivial
-     --otherwise apply induction hypothesis and Ideal.span_singleton_mul_span_singleton
-     sorry
+     simp[prodLargeIdealPower]
+     simp [prodElemPower]
+     simp only [Finsupp.prod, map_prod, map_pow]
+     rw[Ideal.prod_span']
+     simp[← Ideal.span_singleton_pow, gen]
+     simp[Ideal.prod_map, Ideal.map_pow]
+
+
 
 lemma  lemma_exists_in_image (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
     (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B ,  χ 𝐚^ν *bm=χ (m) )):= by
-     intro v m
-  --Ideal.mem_span_singleton' (Mathlib) and cond_univ_implies_large_cond shows existence of bm
-  --mul_cancel_right_mem_nonZeroDivisors (Mathlib) shows unicity of bm (it is written for rings so we might restrict to rings here
-    sorry
+      intro v m
+      have mem : χ m ∈  Ideal.map χ (𝐋^v) := by
+          apply Ideal.mem_map_of_mem
+          exact m.2
+      rw[← cond_univ_implies_large_cond] at mem
+      rw[Ideal.mem_span_singleton'] at mem
+      rcases mem with ⟨bm, eq_bm⟩
+      use bm
+      rw[mul_comm] at eq_bm
+      use eq_bm
+      intro bm' eq
+      rw[← eq_bm] at eq
+      rw[mul_cancel_left_mem_nonZeroDivisors] at eq
+      · exact eq
+      · simp[prodElemPower, Finsupp.prod]
+        apply prod_mem
+        intro i hi
+        apply pow_mem
+        apply non_zero_divisor
+      · exact gen
 
-def def_bm (χ : A →+* B)
+
+
+def def_unique_elem (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):=
-     --(lemma_exists_in_image bm).choose_spec
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)): B :=
+     (lemma_exists_in_image  F χ non_zero_divisor gen v m).choose
+
+lemma def_unique_elem_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    χ 𝐚^v * def_unique_elem F χ v m non_zero_divisor gen = χ m := by
+    apply (lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.1
+
+lemma def_unique_elem_unique  (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    ∀ bm : B, χ 𝐚^v * bm = χ m →  def_unique_elem F χ v m non_zero_divisor gen =bm:= by
+    intro bm hbm
+    apply ((lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
+
+
 
 def desc (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) :
      A[F] →+* B where
-     --m/.ν ↦ bm of cond_univ_implies_large_cond
-  toFun := Dilatation.descFun _ _
+  toFun := Dilatation.descFun (fun x ↦ def_unique_elem F χ x.pow ⟨ x.num, x.num_mem⟩  non_zero_divisor gen )
+                            ( by
+                              intro x y h
+                              rcases h with ⟨β, hβ⟩
+                              simp only
+                              apply def_unique_elem_unique
+                              apply_fun (fun z => χ (𝐚^ β) * z)
+                              · simp only [mul_assoc, hβ]
+                                simp[← mul_assoc, ← map_mul, ← prodElemPow_add, hβ]
+                                rw[ prodElemPow_add]
+                                rw[mul_comm _ x.num]
+                                rw[map_mul]
+                                rw[← def_unique_elem_spec F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
+                                conv_rhs => simp[← mul_assoc, ← map_mul, ← prodElemPow_add, hβ]
+
+                                sorry
+                              ·
+
+
+                              sorry)
   map_one' := _
   map_mul' := _
   map_zero' := _
   map_add' := _
 
 
+lemma  lemma_exists_unique_morphism (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    (∃! χ':A[F]→+*B,  χ' algebraMap = χ )  := by
+     intro v m
+    --Ideal.mem_span_singleton' (Mathlib) and cond_univ_implies_large_cond shows existence of bm
+    --mul_cancel_right_mem_nonZeroDivisors (Mathlib) shows unicity of bm (it is written for rings so we might restrict to rings here
+    sorry
+
+
+def desc (χ : A →+* B)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) :=
+     --(lemma_exists_unique_morphism).choose_spec
+
 open Dilatation in
 lemma desc_apply_frac (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
     (v : F^ℕ) (m : 𝐋^v) :
-    χ (𝐚^v) * desc F χ non_zero_divisor gen (m /. v) =
-    χ m := by
+    (χ (𝐚^v) * desc (m /. v) =
+    χ m )^ desc (m /. v)= def_bm := by
   --explicit_image  and desc both above
   sorry
 
-
-open Dilatation in
-lemma desc_uniq (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (χ' : A[F] →+* B)
-    (h : ∀ (v : F^ℕ) (m : 𝐋^v), χ (𝐚^v) * χ' (m /. v) = χ m) :
-    desc F χ non_zero_divisor gen = χ' := by
-  --by desc_apply_frac and mul_cancel_right_mem_nonZeroDivisors (Mathlib)
+def image_mult (χ : A →+* B) (v : F^ℕ) : image of F under χ :=
+  sorry
+lemma unique_functorial_morphism_dilatation (χ : A →+* B) :
+ ∃! χ':A[F]→+*[A] B[image_mult B F] :=by
+  --lemma_exists_unique_morphism
   sorry
 
-def image_mult(χ : A →+* B) :=
-  Multicenter where
-  (index : F.index)
-  (ideal : index → Ideal B, i ↦ Ideal.map χ (Ideal A i ))
-  (elem : index → B, i ↦ χ (F.elem i))
-  (mem : ∀ i : index, elem i ∈ ideal i)
-
-
-scoped notation: max χ"^F"  => image_mult (χ : A →+* B)
-
 lemma dilatation_ring_flat_base_change (χ : A →+* B):
- (χ ∈   RingHom.Flat ) → A[F] ⊗[A] B ≅ B[image_mult χ] := by
+ χ ∈ RingHom.Flat  → A[F]⊗[A] B ≅ B[image_mult χ] := by
+   --universal property of tensor product, exists -->
+   --χ flat and nonzerodiv_image implies that  𝐚^ν is a nonzerodivisor in A[F]⊗[A] B
+   --cond on ideals is ok
+   --apply univ property to get a morphism of <--
+   --check that both compositions are identity
   sorry
 
 lemma flat_module_localization_at_prime_iff (M: Module.A):
@@ -571,7 +670,6 @@ lemma open_implies_flat_ring (χ : A →+* B):
                ----- is an isomorphism
 
 
-  sorry
 
 end universal_property
 
