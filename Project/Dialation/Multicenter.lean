@@ -603,26 +603,52 @@ def desc (χ : A →+* B)
                                 intro i hi
                                 apply pow_mem
                                 apply non_zero_divisor)
-  map_one' := _
-  map_mul' := _
-  map_zero' := _
-  map_add' := _
+  map_one' := by
+    simp only [Dilatation.descFun, Dilatation.one_def]
+    apply def_unique_elem_unique
+    simp
+  map_mul' := by
+    intro x y
+    induction x using Dilatation.induction_on with |h x =>
+    induction y using Dilatation.induction_on with |h y =>
+    simp only [Dilatation.descFun₂_mk_mk, Dilatation.mk_mul_mk]
+    apply def_unique_elem_unique
+    · exact non_zero_divisor
+    · exact gen
+    · simp
+      rw[← def_unique_elem_spec F χ y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
+      rw[← def_unique_elem_spec F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
+      simp [prodElemPow_add]
+      ring
+  map_zero' := by
+    simp only [Dilatation.descFun, Dilatation.one_def]
+    apply def_unique_elem_unique
+    simp
+  map_add' :=  by
+    intro x y
+    induction x using Dilatation.induction_on with |h x =>
+    induction y using Dilatation.induction_on with |h y =>
+    simp only [Dilatation.descFun₂_mk_mk, Dilatation.mk_mul_mk]
+    apply def_unique_elem_unique
+    · exact non_zero_divisor
+    · exact gen
+    · simp
+      rw[← def_unique_elem_spec F χ y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
+      rw[← def_unique_elem_spec F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
+      simp [prodElemPow_add]
+      ring
 
 
 lemma  lemma_exists_unique_morphism (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    (∃! χ':A[F]→+*B,  χ' algebraMap = χ )  := by
+    (∃! χ':A[F]→+*B,  χ'  algebraMap A A[F] = χ )  := by
      intro v m
     --Ideal.mem_span_singleton' (Mathlib) and cond_univ_implies_large_cond shows existence of bm
     --mul_cancel_right_mem_nonZeroDivisors (Mathlib) shows unicity of bm (it is written for rings so we might restrict to rings here
     sorry
 
 
-def desc (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) :=
-     --(lemma_exists_unique_morphism).choose_spec
 
 open Dilatation in
 lemma desc_apply_frac (χ : A →+* B)
@@ -671,8 +697,25 @@ lemma open_implies_flat_ring (χ : A →+* B):
        -- that for all q ⊆ B prime ideals,
            --- IsLocalization.AtPrime f^-1(q) A → IsLocalization.AtPrime b B
                ----- is an isomorphism
+  sorry
 
 
+
+
+--Defining multi-Rees algebra as graded rings. We need only the ideals part of Multicenter.
+def multiRees (F : Multicenter A) : F^ℕ graded ring :=
+  ⊕ ν : F^ℕ, 𝐋^ν
+  -- mult (∑ v ∈ V m_v * ∑u ∈ U  l_u) _w = ∑ w=u+v m_v * l_u for all w in W
+  -- sum
+ sorry
+
+def elem_placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) : multiRees F :=
+  ⟨v, m⟩
+  sorry
+
+lemma potion_Rees_dilatation_iso (F : Multicenter A) :
+  Potion 𝐚 ^ν placed in degree ν  Rees F ≅ A[F] := by
+  sorry
 
 end universal_property
 
