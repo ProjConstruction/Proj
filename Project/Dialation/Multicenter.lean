@@ -681,7 +681,48 @@ lemma potion_Rees_dilatation_iso (F : Multicenter A) :
   Potion 𝐚 ^ν placed in degree ν  Rees F ≅ A[F] := by
   sorry
 
+--We only need the a_i part in the following def
+def cat_dil_test_reg (F: Multicenter A) fullsubcategory of A->+*B ,
+Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
+ sorry
+
+lemma dil_representable_functor (F: Multicenter A) :
+ A[F] represents the functor cat_dil_test_reg A F → Set,
+    f ↦ singleton if ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)
+             emptyset else := by
+  sorry
+
+def dil_to_localise (F: Multicenter A) : A[F] →+* A localise {a_i : i ∈ F.index}  where
+  toFun := m/v. ↦ m/v.
+  map_one' :=
+  map_mul' :=
+  map_zero' :=
+  map_add' :=
+  sorry
+
+lemma dil_to_localise_mor_alg (F: Multicenter A):
+  dil_to_localise  frombasering = frombaseringloc := by
+  sorry
+
+lemma dil_tolocalise_unique (F: Multicenter A) (other : A[F] →+* A localise {a_i})
+ ( other  frombasering = frombaseringloc):
+  other = dil_to_localise F := by
+  sorry
+
+lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i= A):
+   dil_to_localise is an isomorphism of rings := by
+  sorry
+
+lemma dilatation_lemma_forblowups_tensor (F,F' :Multicenter A)
+ (F.index=F.index) (F.ideal i = F.ideal I'):
+ A[F] ⊗[A] A[F'] ≅ A[F] localis {a_i / singefinsup 1 i : i in F.index} := by
+
+  sorry
 end universal_property
+
+
+
+
 
 end Multicenter
 
