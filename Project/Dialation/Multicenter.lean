@@ -639,35 +639,55 @@ def desc (χ : A →+* B)
       ring
 
 
+
 lemma  lemma_exists_unique_morphism (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    (∃! χ':A[F]→+*B,  χ'  algebraMap A A[F] = χ )  := by
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
+    (χ':A[F]→+*B) (χ'  fromBaseRing A F = χ ) :
+     χ' = desc A B F χ non_zero_divisor gen := by
      intro v m
-    --Ideal.mem_span_singleton' (Mathlib) and cond_univ_implies_large_cond shows existence of bm
-    --mul_cancel_right_mem_nonZeroDivisors (Mathlib) shows unicity of bm (it is written for rings so we might restrict to rings here
     sorry
 
 
 
-open Dilatation in
-lemma desc_apply_frac (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (v : F^ℕ) (m : 𝐋^v) :
-    (χ (𝐚^v) * desc (m /. v) =
-    χ m )^ desc (m /. v)= def_bm := by
-  --explicit_image  and desc both above
+def image_mult (χ : A →+* B) : image of F under χ :=
+ B.Multicenter := index  =F.index
+  (fun i ↦ Ideal.map χ (F.LargeIdeal i))
+  (fun i ↦ χ (F.elem i))
   sorry
 
-def image_mult (χ : A →+* B) (v : F^ℕ) : image of F under χ :=
-  sorry
-lemma unique_functorial_morphism_dilatation (χ : A →+* B) :
- ∃! χ':A[F]→+*[A] B[image_mult B F] :=by
-  --lemma_exists_unique_morphism
+def functo_dila_ring (χ : A →+* B) : A[F] →+* B[image mult χ B] where
+  toFun := sorry
+
+lemma unique_functorial_morphism_dilatation (χ : A →+* B)
+(χ':A[F]→+*[A] B[image_mult B χ F]) : χ' = functo_dila_ring χ B  :=by
+
   sorry
 
-lemma dilatation_ring_flat_base_change (χ : A →+* B):
+
+
+--Defining multi-Rees algebra as graded rings. We need only the ideals part of Multicenter.
+def multiRees (F : Multicenter A) : F^ℕ graded ring :=
+  ⊕ ν : F^ℕ, 𝐋^ν
+  -- mult (∑ v ∈ V m_v * ∑u ∈ U  l_u) _w = ∑ w=u+v m_v * l_u for all w in W
+  -- sum
+ sorry
+
+def elem_placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) : multiRees F :=
+  ⟨v, x⟩
+  sorry
+
+lemma potion_Rees_dilatation_iso (F : Multicenter A) :
+  Potion 𝐚 ^ν placed in degree ν  Rees F ≅ A[F] := by
+  sorry
+
+end universal_property
+
+end Multicenter
+
+
+
+/-lemma dilatation_ring_flat_base_change (χ : A →+* B):
  χ ∈ RingHom.Flat  → A[F]⊗[A] B ≅ B[image_mult χ] := by
    --universal property of tensor product, exists -->
    --χ flat and nonzerodiv_image implies that  𝐚^ν is a nonzerodivisor in A[F]⊗[A] B
@@ -698,25 +718,4 @@ lemma open_implies_flat_ring (χ : A →+* B):
            --- IsLocalization.AtPrime f^-1(q) A → IsLocalization.AtPrime b B
                ----- is an isomorphism
   sorry
-
-
-
-
---Defining multi-Rees algebra as graded rings. We need only the ideals part of Multicenter.
-def multiRees (F : Multicenter A) : F^ℕ graded ring :=
-  ⊕ ν : F^ℕ, 𝐋^ν
-  -- mult (∑ v ∈ V m_v * ∑u ∈ U  l_u) _w = ∑ w=u+v m_v * l_u for all w in W
-  -- sum
- sorry
-
-def elem_placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) : multiRees F :=
-  ⟨v, m⟩
-  sorry
-
-lemma potion_Rees_dilatation_iso (F : Multicenter A) :
-  Potion 𝐚 ^ν placed in degree ν  Rees F ≅ A[F] := by
-  sorry
-
-end universal_property
-
-end Multicenter
+-/
