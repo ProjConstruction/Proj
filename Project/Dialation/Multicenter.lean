@@ -643,10 +643,10 @@ def desc (χ : A →+* B)
 lemma  lemma_exists_unique_morphism (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (χ':A[F]→+* B) (χ'   fromBaseRing F = χ ) :
+    (χ':A[F]→+* B) (χ'   algebraMap A A[F] = χ ) :
      χ' = desc A B F χ non_zero_divisor gen := by
      intro v m
-    sorry
+     sorry
 
 
 
@@ -665,7 +665,7 @@ lemma unique_functorial_morphism_dilatation (χ : A →+* B)
 
 def  comprimed_center (F : Multicenter A) (F.index is finite) : Multicenter A :=
   { index := singleton
-    Ideal :=  ∑ (i : F.index) , F.LargeIdeal i * ∏ (j : F.index \ i) Ideal.span {F.elem i}
+    ideal :=  ∑ (i : F.index) , F.LargeIdeal i * ∏ (j : F.index \ i) Ideal.span {F.elem i}
     elem := ∏ (i : F.index) F.elem i
     }
 
@@ -756,7 +756,7 @@ lemma potion_Rees_dilatation_iso (F : Multicenter A) :
 
 def union_center (F F': Multicenter A): Multicenter A :=
   { index := F.index ⊔ F'.index
-    Ideal := fun i => match i with
+    ideal := fun i => match i with
       | sum.inl i => F.LargeIdeal i
       | sum.inr i => F'.LargeIdeal i
     elem := fun i => match i with
@@ -766,7 +766,7 @@ def union_center (F F': Multicenter A): Multicenter A :=
 
 lemma union_center_iso (F F': Multicenter A) (F.index=F'.index)
  (F.LargeIdeal i = F'.LargeIdeal i):
-  A[Union_center F F'] ≅ Potion {a_i deg i}⊔{a_i'deg i} ReesAlgebra F := by
+  A[union_center F F'] ≅ Potion {a_i deg i}⊔{a_i'deg i} ReesAlgebra F := by
   sorry
 
 
