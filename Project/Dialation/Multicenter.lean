@@ -643,27 +643,37 @@ def desc (χ : A →+* B)
 lemma  lemma_exists_unique_morphism (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (χ':A[F]→+*B) (χ'  fromBaseRing A F = χ ) :
+    (χ':A[F]→+* B) (χ'   fromBaseRing F = χ ) :
      χ' = desc A B F χ non_zero_divisor gen := by
      intro v m
     sorry
 
 
 
-def image_mult (χ : A →+* B) : image of F under χ :=
- B.Multicenter := index  =F.index
+def image_mult (χ : A →+* B) :  B.Multicenter := {index  =F.index
   (fun i ↦ Ideal.map χ (F.LargeIdeal i))
-  (fun i ↦ χ (F.elem i))
+  (fun i ↦ χ (F.elem i))}
   sorry
 
 def functo_dila_ring (χ : A →+* B) : A[F] →+* B[image mult χ B] where
   toFun := sorry
 
 lemma unique_functorial_morphism_dilatation (χ : A →+* B)
-(χ':A[F]→+*[A] B[image_mult B χ F]) : χ' = functo_dila_ring χ B  :=by
+ (χ':A[F]→+*[A] B[image_mult B χ F]) : χ' = functo_dila_ring χ B  :=by
 
   sorry
 
+def  comprimed_center (F : Multicenter A) (F.index is finite) : Multicenter A :=
+  { index := singleton
+    Ideal :=  ∑ (i : F.index) , F.LargeIdeal i * ∏ (j : F.index \ i) Ideal.span {F.elem i}
+    elem := ∏ (i : F.index) F.elem i
+    }
+
+lemma monopoly (F : Multicenter A) (F.index is finite) :
+  A[F] ≅ A[comprimed_center F] := by
+  sorry
+
+end universal_property
 
 
 abbrev ReesAlgebra := ⨁ (v : F^ℕ), 𝐋^v
@@ -738,15 +748,15 @@ instance : Algebra A F.ReesAlgebra :=
  sorry
 
 def placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) :
-   ReesAlgebra F := .of _ v ⟨x, by simp⟩   sorry
+   F.ReesAlgebra  := .of _ v ⟨x, by simp⟩   sorry
 
 lemma potion_Rees_dilatation_iso (F : Multicenter A) :
-  Potion a_i  placed in degree i for all i ReesAlgebra F ≅ A[F] := by
+  Potion a_i  placed in degree i for all i F.ReesAlgebra  ≅ A[F] := by
    sorry
 
 def union_center (F F': Multicenter A): Multicenter A :=
   { index := F.index ⊔ F'.index
-    LargeIdeal := fun i => match i with
+    Ideal := fun i => match i with
       | sum.inl i => F.LargeIdeal i
       | sum.inr i => F'.LargeIdeal i
     elem := fun i => match i with
@@ -755,7 +765,7 @@ def union_center (F F': Multicenter A): Multicenter A :=
     }
 
 lemma union_center_iso (F F': Multicenter A) (F.index=F'.index)
- (F.Lareideal i = F'.LargeIdeal i):
+ (F.LargeIdeal i = F'.LargeIdeal i):
   A[Union_center F F'] ≅ Potion {a_i deg i}⊔{a_i'deg i} ReesAlgebra F := by
   sorry
 
