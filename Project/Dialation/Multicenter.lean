@@ -666,21 +666,105 @@ lemma unique_functorial_morphism_dilatation (χ : A →+* B)
 
 
 
---Defining multi-Rees algebra as graded rings. We need only the ideals part of Multicenter.
-def multiRees (F : Multicenter A) : F^ℕ graded ring :=
-  ⊕ ν : F^ℕ, 𝐋^ν
-  -- mult (∑ v ∈ V m_v * ∑u ∈ U  l_u) _w = ∑ w=u+v m_v * l_u for all w in W
-  -- sum
+abbrev ReesAlgebra := ⨁ (v : F^ℕ), 𝐋^v
+
+
+
+
+variable [DecidableEq F.index] in
+def reesAlgebraMul : F.ReesAlgebra →+ (F.ReesAlgebra →+ F.ReesAlgebra) :=
+  DirectSum.toAddMonoid fun v ↦
+    { toFun x := DirectSum.toAddMonoid fun w ↦
+        { toFun y := .of _ (v + w) ⟨x * y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩
+          map_zero' := by ext; simp [DirectSum.coe_of_apply]
+          map_add' := by intros; ext; simp [DirectSum.coe_of_apply]; split_ifs <;> simp [mul_add] }
+      map_zero' := by ext; simp [DirectSum.coe_of_apply]
+      map_add' := by intros; ext; simp [DirectSum.coe_of_apply]; split_ifs <;> simp [add_mul] }
+
+
+variable [DecidableEq F.index] in
+instance : Mul F.ReesAlgebra where
+  mul x y := F.reesAlgebraMul x y
+
+
+variable [DecidableEq F.index] in
+@[simp]
+lemma reesAlgebraMul_of_of (v w : F^ℕ) (x y) :
+    F.reesAlgebraMul (.of _ v x) (.of _ w y) =
+    .of _ (v + w) ⟨x*y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ := by
+  simp [reesAlgebraMul]
+
+variable [DecidableEq F.index] in
+instance : Mul F.ReesAlgebra where
+  mul x y := F.reesAlgebraMul x y
+
+variable [DecidableEq F.index] in
+@[simp]
+lemma reesAlgebra_mul_of_of (v w : F^ℕ) (x y) :
+    (DirectSum.of _ v x : F.ReesAlgebra) * (.of _ w y) =
+    .of _ (v + w) ⟨x * y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ :=
+  reesAlgebraMul_of_of ..
+
+variable [DecidableEq F.index] in
+instance : CommSemiring F.ReesAlgebra where
+  left_distrib := by
+   intro a
+   intro b
+   intro c
+   sorry
+  right_distrib := _
+  zero_mul := by
+   simp? sorry
+  mul_zero := _
+  mul_assoc := _
+  mul_comm := _
+  one := .of _ 0 ⟨1, by simp⟩
+  one_mul := _
+  mul_one := _
+
+variable [DecidableEq F.index] in
+def toReesAlgebra : A →+* F.ReesAlgebra where
+  toFun a := .of _ 0 ⟨a, by simp⟩
+  map_one' := _
+  map_mul' := _
+  map_zero' := _
+  map_add' := _
+
+variable [DecidableEq F.index] in
+instance : Algebra A F.ReesAlgebra :=
+  RingHom.toAlgebra (toReesAlgebra F)
+
+#check F.ReesAlgebra
  sorry
 
-def elem_placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) : multiRees F :=
-  ⟨v, x⟩
-  sorry
+def placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) :
+   ReesAlgebra F := .of _ v ⟨x, by simp⟩   sorry
 
 lemma potion_Rees_dilatation_iso (F : Multicenter A) :
-  Potion 𝐚 ^ν placed in degree ν  Rees F ≅ A[F] := by
+  Potion a_i  placed in degree i for all i ReesAlgebra F ≅ A[F] := by
+   sorry
+
+def union_center (F F': Multicenter A): Multicenter A :=
+  { index := F.index ⊔ F'.index
+    LargeIdeal := fun i => match i with
+      | sum.inl i => F.LargeIdeal i
+      | sum.inr i => F'.LargeIdeal i
+    elem := fun i => match i with
+      | sum.inl i => F.elem i
+      | sum.inr i => F'.elem i
+    }
+
+lemma union_center_iso (F F': Multicenter A) (F.index=F'.index)
+ (F.Lareideal i = F'.LargeIdeal i):
+  A[Union_center F F'] ≅ Potion {a_i deg i}⊔{a_i'deg i} ReesAlgebra F := by
   sorry
 
+
+
+
+end Multicenter
+
+/-
 --We only need the a_i part in the following def
 def cat_dil_test_reg (F: Multicenter A) fullsubcategory of A->+*B ,
 Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
@@ -691,6 +775,7 @@ lemma dil_representable_functor (F: Multicenter A) :
     f ↦ singleton if ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)
              emptyset else := by
   sorry
+
 
 def dil_to_localise (F: Multicenter A) : A[F] →+* A localise {a_i : i ∈ F.index}  where
   toFun := m/v. ↦ m/v.
@@ -704,7 +789,7 @@ lemma dil_to_localise_mor_alg (F: Multicenter A):
   dil_to_localise  frombasering = frombaseringloc := by
   sorry
 
-lemma dil_tolocalise_unique (F: Multicenter A) (other : A[F] →+* A localise {a_i})
+lemma dil_to_localise_unique (F: Multicenter A) (other : A[F] →+* A localise {a_i})
  ( other  frombasering = frombaseringloc):
   other = dil_to_localise F := by
   sorry
@@ -712,20 +797,7 @@ lemma dil_tolocalise_unique (F: Multicenter A) (other : A[F] →+* A localise {a
 lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i= A):
    dil_to_localise is an isomorphism of rings := by
   sorry
-
-lemma dilatation_lemma_forblowups_tensor (F,F' :Multicenter A)
- (F.index=F.index) (F.ideal i = F.ideal I'):
- A[F] ⊗[A] A[F'] ≅ A[F] localis {a_i / singefinsup 1 i : i in F.index} := by
-
-  sorry
-end universal_property
-
-
-
-
-
-end Multicenter
-
+-/
 
 
 /-lemma dilatation_ring_flat_base_change (χ : A →+* B):
