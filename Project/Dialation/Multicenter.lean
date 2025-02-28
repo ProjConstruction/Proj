@@ -838,7 +838,7 @@ lemma dil_isom_subalgebra_in_loc (F: Multicenter A) :
     sorry
 
 
-lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i = A):
+lemma dil_eq_loc_if_maxLarge (F: Multicenter A) (F.LargeIdeal i = A):
    A[F] →ₐ[A] A[F.elem^-1] is an isomorphism:= by
     it is enough to prove that it is surjective which is easy
     sorry
