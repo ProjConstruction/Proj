@@ -916,6 +916,7 @@ lemma reesAlgebra_mul_of_of (v w : F^ℕ) (x y) :
     .of _ (v + w) ⟨x * y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ := by
   exact reesAlgebraMul_of_of _ _ _ _ _
 
+
 set_option maxHeartbeats 500000
 variable [DecidableEq F.index] in
 instance : CommSemiring F.ReesAlgebra where
