@@ -2,6 +2,7 @@ import Mathlib.RingTheory.Ideal.Operations
 import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
 import Project.Dialation.lemma
+import Mathlib.RingTheory.Localization.Basic
 suppress_compilation
 
 open DirectSum
@@ -116,8 +117,7 @@ def setoid : Setoid (F.PreDil) where
 variable (F) in
 def Dilatation := Quotient F.setoid
 
-scoped notation:max A"["F"]" => Dilatation (A := A) F
-
+scoped notation:max ring"["multicenter"]" => Dilatation (A := ring) multicenter
 namespace Dilatation
 
 def mk (x : F.PreDil) : A[F] := Quotient.mk _ x
@@ -639,36 +639,106 @@ def desc (χ : A →+* B)
       ring
 
 
+open Multicenter
+open Dilatation
+lemma dsc_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    χ 𝐚^v * desc F χ non_zero_divisor gen (m/.v)  = χ m := by
+    apply (lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.1
 
 lemma  lemma_exists_unique_morphism (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (χ':A[F]→+* B) (algebramor: χ'  algebraMap A A[F] = χ ) :
-     χ' = desc A B F χ non_zero_divisor gen := by
-       intro v m
-       sorry
+    (χ':A[F]→+* B) (scalar: ∀ a : A,  χ'  (algebraMap A A[F] a) = χ a) :
+     χ' = desc F χ non_zero_divisor gen := by
+      ext x
+      induction x using induction_on with |h x =>
+      have eq1 : (χ 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       (χ' (algebraMap A A[F] 𝐚^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by rw[scalar]
+      have eq2 : (χ 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       (χ x.num) := by
+         rw[eq1, ← map_mul]
+         simp only [algebraMap_apply, mk_mul_mk, mul']
+         rw[← scalar]
+         congr 1
+         simp[algebraMap_apply]
+         simp[mk_eq_mk]
+         use 0
+         simp
+         simp[mul_comm]
+      have eq3:  def_unique_elem F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen =
+         (χ' ⟨x.num, x.num_mem⟩/.x.pow) := by
+          apply def_unique_elem_unique
+          exact eq2
+      rw[← eq3]
+      rfl
 
 
+open Multicenter
+open Dilatation
+def desc_alg [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, algebraMap A B (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {algebraMap A B (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)) :
+     A[F] →ₐ[A] B where
+       toRingHom := desc F (algebraMap A B) non_zero_divisor gen
+       commutes' := by
+          intro x
+          simp[algebraMap_apply]
+          have eq1 := dsc_spec F (algebraMap A B ) (0) ⟨x, by simp⟩  non_zero_divisor gen
+          simp at eq1
+          exact eq1
 
-def image_mult (χ : A →+* B) :  B.Multicenter := {index  =F.index
-  ideal =(fun i ↦ Ideal.map χ (F.LargeIdeal i))
-  elem = (fun i ↦ χ (F.elem i))}
-  sorry
-
-def functo_dila_ring (χ : A →+* B) : A[F] →+* B[image mult χ B] where
- toFun := Dilatation.descFun (fun x ↦ .mk
-        { pow := x.pow
-          num := χ x.num
-          num_mem := by simp } )
-   map_one' := by
+--doing this later SPC AND UNIQUE 2 lemmas
+open Multicenter
+open Dilatation
+lemma desc_alg_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
+    χ 𝐚^v * desc F χ non_zero_divisor gen (m/.v)  = χ m := by
+    apply (lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.1
     sorry
-   map_mul' := by
-    sorry
-   map_zero' := by
-    sorry
-   map_add' :=  by
-    sorry
 
+
+
+@[simps]
+def image_mult (χ : A →+* B) :  Multicenter B :=
+  {index  :=F.index
+   ideal  :=(fun i ↦ Ideal.map χ (F.ideal i))
+   elem := (fun i ↦ χ (F.elem i))}
+
+lemma image_mult_LargeIdeal  (χ: A →+* B) (i : F.index):
+  (image_mult F χ).LargeIdeal i = Ideal.map χ (F.LargeIdeal i) := by
+   simp [LargeIdeal]
+   rw[Ideal.map_sup]
+   rw[Ideal.map_span]
+   simp
+
+
+
+
+def functo_dila_ring (χ : A →+* B) : A[F] →+* B[(image_mult F χ)] :=
+  desc F (RingHom.comp (algebraMap B B[image_mult F χ]) χ)
+    (by
+     classical
+     intro i
+     simp
+     have h := nonzerodiv_image (F := image_mult F χ) (Finsupp.single i 1)
+     simp at h
+     exact h
+     )
+    (by
+    classical
+    intro i
+    simp
+    have h := image_elem_LargeIdeal_equal (F := image_mult F χ) (Finsupp.single i 1)
+    simp at h
+    rw[← Ideal.map_map]
+    rw[h]
+    rw[image_mult_LargeIdeal]
+    )
+
+->+*
 --is there a good way to say that a morphism of rings is an A-algebras morphism?
   --   ?? ->+*[A]??
 lemma unique_functorial_morphism_dilatation (χ : A →+* B)
@@ -678,19 +748,10 @@ lemma unique_functorial_morphism_dilatation (χ : A →+* B)
 
 
 
-def dil_to_localise (F: Multicenter A) : A[F] →+* A localise {a_i : i ∈ F.index}  where
-   toFun := Dilatation.descFun (fun x ↦ sorry)
-                            ( by sorry )
-   map_one' := by
-    sorry
-   map_mul' := by
-    sorry
-   map_zero' := by
-    sorry
-   map_add' :=  by
-    sorry
+def dil_to_localise (F: Multicenter A) :
+  A[F] →ₐ[A] Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A))))  :=
+   desc_alg F _ _
 
-  sorry
 
 lemma dil_to_localise_mor_alg (F: Multicenter A):
   dil_to_localise  frombasering = frombaseringloc := by
@@ -726,7 +787,9 @@ def monopoly (F : Multicenter A) (F.index is finite) :
 
 end universal_property
 
-
+open Dilatation
+open Multicenter
+variable {A : Type*} [CommRing A] (F : Multicenter A)
 abbrev ReesAlgebra := ⨁ (v : F^ℕ), 𝐋^v
 
 
@@ -755,20 +818,101 @@ lemma reesAlgebraMul_of_of (v w : F^ℕ) (x y) :
     .of _ (v + w) ⟨x*y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ := by
   simp [reesAlgebraMul]
 
+variable [DecidableEq F.index] in
+@[simp]
+lemma reesAlgebra_mul_of_of (v w : F^ℕ) (x y) :
+    (DirectSum.of _ v x : F.ReesAlgebra) * (.of _ w y) =
+    .of _ (v + w) ⟨x * y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ := by
+  exact reesAlgebraMul_of_of _ _ _ _ _
 
+set_option maxHeartbeats 500000
 variable [DecidableEq F.index] in
 instance : CommSemiring F.ReesAlgebra where
   left_distrib := by
    intro a
    intro b
    intro c
-   sorry
-  right_distrib := _
+   change  F.reesAlgebraMul _ _ =  F.reesAlgebraMul _ _ +  F.reesAlgebraMul _ _
+   simp
+  right_distrib := by
+   intro a
+   intro b
+   intro c
+   change  F.reesAlgebraMul _ _ =  F.reesAlgebraMul _ _ +  F.reesAlgebraMul _ _
+   simp
   zero_mul := by
-   simp? sorry
-  mul_zero := _
-  mul_assoc := _
-  mul_comm := _
+   intro a
+   change  F.reesAlgebraMul _ _ =  0
+   simp
+  mul_zero := by
+   intro a
+   change  F.reesAlgebraMul _ _ =  0
+   simp
+  mul_assoc := by /-
+   intro a b c
+   induction  a using DirectSum.induction_on with
+   |H_zero =>
+    change  F.reesAlgebraMul (F.reesAlgebraMul _ _ ) _ =  0
+    simp
+   |H_basic va ma =>
+    induction b using DirectSum.induction_on with
+     |H_zero =>
+      change F.reesAlgebraMul  (F.reesAlgebraMul _ _ ) _ =  (F.reesAlgebraMul _ (F.reesAlgebraMul _ _ ) )
+      simp
+     |H_basic vb mb =>
+       induction c using DirectSum.induction_on with
+       |H_zero =>
+         change F.reesAlgebraMul  _ _ =  (F.reesAlgebraMul _ (F.reesAlgebraMul _ _ ) )
+         simp
+       |H_basic vc mc =>
+         simp[reesAlgebraMul_of_of, reesAlgebra_mul_of_of ]
+         ext
+         simp [DirectSum.coe_of_apply, add_assoc , mul_assoc ]
+         split_ifs <;> rfl
+       |H_plus x y hx hy =>
+         change F.reesAlgebraMul  (F.reesAlgebraMul _ _ ) _ =
+           (F.reesAlgebraMul _ (F.reesAlgebraMul _ _ ) ) at hx hy ⊢
+         simp
+         rw[← hx,← hy]
+         simp
+     |H_plus x y hx hy =>
+         change F.reesAlgebraMul  (F.reesAlgebraMul _ _ ) _ =
+           (F.reesAlgebraMul _ (F.reesAlgebraMul _ _ ) ) at hx hy ⊢
+         simp
+         rw[← hx,← hy]
+   |H_plus x y hx hy =>
+         change F.reesAlgebraMul  (F.reesAlgebraMul _ _ ) _ =
+           (F.reesAlgebraMul _ (F.reesAlgebraMul _ _ ) ) at hx hy ⊢
+         simp
+         rw[← hx,← hy]-/ sorry
+
+  mul_comm := by
+   intro a b
+   induction  a using DirectSum.induction_on with
+   |H_zero =>
+    change  F.reesAlgebraMul _ _ =  F.reesAlgebraMul _ _
+    simp
+   |H_basic va ma =>
+    induction b using DirectSum.induction_on with
+    |H_zero =>
+     change  F.reesAlgebraMul _ _ =  F.reesAlgebraMul _ _
+     simp
+    |H_basic vb mb =>
+     simp[reesAlgebraMul_of_of, reesAlgebra_mul_of_of ]
+     ext
+     simp [DirectSum.coe_of_apply, mul_comm, add_comm]
+     split_ifs <;> rfl
+
+    |H_plus x y hx hy =>
+     change  F.reesAlgebraMul _ _ =  F.reesAlgebraMul _ _ at hx hy ⊢
+     simp
+     rw[← hx,← hy]
+
+   |H_plus x y hx hy =>
+     change  F.reesAlgebraMul _ _ =  F.reesAlgebraMul _ _ at hx hy ⊢
+     simp
+     rw[← hx,← hy]
+
   one := .of _ 0 ⟨1, by simp⟩
   one_mul := _
   mul_one := _
