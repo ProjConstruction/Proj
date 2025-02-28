@@ -756,7 +756,7 @@ def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
  sorry
 
 lemma reciprocal_for_univ  [Algebra A B]
- (object : (algebraMap A B) ∈ cat_dil_test_reg A F) :
+ (object : (algebraMap A B) ∈ Objects cat_dil_test_reg A F) :
   ({A[F]→ ₐ[A]B}  is a singleton ) ↔
    (gen' : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}}
    ⊇ (algebraMap A B ) (F.ideal i)) := by
