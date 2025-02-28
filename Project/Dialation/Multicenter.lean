@@ -674,9 +674,16 @@ lemma  lemma_exists_unique_morphism (χ : A →+* B)
       rw[← eq3]
       rfl
 
-
 open Multicenter
 open Dilatation
+
+lemma equiv_small_big_cond [Algebra A B] (v : F^ℕ) (m : 𝐋^v) :
+(gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)) ↔
+(gen' : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}} ⊇ (algebraMap A B ) (F.ideal i)) := by
+   sorry
+
+--should we deleted desc and incorporate its proof in desc_alg ?
+--I suggest we use gen' everywhere
 def desc_alg [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, algebraMap A B (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {algebraMap A B (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)) :
@@ -689,6 +696,7 @@ def desc_alg [Algebra A B]
           simp at eq1
           exact eq1
 
+--same here we should keep only desc_spec as morphism of algebras which is stronger
 open Multicenter
 open Dilatation
 lemma desc_alg_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
@@ -697,7 +705,7 @@ lemma desc_alg_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
     (algebraMap A B ) 𝐚^v * desc F (algebraMap A B ) non_zero_divisor gen (m/.v)  = (algebraMap A B ) m := by
     apply (lemma_exists_in_image F (algebraMap A B ) non_zero_divisor gen v m).choose_spec.1
 
-
+--same
 open Multicenter
 open Dilatation
 lemma def_alg_unique  [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
@@ -706,6 +714,8 @@ lemma def_alg_unique  [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
     ∀ bm : B, (algebraMap A B ) 𝐚^v * bm = (algebraMap A B ) m →  def_unique_elem F (algebraMap A B ) v m non_zero_divisor gen =bm:= by
     intro bm hbm
     apply ((lemma_exists_in_image F (algebraMap A B ) non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
+
+
 
 open Multicenter
 open Dilatation
@@ -738,23 +748,27 @@ lemma  lemma_alg_exists_unique_morphism  [Algebra A B]
       rfl
       sorry
 
-def desc_alg_small [Algebra A B]
-    (non_zero_divisor : ∀ i : F.index, algebraMap A B (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {algebraMap A B (F.elem i)} ⊇  (algebraMap A B ) (F.ideal i)) :
-     A[F] →ₐ[A] B where
-       toRingHom := desc F (algebraMap A B ) non_zero_divisor gen by
-       -- ⊇ for small ideals implies = for LargeIdeal
 
 
+--We only need the F.elem part in the following def
+def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
+ Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
+ sorry
 
-lemma  lemma_alg_exists_unique_morphism_small  [Algebra A B]
-    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}} ⊇ (algebraMap A B ) (F.ideal i))
-    (χ':A[F]→ₐ[A] B)  :
-     χ' = desc F (algebraMap A B ) non_zero_divisor gen := by
-       --lemma_alg_exists_unique_morphism
-      -- ⊇ for small ideals implies = for LargeIdeal
-       sorry
+lemma reciprocal_for_univ  [Algebra A B]
+ (object : (algebraMap A B) ∈ cat_dil_test_reg A F) :
+  ({A[F]→ ₐ[A]B}  is a singleton ) ↔
+   (gen' : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}}
+   ⊇ (algebraMap A B ) (F.ideal i)) := by
+   sorry
+
+lemma dil_representable_functor (F: Multicenter A) :
+ A[F] represents the functor cat_dil_test_reg A F → Set,
+    f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
+             emptyset else := by
+     sorry
+
+-/
 
 @[simps]
 def image_mult (χ : A →+* B) :  Multicenter B :=
@@ -1050,19 +1064,6 @@ lemma union_center_iso (F F': Multicenter A) (F.index=F'.index)
 
 end Multicenter
 
-/-
---We only need the a_i part in the following def
-def cat_dil_test_reg (F: Multicenter A) fullsubcategory of A->+*B ,
-Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
- sorry
-
-lemma dil_representable_functor (F: Multicenter A) :
- A[F] represents the functor cat_dil_test_reg A F → Set,
-    f ↦ singleton if ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)
-             emptyset else := by
-  sorry
-
--/
 
 
 /-lemma dilatation_ring_flat_base_change (χ : A →+* B):
