@@ -689,17 +689,72 @@ def desc_alg [Algebra A B]
           simp at eq1
           exact eq1
 
---doing this later SPC AND UNIQUE 2 lemmas
 open Multicenter
 open Dilatation
-lemma desc_alg_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    χ 𝐚^v * desc F χ non_zero_divisor gen (m/.v)  = χ m := by
-    apply (lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.1
-    sorry
+lemma desc_alg_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)):
+    (algebraMap A B ) 𝐚^v * desc F (algebraMap A B ) non_zero_divisor gen (m/.v)  = (algebraMap A B ) m := by
+    apply (lemma_exists_in_image F (algebraMap A B ) non_zero_divisor gen v m).choose_spec.1
 
 
+open Multicenter
+open Dilatation
+lemma def_alg_unique  [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)):
+    ∀ bm : B, (algebraMap A B ) 𝐚^v * bm = (algebraMap A B ) m →  def_unique_elem F (algebraMap A B ) v m non_zero_divisor gen =bm:= by
+    intro bm hbm
+    apply ((lemma_exists_in_image F (algebraMap A B ) non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
+
+open Multicenter
+open Dilatation
+lemma  lemma_alg_exists_unique_morphism  [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i))
+    (χ':A[F]→ₐ[A] B)  :
+     χ' = desc F (algebraMap A B ) non_zero_divisor gen := by
+      ext x
+      induction x using induction_on with |h x =>
+      have eq1 : ((algebraMap A B ) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       (χ' (algebraMap A A[F] 𝐚^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by simp only [AlgHom.commutes]
+      have eq2 : ((algebraMap A B ) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       ((algebraMap A B ) x.num) := by
+         rw[eq1, ← map_mul]
+         simp only [algebraMap_apply, mk_mul_mk, mul']
+         rw[AlgHom.mk']
+         congr 1
+         simp[algebraMap_apply]
+         simp[mk_eq_mk]
+         use 0
+         simp
+         simp[mul_comm]
+         sorry
+      have eq3:  def_unique_elem F (algebraMap A B ) x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen =
+         (χ' ⟨x.num, x.num_mem⟩/.x.pow) := by
+          apply def_unique_elem_unique
+          exact eq2
+      rw[← eq3]
+      rfl
+      sorry
+
+def desc_alg_small [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, algebraMap A B (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {algebraMap A B (F.elem i)} ⊇  (algebraMap A B ) (F.ideal i)) :
+     A[F] →ₐ[A] B where
+       toRingHom := desc F (algebraMap A B ) non_zero_divisor gen by
+       -- ⊇ for small ideals implies = for LargeIdeal
+
+
+
+lemma  lemma_alg_exists_unique_morphism_small  [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}} ⊇ (algebraMap A B ) (F.ideal i))
+    (χ':A[F]→ₐ[A] B)  :
+     χ' = desc F (algebraMap A B ) non_zero_divisor gen := by
+       --lemma_alg_exists_unique_morphism
+      -- ⊇ for small ideals implies = for LargeIdeal
+       sorry
 
 @[simps]
 def image_mult (χ : A →+* B) :  Multicenter B :=
@@ -707,8 +762,8 @@ def image_mult (χ : A →+* B) :  Multicenter B :=
    ideal  :=(fun i ↦ Ideal.map χ (F.ideal i))
    elem := (fun i ↦ χ (F.elem i))}
 
-lemma image_mult_LargeIdeal  (χ: A →+* B) (i : F.index):
-  (image_mult F χ).LargeIdeal i = Ideal.map χ (F.LargeIdeal i) := by
+lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
+  (image_mult F (algebraMap A B)).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
    simp [LargeIdeal]
    rw[Ideal.map_sup]
    rw[Ideal.map_span]
@@ -716,14 +771,13 @@ lemma image_mult_LargeIdeal  (χ: A →+* B) (i : F.index):
 
 
 
-
-def functo_dila_ring (χ : A →+* B) : A[F] →+* B[(image_mult F χ)] :=
-  desc F (RingHom.comp (algebraMap B B[image_mult F χ]) χ)
+def functo_dila_alg [Algebra A B]: A[F] →ₐ[A] B[ (image_mult F (algebraMap A B) ) ] :=
+  desc_alg F (algebraMap.comp (algebraMap B B[image_mult F (algebraMap A B )]) (algebraMap A B ))
     (by
      classical
      intro i
      simp
-     have h := nonzerodiv_image (F := image_mult F χ) (Finsupp.single i 1)
+     have h := nonzerodiv_image (F := image_mult F (algebraMap A B )) (Finsupp.single i 1)
      simp at h
      exact h
      )
@@ -731,40 +785,63 @@ def functo_dila_ring (χ : A →+* B) : A[F] →+* B[(image_mult F χ)] :=
     classical
     intro i
     simp
-    have h := image_elem_LargeIdeal_equal (F := image_mult F χ) (Finsupp.single i 1)
+    have h := image_elem_LargeIdeal_equal (F := image_mult F (algebraMap A B )) (Finsupp.single i 1)
     simp at h
     rw[← Ideal.map_map]
     rw[h]
     rw[image_mult_LargeIdeal]
     )
 
-->+*
---is there a good way to say that a morphism of rings is an A-algebras morphism?
-  --   ?? ->+*[A]??
-lemma unique_functorial_morphism_dilatation (χ : A →+* B)
- (χ':A[F]→+*[A] B[image_mult B χ F]) : χ' = functo_dila_ring χ B  :=by
+lemma unique_functorial_morphism_dilatation [Algebra A B]
+ (other:A[F]→ₐ[A] B[image_mult B (algebraMap A B) F]) :
+   other= desc_alg F (algebraMap.comp
+     (algebraMap B B[image_mult F (algebraMap A B )])
+     (algebraMap A B ))  :=by
 
-  sorry
+      sorry
 
 
 
-def dil_to_localise (F: Multicenter A) :
+def dil_to_localise_mor_alg (F: Multicenter A) :
   A[F] →ₐ[A] Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A))))  :=
-   desc_alg F _ _
+   desc_alg_small F (algebraMap A Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A)))))
+       (_)
+       (_)
 
 
-lemma dil_to_localise_mor_alg (F: Multicenter A):
-  dil_to_localise  frombasering = frombaseringloc := by
+lemma dil_to_localise_mor_alg_unique (F: Multicenter A):
+  (other: A[F] →ₐ[A] Localization
+  (Submonoid.closure (Set.range (fun j => (F.elem j : A))))) :
+   other = desc_alg_small F (algebraMap A
+           Localization (Submonoid.closure
+           (Set.range (fun j => (F.elem j : A))))) := by
+            sorry
+
+--can we introduce a notation for
+  --Localization  (Submonoid.closure (Set.range (fun j => (F.elem j : A))))
+    -- for example A[F.elem^-1] would be very useful
+
+lemma dil_to_localise_mor_is_injective (F: Multicenter A) :
+  A[F] →ₐ[A] A[F.elem^-1] is injective:= by
   sorry
 
-lemma dil_to_localise_unique (F: Multicenter A) (other : A[F] →+* A localise {a_i})
- ( other  frombasering = frombaseringloc):
-  other = dil_to_localise F := by
-  sorry
+lemma im_dil_is_subalgebra_in_loc (F: Multicenter A) :
+ im( A[F] →ₐ[A] A[F.elem^-1])=
+   subAalgebra of A[F.elem^-1] generated by {frac{F.ideal i}{F.elem i}: i ∈ F.index}
+        :=
+    by double inclusion
+    sorry
 
-lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i= A):
-   dil_to_localise is an isomorphism of rings := by
-  sorry
+lemma dil_isom_subalgebra_in_loc (F: Multicenter A) :
+ iso A[F] →ₐ[A] subAalgebra of A[F.elem^-1] generated by {frac{F.ideal i}{F.elem i}: i ∈ F.index} :=
+    by dil_to_localise_mor_is_injective and im_dil_is_subalgebra_in_loc
+    sorry
+
+
+lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i = A):
+   A[F] →ₐ[A] A[F.elem^-1] is an isomorphism:= by
+    it is enough to prove that it is surjective which is easy
+    sorry
 
 def  comprimed_center (F : Multicenter A) (F.index is finite) : Multicenter A :=
   { index := singleton
@@ -914,7 +991,21 @@ instance : CommSemiring F.ReesAlgebra where
      rw[← hx,← hy]
 
   one := .of _ 0 ⟨1, by simp⟩
-  one_mul := _
+  one_mul := by
+         intro a
+         induction  a using DirectSum.induction_on with
+          |H_zero =>
+            change  F.reesAlgebraMul _ _ =  _
+            simp
+          |H_basic v m =>
+            simp only [reesAlgebraMul_of_of, reesAlgebra_mul_of_of]
+            ext
+            simp [DirectSum.coe_of_apply, one_mul]
+            split_ifs <;>
+             ·
+             ·
+            sorry
+          |H_plus  =>
   mul_one := _
 
 variable [DecidableEq F.index] in
