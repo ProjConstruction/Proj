@@ -643,35 +643,86 @@ def desc (χ : A →+* B)
 lemma  lemma_exists_unique_morphism (χ : A →+* B)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (χ':A[F]→+* B) (χ'   algebraMap A A[F] = χ ) :
+    (χ':A[F]→+* B) (algebramor: χ'  algebraMap A A[F] = χ ) :
      χ' = desc A B F χ non_zero_divisor gen := by
-     intro v m
-     sorry
+       intro v m
+       sorry
 
 
 
 def image_mult (χ : A →+* B) :  B.Multicenter := {index  =F.index
-  (fun i ↦ Ideal.map χ (F.LargeIdeal i))
-  (fun i ↦ χ (F.elem i))}
+  ideal =(fun i ↦ Ideal.map χ (F.LargeIdeal i))
+  elem = (fun i ↦ χ (F.elem i))}
   sorry
 
 def functo_dila_ring (χ : A →+* B) : A[F] →+* B[image mult χ B] where
-  toFun := sorry
+ toFun := Dilatation.descFun (fun x ↦ .mk
+        { pow := x.pow
+          num := χ x.num
+          num_mem := by simp } )
+   map_one' := by
+    sorry
+   map_mul' := by
+    sorry
+   map_zero' := by
+    sorry
+   map_add' :=  by
+    sorry
 
+--is there a good way to say that a morphism of rings is an A-algebras morphism?
+  --   ?? ->+*[A]??
 lemma unique_functorial_morphism_dilatation (χ : A →+* B)
  (χ':A[F]→+*[A] B[image_mult B χ F]) : χ' = functo_dila_ring χ B  :=by
 
   sorry
 
+
+
+def dil_to_localise (F: Multicenter A) : A[F] →+* A localise {a_i : i ∈ F.index}  where
+   toFun := Dilatation.descFun (fun x ↦ sorry)
+                            ( by sorry )
+   map_one' := by
+    sorry
+   map_mul' := by
+    sorry
+   map_zero' := by
+    sorry
+   map_add' :=  by
+    sorry
+
+  sorry
+
+lemma dil_to_localise_mor_alg (F: Multicenter A):
+  dil_to_localise  frombasering = frombaseringloc := by
+  sorry
+
+lemma dil_to_localise_unique (F: Multicenter A) (other : A[F] →+* A localise {a_i})
+ ( other  frombasering = frombaseringloc):
+  other = dil_to_localise F := by
+  sorry
+
+lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i= A):
+   dil_to_localise is an isomorphism of rings := by
+  sorry
+
 def  comprimed_center (F : Multicenter A) (F.index is finite) : Multicenter A :=
   { index := singleton
-    ideal :=  ∑ (i : F.index) , F.LargeIdeal i * ∏ (j : F.index \ i) Ideal.span {F.elem i}
+    ideal :=  ∑ (i : F.index) , F.LargeIdeal i * ∏ (j : {F.index \ i}) Ideal.span {F.elem i}
     elem := ∏ (i : F.index) F.elem i
     }
 
-lemma monopoly (F : Multicenter A) (F.index is finite) :
-  A[F] ≅ A[comprimed_center F] := by
-  sorry
+def monopoly (F : Multicenter A) (F.index is finite) :
+  A[F] →+* A[comprimed_center F] where
+   toFun := Dilatation.descFun (fun x ↦ sorry)
+                            ( by sorry )
+   map_one' := by
+    sorry
+   map_mul' := by
+    sorry
+   map_zero' := by
+    sorry
+   map_add' :=  by
+    sorry
 
 end universal_property
 
@@ -704,16 +755,6 @@ lemma reesAlgebraMul_of_of (v w : F^ℕ) (x y) :
     .of _ (v + w) ⟨x*y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ := by
   simp [reesAlgebraMul]
 
-variable [DecidableEq F.index] in
-instance : Mul F.ReesAlgebra where
-  mul x y := F.reesAlgebraMul x y
-
-variable [DecidableEq F.index] in
-@[simp]
-lemma reesAlgebra_mul_of_of (v w : F^ℕ) (x y) :
-    (DirectSum.of _ v x : F.ReesAlgebra) * (.of _ w y) =
-    .of _ (v + w) ⟨x * y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩ :=
-  reesAlgebraMul_of_of ..
 
 variable [DecidableEq F.index] in
 instance : CommSemiring F.ReesAlgebra where
@@ -786,27 +827,6 @@ lemma dil_representable_functor (F: Multicenter A) :
              emptyset else := by
   sorry
 
-
-def dil_to_localise (F: Multicenter A) : A[F] →+* A localise {a_i : i ∈ F.index}  where
-  toFun := m/v. ↦ m/v.
-  map_one' :=
-  map_mul' :=
-  map_zero' :=
-  map_add' :=
-  sorry
-
-lemma dil_to_localise_mor_alg (F: Multicenter A):
-  dil_to_localise  frombasering = frombaseringloc := by
-  sorry
-
-lemma dil_to_localise_unique (F: Multicenter A) (other : A[F] →+* A localise {a_i})
- ( other  frombasering = frombaseringloc):
-  other = dil_to_localise F := by
-  sorry
-
-lemma dil_eq_loc (F: Multicenter A) (F.LargeIdeal i= A):
-   dil_to_localise is an isomorphism of rings := by
-  sorry
 -/
 
 
