@@ -687,6 +687,7 @@ lemma reciprocal_for_univ [Algebra A B]
          = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
           have eq: ∀ i, Ideal.span {(algebraMap A A[F]) (F.elem i)}
              = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
+             have eq1 := image_elem_LargeIdeal_equal
              rw [image_elem_LargeIdeal_equal] at Finsupp.single i 1
              sorry
           Use that χ' factor through A[F] plus eq to get the result
@@ -706,7 +707,7 @@ lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
  ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
       Ideal.span {(algebraMap A B) (F.elem i)} := by
       intro i
-      simp?
+      simp only [Ideal.map_sup, Ideal.map_span, LargeIdeal]
       sorry
 
 
@@ -723,15 +724,18 @@ lemma equiv_small_big_cond [Algebra A B]  :
     simp[eq2, h]
 
   · intro h i
-    have eq: Ideal.map (algebraMap A B) (F.LargeIdeal i)=
+    have eq1: Ideal.map (algebraMap A B) (F.LargeIdeal i)=
                Ideal.map (algebraMap A B) (F.ideal i)+
                Ideal.map (algebraMap A B) (Ideal.span {F.elem i}):= by
                simp[LargeIdeal]
-               sorry
-    by  double inclusion
-        ≤ immediate from eq
-        ≥ by eq + assumption.
-    sorry
+               rw [Ideal.map_sup]
+    have eq2: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+             ≥  Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+             simp[eq1, h]
+    have eq3: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+             ≤   Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+             simp[LargeIdeal, eq1, Ideal.map_sup]
+    simp[eq2, eq3]
 
 def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
  Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
