@@ -515,9 +515,9 @@ section universal_property
 variable {A B : Type*} [CommRing A] [CommRing B] (F : Multicenter A)
 
 
-lemma  cond_univ_implies_large_cond (χ : A →+* B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    (∀ (ν : F^ℕ) , (Ideal.span {χ (𝐚^ν)} = Ideal.map χ (𝐋^ν))) :=by
+lemma  cond_univ_implies_large_cond [Algebra A B]
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
+    (∀ (ν : F^ℕ) , (Ideal.span {(algebraMap A B) (𝐚^ν)} = Ideal.map (algebraMap A B) (𝐋^ν))) :=by
      classical
      intro v
      simp[prodLargeIdealPower]
@@ -529,12 +529,12 @@ lemma  cond_univ_implies_large_cond (χ : A →+* B)
 
 
 
-lemma  lemma_exists_in_image (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B ,  χ 𝐚^ν *bm=χ (m) )):= by
+lemma  lemma_exists_in_image [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
+    (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B ,  (algebraMap A B) 𝐚^ν *bm=(algebraMap A B) (m) )):= by
       intro v m
-      have mem : χ m ∈  Ideal.map χ (𝐋^v) := by
+      have mem : (algebraMap A B) m ∈  Ideal.map (algebraMap A B) (𝐋^v) := by
           apply Ideal.mem_map_of_mem
           exact m.2
       rw[← cond_univ_implies_large_cond] at mem
@@ -556,10 +556,10 @@ lemma  lemma_exists_in_image (χ : A →+* B)
 
 
 
-def def_unique_elem (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)): B :=
-     (lemma_exists_in_image  F χ non_zero_divisor gen v m).choose
+def def_unique_elem [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)): B :=
+     (lemma_exists_in_image  F (algebraMap A B) non_zero_divisor gen v m).choose
 
 lemma def_unique_elem_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
     (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
@@ -677,10 +677,40 @@ lemma  lemma_exists_unique_morphism (χ : A →+* B)
 open Multicenter
 open Dilatation
 
-lemma equiv_small_big_cond [Algebra A B] (v : F^ℕ) (m : 𝐋^v) :
-(gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)) ↔
-(gen' : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}} ⊇ (algebraMap A B ) (F.ideal i)) := by
+open Multicenter
+open Dilatation
+
+lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
+ ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
+      Ideal.span {(algebraMap A B) (F.elem i)} := by
+      intro i
+      simp?
+      sorry
+
+
+lemma equiv_small_big_cond [Algebra A B]  :
+( ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i}) = Ideal.map (algebraMap A B) (F.LargeIdeal i)) ↔
+( ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i}) ≥  Ideal.map (algebraMap A B) (F.ideal i)) := by
+  constructor
+  · intro h i
+    have eq1 : (F.LargeIdeal i) ≥ (F.ideal i)  := by
+      sorry
+    have eq2 : Ideal.map (algebraMap A B) (F.LargeIdeal i) ≥
+               Ideal.map (algebraMap A B) (F.ideal i) := by
+      eq1 + trivial
+      sorry
+   exact eq2 + assumption
    sorry
+
+  · intro h i
+    have eq: Ideal.map (algebraMap A B) (F.LargeIdeal i)=
+               Ideal.map (algebraMap A B) (F.ideal i)+
+               Ideal.map (algebraMap A B) (Ideal.span {F.elem i}):= by
+               sorry
+    by  double inclusion
+        ≤ immediate from eq
+        ≥ by eq + assumption.
+    sorry
 
 --should we deleted desc and incorporate its proof in desc_alg ?
 --I suggest we use gen' everywhere
