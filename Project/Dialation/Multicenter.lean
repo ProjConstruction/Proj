@@ -559,39 +559,39 @@ lemma  lemma_exists_in_image [Algebra A B]
 def def_unique_elem [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)): B :=
-     (lemma_exists_in_image  F (algebraMap A B) non_zero_divisor gen v m).choose
+     (lemma_exists_in_image  F  non_zero_divisor gen v m).choose
 
-lemma def_unique_elem_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    χ 𝐚^v * def_unique_elem F χ v m non_zero_divisor gen = χ m := by
-    apply (lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.1
+lemma def_unique_elem_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
+    (algebraMap A B) 𝐚^v * def_unique_elem F v m non_zero_divisor gen = (algebraMap A B) m := by
+    apply (lemma_exists_in_image F non_zero_divisor gen v m).choose_spec.1
 
-lemma def_unique_elem_unique  (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    ∀ bm : B, χ 𝐚^v * bm = χ m →  def_unique_elem F χ v m non_zero_divisor gen =bm:= by
+lemma def_unique_elem_unique  [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
+    ∀ bm : B, (algebraMap A B) 𝐚^v * bm = (algebraMap A B) m →  def_unique_elem F v m non_zero_divisor gen =bm:= by
     intro bm hbm
-    apply ((lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
+    apply ((lemma_exists_in_image F  non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
 
 
 
-def desc (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)) :
-     A[F] →+* B where
-  toFun := Dilatation.descFun (fun x ↦ def_unique_elem F χ x.pow ⟨ x.num, x.num_mem⟩  non_zero_divisor gen )
+def desc [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)) :
+     A[F] →ₐ[A] B where
+  toFun := Dilatation.descFun (fun x ↦ def_unique_elem F  x.pow ⟨ x.num, x.num_mem⟩  non_zero_divisor gen )
                             ( by
                               intro x y h
                               rcases h with ⟨β, hβ⟩
                               simp only
                               apply def_unique_elem_unique
-                              apply_fun (fun z => χ (𝐚^ (β + y.pow)) * z)
+                              apply_fun (fun z => (algebraMap A B) (𝐚^ (β + y.pow)) * z)
                               · simp only [mul_assoc, hβ]
                                 rw[← map_mul, mul_comm _ x.num]
                                 rw [hβ]
                                 simp only [map_mul]
-                                rw[← def_unique_elem_spec F χ y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
+                                rw[← def_unique_elem_spec F y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
                                 simp only [prodElemPow_add, map_mul]
                                 ring
                               · intro x y hx
@@ -616,8 +616,8 @@ def desc (χ : A →+* B)
     · exact non_zero_divisor
     · exact gen
     · simp
-      rw[← def_unique_elem_spec F χ y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
-      rw[← def_unique_elem_spec F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
+      rw[← def_unique_elem_spec F  y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
+      rw[← def_unique_elem_spec F x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
       simp [prodElemPow_add]
       ring
   map_zero' := by
@@ -633,52 +633,74 @@ def desc (χ : A →+* B)
     · exact non_zero_divisor
     · exact gen
     · simp
-      rw[← def_unique_elem_spec F χ y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
-      rw[← def_unique_elem_spec F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
+      rw[← def_unique_elem_spec F  y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
+      rw[← def_unique_elem_spec F x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
       simp [prodElemPow_add]
       ring
+  commutes' := by
+    intro x
+    simp only [Dilatation.descFun, Dilatation.one_def]
+    apply def_unique_elem_unique
+    simp
+
 
 
 open Multicenter
 open Dilatation
-lemma dsc_spec (χ : A →+* B) (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i)):
-    χ 𝐚^v * desc F χ non_zero_divisor gen (m/.v)  = χ m := by
-    apply (lemma_exists_in_image F χ non_zero_divisor gen v m).choose_spec.1
+lemma dsc_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
+    (algebraMap A B) 𝐚^v * desc F non_zero_divisor gen (m/.v)  = (algebraMap A B) m := by
+    apply (lemma_exists_in_image F non_zero_divisor gen v m).choose_spec.1
 
-lemma  lemma_exists_unique_morphism (χ : A →+* B)
-    (non_zero_divisor : ∀ i : F.index, χ (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {χ (F.elem i)} = Ideal.map χ (F.LargeIdeal i))
-    (χ':A[F]→+* B) (scalar: ∀ a : A,  χ'  (algebraMap A A[F] a) = χ a) :
-     χ' = desc F χ non_zero_divisor gen := by
+
+lemma  lemma_exists_unique_morphism [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i))
+    (χ':A[F]→ₐ[A] B)  : χ' = desc F non_zero_divisor gen := by
       ext x
       induction x using induction_on with |h x =>
-      have eq1 : (χ 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
-       (χ' (algebraMap A A[F] 𝐚^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by rw[scalar]
-      have eq2 : (χ 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
-       (χ x.num) := by
+      have eq1 : ((algebraMap A B) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       (χ' (algebraMap A A[F] 𝐚^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by rw[AlgHom.commutes]
+      have eq2 : ((algebraMap A B) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       ((algebraMap A B) x.num) := by
          rw[eq1, ← map_mul]
          simp only [algebraMap_apply, mk_mul_mk, mul']
-         rw[← scalar]
+         rw[← AlgHom.commutes (χ' : A[F] →ₐ[A] B)]
          congr 1
          simp[algebraMap_apply]
          simp[mk_eq_mk]
          use 0
          simp
          simp[mul_comm]
-      have eq3:  def_unique_elem F χ x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen =
+      have eq3:  def_unique_elem F  x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen =
          (χ' ⟨x.num, x.num_mem⟩/.x.pow) := by
           apply def_unique_elem_unique
           exact eq2
       rw[← eq3]
       rfl
 
+
+
+lemma reciprocal_for_univ [Algebra A B]
+   (χ':A[F] →ₐ[A] B) : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)}
+         = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
+          have eq: ∀ i, Ideal.span {(algebraMap A A[F]) (F.elem i)}
+             = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
+             rw [image_elem_LargeIdeal_equal] at Finsupp.single i 1
+             sorry
+          Use that χ' factor through A[F] plus eq to get the result
+
+
+          sorry
+
+
 open Multicenter
 open Dilatation
 
 open Multicenter
 open Dilatation
+
 
 lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
  ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
@@ -694,106 +716,30 @@ lemma equiv_small_big_cond [Algebra A B]  :
   constructor
   · intro h i
     have eq1 : (F.LargeIdeal i) ≥ (F.ideal i)  := by
-      sorry
+      simp [LargeIdeal]
     have eq2 : Ideal.map (algebraMap A B) (F.LargeIdeal i) ≥
                Ideal.map (algebraMap A B) (F.ideal i) := by
-      eq1 + trivial
-      sorry
-   exact eq2 + assumption
-   sorry
+                simp[Ideal.map_mono, eq1]
+    simp[eq2, h]
 
   · intro h i
     have eq: Ideal.map (algebraMap A B) (F.LargeIdeal i)=
                Ideal.map (algebraMap A B) (F.ideal i)+
                Ideal.map (algebraMap A B) (Ideal.span {F.elem i}):= by
+               simp[LargeIdeal]
                sorry
     by  double inclusion
         ≤ immediate from eq
         ≥ by eq + assumption.
     sorry
 
---should we deleted desc and incorporate its proof in desc_alg ?
---I suggest we use gen' everywhere
-def desc_alg [Algebra A B]
-    (non_zero_divisor : ∀ i : F.index, algebraMap A B (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {algebraMap A B (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)) :
-     A[F] →ₐ[A] B where
-       toRingHom := desc F (algebraMap A B) non_zero_divisor gen
-       commutes' := by
-          intro x
-          simp[algebraMap_apply]
-          have eq1 := dsc_spec F (algebraMap A B ) (0) ⟨x, by simp⟩  non_zero_divisor gen
-          simp at eq1
-          exact eq1
-
---same here we should keep only desc_spec as morphism of algebras which is stronger
-open Multicenter
-open Dilatation
-lemma desc_alg_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)):
-    (algebraMap A B ) 𝐚^v * desc F (algebraMap A B ) non_zero_divisor gen (m/.v)  = (algebraMap A B ) m := by
-    apply (lemma_exists_in_image F (algebraMap A B ) non_zero_divisor gen v m).choose_spec.1
-
---same
-open Multicenter
-open Dilatation
-lemma def_alg_unique  [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
-    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i)):
-    ∀ bm : B, (algebraMap A B ) 𝐚^v * bm = (algebraMap A B ) m →  def_unique_elem F (algebraMap A B ) v m non_zero_divisor gen =bm:= by
-    intro bm hbm
-    apply ((lemma_exists_in_image F (algebraMap A B ) non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
-
-
-
-open Multicenter
-open Dilatation
-lemma  lemma_alg_exists_unique_morphism  [Algebra A B]
-    (non_zero_divisor : ∀ i : F.index, (algebraMap A B ) (F.elem i) ∈ nonZeroDivisors B)
-    (gen : ∀ i, Ideal.span {(algebraMap A B ) (F.elem i)} = Ideal.map (algebraMap A B ) (F.LargeIdeal i))
-    (χ':A[F]→ₐ[A] B)  :
-     χ' = desc F (algebraMap A B ) non_zero_divisor gen := by
-      ext x
-      induction x using induction_on with |h x =>
-      have eq1 : ((algebraMap A B ) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
-       (χ' (algebraMap A A[F] 𝐚^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by simp only [AlgHom.commutes]
-      have eq2 : ((algebraMap A B ) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
-       ((algebraMap A B ) x.num) := by
-         rw[eq1, ← map_mul]
-         simp only [algebraMap_apply, mk_mul_mk, mul']
-         rw[AlgHom.mk']
-         congr 1
-         simp[algebraMap_apply]
-         simp[mk_eq_mk]
-         use 0
-         simp
-         simp[mul_comm]
-         sorry
-      have eq3:  def_unique_elem F (algebraMap A B ) x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen =
-         (χ' ⟨x.num, x.num_mem⟩/.x.pow) := by
-          apply def_unique_elem_unique
-          exact eq2
-      rw[← eq3]
-      rfl
-      sorry
-
-
-
---We only need the F.elem part in the following def
 def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
  Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
  sorry
 
-lemma reciprocal_for_univ  [Algebra A B]
- (object : (algebraMap A B) ∈ Objects cat_dil_test_reg A F) :
-  ({A[F]→ ₐ[A]B}  is a singleton ) ↔
-   (gen' : ∀ i, {Ideal.span {(algebraMap A B ) (F.elem i)}}
-   ⊇ (algebraMap A B ) (F.ideal i)) := by
-   sorry
 
 lemma dil_representable_functor (F: Multicenter A) :
- A[F] represents the functor cat_dil_test_reg A F → Set,
+    A[F] represents the functor cat_dil_test_reg A F → Set,
     f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
              emptyset else := by
      sorry
@@ -801,22 +747,28 @@ lemma dil_representable_functor (F: Multicenter A) :
 -/
 
 @[simps]
-def image_mult (χ : A →+* B) :  Multicenter B :=
+def image_mult [Algebra A B] :  Multicenter B :=
   {index  :=F.index
-   ideal  :=(fun i ↦ Ideal.map χ (F.ideal i))
-   elem := (fun i ↦ χ (F.elem i))}
+   ideal  :=(fun i ↦ Ideal.map (algebraMap A B) (F.ideal i))
+   elem := (fun i ↦ (algebraMap A B) (F.elem i))}
+
+
+open Multicenter
+open Dilatation
 
 lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
-  (image_mult F (algebraMap A B)).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+  (image_mult (B:=B) F ).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
    simp [LargeIdeal]
    rw[Ideal.map_sup]
    rw[Ideal.map_span]
    simp
 
+instance [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
+  RingHom.toAlgebra (RingHom.comp (algebraMap B B[G]) (algebraMap A B))
 
 
-def functo_dila_alg [Algebra A B]: A[F] →ₐ[A] B[ (image_mult F (algebraMap A B) ) ] :=
-  desc_alg F (algebraMap.comp (algebraMap B B[image_mult F (algebraMap A B )]) (algebraMap A B ))
+def functo_dila_alg [Algebra A B]: A[F] →ₐ[A]  B[image_mult (B := B) F]  :=
+  desc F (algebraMap A B[image_mult (B := B) F])
     (by
      classical
      intro i
@@ -837,10 +789,8 @@ def functo_dila_alg [Algebra A B]: A[F] →ₐ[A] B[ (image_mult F (algebraMap A
     )
 
 lemma unique_functorial_morphism_dilatation [Algebra A B]
- (other:A[F]→ₐ[A] B[image_mult B (algebraMap A B) F]) :
-   other= desc_alg F (algebraMap.comp
-     (algebraMap B B[image_mult F (algebraMap A B )])
-     (algebraMap A B ))  :=by
+ (other:A[F]→ₐ[A] B[image_mult (B := B) F]) :
+   other= desc F (algebraMap A B[image_mult (B := B) F])  :=by
 
       sorry
 
@@ -848,7 +798,7 @@ lemma unique_functorial_morphism_dilatation [Algebra A B]
 
 def dil_to_localise_mor_alg (F: Multicenter A) :
   A[F] →ₐ[A] Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A))))  :=
-   desc_alg_small F (algebraMap A Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A)))))
+   desc F (algebraMap A Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A)))))
        (_)
        (_)
 
