@@ -680,21 +680,19 @@ lemma  lemma_exists_unique_morphism [Algebra A B]
       rw[← eq3]
       rfl
 
-
-
-lemma reciprocal_for_univ [Algebra A B]
+open Dilatation
+open Multicenter
+lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
    (χ':A[F] →ₐ[A] B) : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)}
          = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
-          have eq: ∀ i, Ideal.span {(algebraMap A A[F]) (F.elem i)}
+          intro i
+          let v : F^ℕ := Finsupp.single i 1
+          have eq:  Ideal.span {(algebraMap A A[F]) (F.elem i)}
              = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
-             have eq1 := @image_elem_LargeIdeal_equal A A[F] {
-               index := _
-               ideal := _
-               elem := _
-             } F i
+             have eq1 := image_elem_LargeIdeal_equal v
                sorry
              rw [image_elem_LargeIdeal_equal] at Finsupp.single i 1
-             sorry
+               sorry
           Use that χ' factor through A[F] plus eq to get the result
 
 
@@ -807,12 +805,21 @@ lemma unique_functorial_morphism_dilatation [Algebra A B]
       sorry
 
 
+open Multicenter
+open Dilatation
+scoped notation: max A"["F".loc]" =>
+   Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A))))
+
+instance (F : Multicenter A) : Algebra A A[F.loc] :=
+  (algebraMap A Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A)))))
 
 def dil_to_localise_mor_alg (F: Multicenter A) :
-  A[F] →ₐ[A] Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A))))  :=
-   desc F (algebraMap A Localization (Submonoid.closure (Set.range (fun j => (F.elem j : A)))))
-       (_)
-       (_)
+  A[F] →ₐ[A] A[F.loc]  :=
+   desc F (algebraMap A A[F.loc])
+       (by
+        sorry)
+       (by
+        sorry)
 
 
 lemma dil_to_localise_mor_alg_unique (F: Multicenter A):
@@ -828,7 +835,7 @@ lemma dil_to_localise_mor_alg_unique (F: Multicenter A):
     -- for example A[F.elem^-1] would be very useful
 
 lemma dil_to_localise_mor_is_injective (F: Multicenter A) :
-  A[F] →ₐ[A] A[F.elem^-1] is injective:= by
+  A[F] →ₐ[A] A[F.loc] is injective:= by
   sorry
 
 lemma im_dil_is_subalgebra_in_loc (F: Multicenter A) :
