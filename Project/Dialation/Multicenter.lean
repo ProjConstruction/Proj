@@ -809,9 +809,7 @@ def image_mult [Algebra A B] :  Multicenter B :=
    elem := (fun i ↦ (algebraMap A B) (F.elem i))}
 
 
-open Multicenter
-open Dilatation
-
+/-
 lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
   (image_mult (B:=B) F ).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
    simp [LargeIdeal]
@@ -835,13 +833,23 @@ def functo_dila_alg [Algebra A B]: A[F] →ₐ[A]  B[image_mult (B := B) F]  :=
     (by
      classical
      intro i
-     have h := image_elem_LargeIdeal_equal (F := image_mult (B := A[F]) F ) (Finsupp.single i 1)
-     simp at h
-     apply Ideal.map_map (algebraMap A B) (algebraMap B (B[image_mult (B := B) F]))
-     --rw[h]
-     rw[image_mult_LargeIdeal]
+     let v : F^ℕ := Finsupp.single i 1
+     have h := image_elem_LargeIdeal_equal (F := image_mult (B := B[image_mult (B := B) F]) (image_mult (B := B) F) ) v
+     simp only at h
+     have eq2: 𝐚^v = F.elem i := by
+            rw [prodElemPower]
+            rw [Finsupp.prod_single_index]
+            ring
+            ring
+     have eq3 : 𝐋^v = F.LargeIdeal i := by
+              rw[prodLargeIdealPower]
+              rw [Finsupp.prod_single_index]
+              ring
+              ring
+
+
      sorry
-     )
+      )
 
 lemma unique_functorial_morphism_dilatation [Algebra A B]
  (other:A[F]→ₐ[A] B[image_mult (B := B) F]) :
@@ -926,6 +934,7 @@ def monopoly (F : Multicenter A) (F.index is finite) :
      )
 
 end universal_property
+-/
 
 open Dilatation
 open Multicenter
