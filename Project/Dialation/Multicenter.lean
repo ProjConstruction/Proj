@@ -1079,6 +1079,7 @@ instance : CommSemiring F.ReesAlgebra where
              ·
             sorry
           |H_plus  =>
+            sorry
   mul_one := _
 
 variable [DecidableEq F.index] in
