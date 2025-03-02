@@ -1,7 +1,7 @@
-import Mathlib.RingTheory.Ideal.Operations
 import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
 import Project.Dialation.lemma
+import Mathlib.RingTheory.Ideal.Operations
 import Mathlib.RingTheory.Localization.Basic
 suppress_compilation
 
@@ -1067,27 +1067,38 @@ instance : CommSemiring F.ReesAlgebra where
   one_mul := by
          intro a
          induction  a using DirectSum.induction_on with
-          |H_zero =>
-            change  F.reesAlgebraMul _ _ =  _
-            simp
-          |H_basic v m =>
-            simp only [reesAlgebraMul_of_of, reesAlgebra_mul_of_of]
-            ext
-            simp [DirectSum.coe_of_apply, one_mul]
-            split_ifs <;>
-             ·
-             ·
+         |H_zero =>
+            have eq : (.of _ 0 ⟨1, by simp⟩ )* (.of _ 0 ⟨0, by simp⟩) = (.of _ 0 ⟨0, by simp⟩ ) := by
+
             sorry
-          |H_plus  =>
+         | H_basic i x =>
             sorry
+         | H_plus x y _ _ =>
+            sorry
+
+         sorry
   mul_one := _
 
 variable [DecidableEq F.index] in
 def toReesAlgebra : A →+* F.ReesAlgebra where
   toFun a := .of _ 0 ⟨a, by simp⟩
-  map_one' := _
-  map_mul' := _
-  map_zero' := _
+  map_one' := by
+    simp [reesAlgebraMul_of_of]
+    simp[reesAlgebraMul_of_of ]
+    sorry
+  map_mul' := by
+    intro a b
+    simp [DirectSum.coe_of_apply]
+    ext
+    simp [DirectSum.coe_of_apply, mul_assoc]
+
+    sorry
+  map_zero' := by
+    simp only [Finsupp.prod_zero_index]
+    ext
+    simp [DirectSum.coe_of_apply, mul_comm, add_comm]
+
+    sorry
   map_add' := _
 
 variable [DecidableEq F.index] in
