@@ -441,7 +441,8 @@ lemma nonzerodiv_image (v :F^ℕ) :
     use v +α
     simp [prodElemPow_add, ← mul_assoc, hα]
 
---lemma eq below ?
+
+
 
 lemma image_elem_LargeIdeal_equal  (v : F^ℕ) :
  Ideal.span ({algebraMap A A[F] (𝐚^v)}) =
@@ -528,6 +529,42 @@ lemma  cond_univ_implies_large_cond [Algebra A B]
      simp[Ideal.prod_map, Ideal.map_pow]
 
 
+lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
+ ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
+      Ideal.span {(algebraMap A B) (F.elem i)} := by
+      intro i
+      rw [Ideal.map_span, Set.image_singleton]
+
+
+
+lemma equiv_small_big_cond [Algebra A B]  :
+( ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i}) = Ideal.map (algebraMap A B) (F.LargeIdeal i)) ↔
+( ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i}) ≥  Ideal.map (algebraMap A B) (F.ideal i)) := by
+  constructor
+  · intro h i
+    have eq1 : (F.LargeIdeal i) ≥ (F.ideal i)  := by
+      simp [LargeIdeal]
+    have eq2 : Ideal.map (algebraMap A B) (F.LargeIdeal i) ≥
+               Ideal.map (algebraMap A B) (F.ideal i) := by
+                simp[Ideal.map_mono, eq1]
+    simp[eq2, h]
+
+  · intro h i
+    have eq1: Ideal.map (algebraMap A B) (F.LargeIdeal i)=
+               Ideal.map (algebraMap A B) (F.ideal i)+
+               Ideal.map (algebraMap A B) (Ideal.span {F.elem i}):= by
+               simp[LargeIdeal]
+               rw [Ideal.map_sup]
+    have eq2: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+             ≥  Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+             simp[eq1, h]
+    have eq3: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+             ≤   Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+             simp[LargeIdeal, eq1, Ideal.map_sup]
+    have eq4: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+             = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+             exact LE.le.antisymm' eq2 eq3
+    exact eq4
 
 lemma  lemma_exists_in_image [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
@@ -687,16 +724,36 @@ lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
          = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
           intro i
           let v : F^ℕ := Finsupp.single i 1
-          have eq:  Ideal.span {(algebraMap A A[F]) (F.elem i)}
-             = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
-             have eq1 := image_elem_LargeIdeal_equal v
-               sorry
-             rw [image_elem_LargeIdeal_equal] at Finsupp.single i 1
-               sorry
-          Use that χ' factor through A[F] plus eq to get the result
+          have eq1:  Ideal.span {(algebraMap A A[F]) (𝐚^v)}
+             = Ideal.map (algebraMap A A[F]) (𝐋^v):= by
+             rw [image_elem_LargeIdeal_equal v]
+          have eq2: 𝐚^v = F.elem i := by
+            rw [prodElemPower]
+            rw [Finsupp.prod_single_index]
+            ring
+            ring
+          have eq3 : 𝐋^v = F.LargeIdeal i := by
+              rw[prodLargeIdealPower]
+              rw [Finsupp.prod_single_index]
+              ring
+              ring
+          have eqA:  Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+           = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+               have eq6: Ideal.map (algebraMap A A[F]) (Ideal.span {(F.elem i)})
+                = Ideal.span {(algebraMap A A[F]) (F.elem i)} := by
+                  rw [equ_trivial_image_divisor_ring  ]
+             sorry
+
+          have eqB: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
+            Ideal.span {(algebraMap A B) (F.elem i)}:= by
+                rw [equ_trivial_image_divisor_ring  ]
 
 
-          sorry
+          rw[←eqB, eqA]
+
+
+
+
 
 
 open Multicenter
@@ -706,44 +763,8 @@ open Multicenter
 open Dilatation
 
 
-lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
- ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
-      Ideal.span {(algebraMap A B) (F.elem i)} := by
-      intro i
-      rw [Ideal.map_span, Set.image_singleton]
 
-
-
-lemma equiv_small_big_cond [Algebra A B]  :
-( ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i}) = Ideal.map (algebraMap A B) (F.LargeIdeal i)) ↔
-( ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i}) ≥  Ideal.map (algebraMap A B) (F.ideal i)) := by
-  constructor
-  · intro h i
-    have eq1 : (F.LargeIdeal i) ≥ (F.ideal i)  := by
-      simp [LargeIdeal]
-    have eq2 : Ideal.map (algebraMap A B) (F.LargeIdeal i) ≥
-               Ideal.map (algebraMap A B) (F.ideal i) := by
-                simp[Ideal.map_mono, eq1]
-    simp[eq2, h]
-
-  · intro h i
-    have eq1: Ideal.map (algebraMap A B) (F.LargeIdeal i)=
-               Ideal.map (algebraMap A B) (F.ideal i)+
-               Ideal.map (algebraMap A B) (Ideal.span {F.elem i}):= by
-               simp[LargeIdeal]
-               rw [Ideal.map_sup]
-    have eq2: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
-             ≥  Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
-             simp[eq1, h]
-    have eq3: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
-             ≤   Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
-             simp[LargeIdeal, eq1, Ideal.map_sup]
-    have eq4: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
-             = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
-             exact LE.le.antisymm' eq2 eq3
-    exact eq4
-
-
+/--/
 def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
  Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
  sorry
@@ -754,7 +775,7 @@ lemma dil_representable_functor (F: Multicenter A) :
     f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
              emptyset else := by
      sorry
-
+-/
 
 
 @[simps]
@@ -852,7 +873,7 @@ lemma dil_isom_subalgebra_in_loc (F: Multicenter A) :
 
 
 lemma dil_eq_loc_if_maxLarge (F: Multicenter A) (F.LargeIdeal i = A):
-   A[F] →ₐ[A] A[F.elem^-1] is an isomorphism:= by
+   A[F] →ₐ[A] A[F.loc] is an isomorphism:= by
     it is enough to prove that it is surjective which is easy
     sorry
 
@@ -863,18 +884,22 @@ def  comprimed_center (F : Multicenter A) (F.index is finite) : Multicenter A :=
     elem := ∏ (i : F.index) F.elem i
     }
 
-def monopoly (F : Multicenter A) (Set.Finite F.index) :
-  A[F] →ₐ[A] A[comprimed_center F] where
-   toFun := Dilatation.descFun (fun x ↦ sorry)
-                            ( by sorry )
-   map_one' := by
-    sorry
-   map_mul' := by
-    sorry
-   map_zero' := by
-    sorry
-   map_add' :=  by
-    sorry
+def monopoly (F : Multicenter A) (F.index is finite) :
+  A[F] →ₐ[A] A[comprimed_center F] := desc F
+    (by
+     intro i
+     simp
+     apply Ideal.mul_mem_right
+     apply Ideal.subset_span
+     simp
+     )
+    (by
+     intro i
+     simp
+     apply Ideal.mul_mem_right
+     apply Ideal.subset_span
+     simp
+     )
 
 end universal_property
 
