@@ -737,17 +737,41 @@ lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
               rw [Finsupp.prod_single_index]
               ring
               ring
+          have eq4: Ideal.span {(algebraMap A A[F]) (F.elem i)}
+             = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
+                   have eq41: Ideal.span {(algebraMap A A[F]) (F.elem i)}=
+                      Ideal.span {(algebraMap A A[F]) (𝐚^v)} := by
+                      rw[eq2]
+                   have eq42: Ideal.map (algebraMap A A[F]) (F.LargeIdeal i)=
+                      Ideal.map (algebraMap A A[F]) (𝐋^v) := by
+                      rw[eq3]
+                   rw[eq41, eq42, eq1]
           have eqA:  Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
            = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
                have eq6: Ideal.map (algebraMap A A[F]) (Ideal.span {(F.elem i)})
-                = Ideal.span {(algebraMap A A[F]) (F.elem i)} := by
+                       = Ideal.span {(algebraMap A A[F]) (F.elem i)} := by
                   rw [equ_trivial_image_divisor_ring  ]
-             sorry
+               have eq7: Ideal.map (algebraMap A A[F]) (Ideal.span {(F.elem i)})
+                        =Ideal.map (algebraMap A A[F]) (F.LargeIdeal i) := by
+                        rw[ eq6, ← eq4]
+               have eq8: Ideal.map (χ'.toRingHom)
+                          (Ideal.map (algebraMap A A[F]) (Ideal.span {(F.elem i)}))
+                        =Ideal.map (χ'.toRingHom )
+                          (Ideal.map (algebraMap A A[F]) (F.LargeIdeal i)) := by
+                          rw[eq7]
+               have eqcomp: (algebraMap A B) = (RingHom.comp χ'.toRingHom (algebraMap A A[F])) := by
+                  simp
+               have eq9: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+                        =Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+                        rw [Ideal.map_map (algebraMap A A[F]) χ'.toRingHom] at eq8
+                        rw [Ideal.map_map (algebraMap A A[F]) χ'.toRingHom] at eq8
+                        simp[Function.comp_apply, Function.comp_apply] at eq8
+                        exact eq8
+               exact eq9
 
           have eqB: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
             Ideal.span {(algebraMap A B) (F.elem i)}:= by
                 rw [equ_trivial_image_divisor_ring  ]
-
 
           rw[←eqB, eqA]
 
