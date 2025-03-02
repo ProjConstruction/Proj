@@ -687,7 +687,12 @@ lemma reciprocal_for_univ [Algebra A B]
          = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
           have eq: ∀ i, Ideal.span {(algebraMap A A[F]) (F.elem i)}
              = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
-             have eq1 := image_elem_LargeIdeal_equal
+             have eq1 := @image_elem_LargeIdeal_equal A A[F] {
+               index := _
+               ideal := _
+               elem := _
+             } F i
+               sorry
              rw [image_elem_LargeIdeal_equal] at Finsupp.single i 1
              sorry
           Use that χ' factor through A[F] plus eq to get the result
@@ -707,8 +712,8 @@ lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
  ∀ i, Ideal.map (algebraMap A B) (Ideal.span {F.elem i})=
       Ideal.span {(algebraMap A B) (F.elem i)} := by
       intro i
-      simp only [Ideal.map_sup, Ideal.map_span, LargeIdeal]
-      sorry
+      rw [Ideal.map_span, Set.image_singleton]
+
 
 
 lemma equiv_small_big_cond [Algebra A B]  :
@@ -735,7 +740,11 @@ lemma equiv_small_big_cond [Algebra A B]  :
     have eq3: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
              ≤   Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
              simp[LargeIdeal, eq1, Ideal.map_sup]
-    simp[eq2, eq3]
+    have eq4: Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
+             = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
+             exact LE.le.antisymm' eq2 eq3
+    exact eq4
+
 
 def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
  Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
@@ -748,7 +757,7 @@ lemma dil_representable_functor (F: Multicenter A) :
              emptyset else := by
      sorry
 
--/
+
 
 @[simps]
 def image_mult [Algebra A B] :  Multicenter B :=
@@ -772,25 +781,24 @@ instance [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
 
 
 def functo_dila_alg [Algebra A B]: A[F] →ₐ[A]  B[image_mult (B := B) F]  :=
-  desc F (algebraMap A B[image_mult (B := B) F])
+  desc F
     (by
      classical
      intro i
-     simp
-     have h := nonzerodiv_image (F := image_mult F (algebraMap A B )) (Finsupp.single i 1)
+     have h := nonzerodiv_image (F := image_mult (B := B) F ) (Finsupp.single i 1)
      simp at h
      exact h
      )
     (by
-    classical
-    intro i
-    simp
-    have h := image_elem_LargeIdeal_equal (F := image_mult F (algebraMap A B )) (Finsupp.single i 1)
-    simp at h
-    rw[← Ideal.map_map]
-    rw[h]
-    rw[image_mult_LargeIdeal]
-    )
+     classical
+     intro i
+     have h := image_elem_LargeIdeal_equal (F := image_mult (B := A[F]) F ) (Finsupp.single i 1)
+     simp at h
+     apply Ideal.map_map (algebraMap A B) (algebraMap B (B[image_mult (B := B) F]))
+     --rw[h]
+     rw[image_mult_LargeIdeal]
+     sorry
+     )
 
 lemma unique_functorial_morphism_dilatation [Algebra A B]
  (other:A[F]→ₐ[A] B[image_mult (B := B) F]) :
@@ -843,12 +851,13 @@ lemma dil_eq_loc_if_maxLarge (F: Multicenter A) (F.LargeIdeal i = A):
 
 def  comprimed_center (F : Multicenter A) (F.index is finite) : Multicenter A :=
   { index := singleton
-    ideal :=  ∑ (i : F.index) , F.LargeIdeal i * ∏ (j : {F.index \ i}) Ideal.span {F.elem i}
+    ideal :=  ∑ (i : F.index) ,
+               F.LargeIdeal i * ∏ (j : (Finset.univ.erase i)) (Ideal.span {F.elem j})
     elem := ∏ (i : F.index) F.elem i
     }
 
-def monopoly (F : Multicenter A) (F.index is finite) :
-  A[F] →+* A[comprimed_center F] where
+def monopoly (F : Multicenter A) (Set.Finite F.index) :
+  A[F] →ₐ[A] A[comprimed_center F] where
    toFun := Dilatation.descFun (fun x ↦ sorry)
                             ( by sorry )
    map_one' := by
