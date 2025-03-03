@@ -1,11 +1,14 @@
 import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
-import Project.Dialation.lemma
+import Project.Dilatation.lemma
 import Mathlib.RingTheory.Ideal.Operations
 import Mathlib.RingTheory.Localization.Basic
+
+import Project.Dilatation.Family
+
 suppress_compilation
 
-open DirectSum
+open DirectSum Family
 
 section defs
 
@@ -36,52 +39,52 @@ lemma elem_mem_LargeIdeal (i: F.index) : F.elem i ∈ F.LargeIdeal i := by
 abbrev prodLargeIdealPower (v : F^ℕ) : Ideal A :=
   v.prod fun i k ↦ F.LargeIdeal i ^ k
 
-scoped prefix:max "𝐋^" => prodLargeIdealPower _
+-- scoped prefix:max "𝐋^" => prodLargeIdealPower _
 
-scoped notation:max "𝐋^["F"]" => prodLargeIdealPower F
+-- scoped notation:max "𝐋^["F"]" => prodLargeIdealPower F
 
 
-variable {F} in
-lemma prod_mem_prodLargeIdealPower_add {v w : F^ℕ} {a b : A} (ha : a ∈ 𝐋^v) (hb : b ∈ 𝐋^w) :
-    a * b ∈ 𝐋^(v + w) := by
-  classical
-  simp? [prodLargeIdealPower] at ha hb ⊢
-  rw [Finsupp.prod_add_index]
-  pick_goal 2
-  · intro a ha
-    simp
-  pick_goal 2
-  · intro a ha m n
-    rw [pow_add]
-  exact Ideal.mul_mem_mul ha hb
+-- variable {F} in
+-- lemma prod_mem_prodLargeIdealPower_add {v w : F^ℕ} {a b : A} (ha : a ∈ 𝐋^v) (hb : b ∈ 𝐋^w) :
+--     a * b ∈ F.LargeIdeal ^ (v + w) := by
+--   classical
+--   simp only [prodLargeIdealPower] at ha hb ⊢
+--   rw [Finsupp.prod_add_index]
+--   pick_goal 2
+--   · intro a ha
+--     simp
+--   pick_goal 2
+--   · intro a ha m n
+--     rw [pow_add]
+--   exact Ideal.mul_mem_mul ha hb
 
-abbrev prodElemPower (v : F^ℕ) : A := v.prod fun i k ↦ F.elem i ^ k
+-- abbrev prodElemPower (v : F^ℕ) : A := v.prod fun i k ↦ F.elem i ^ k
 
-scoped prefix:max "𝐚^" => prodElemPower _
+-- scoped prefix:max "𝐚^" => prodElemPower _
 
-scoped notation:max "𝐚^["F"]" => prodElemPower F
+-- scoped notation:max "𝐚^["F"]" => prodElemPower F
 
-lemma prodElemPow_add (β γ : F^ℕ ) : 𝐚^(β + γ)= 𝐚^β* 𝐚^γ := by
-  classical
- simp[prodElemPower]
- simp[pow_add, Finset.prod_mul_distrib,
-  Finset.prod_subset_one_on_sdiff, Finsupp.prod_add_index]
+-- lemma prodElemPow_add (β γ : F^ℕ ) : F.elem^(β + γ)= F.elem^β* F.elem^γ := by
+--   classical
+--  simp[prodElemPower]
+--  simp[pow_add, Finset.prod_mul_distrib,
+--   Finset.prod_subset_one_on_sdiff, Finsupp.prod_add_index]
 
-lemma prodElemPow_mem (v :F^ℕ) : 𝐚^v ∈ 𝐋^v := by
-  apply Ideal.prod_mem_prod
-  intro i hi
-  simp only
-  apply Ideal.pow_mem_pow
-  exact elem_mem_LargeIdeal F i
+-- lemma prodElemPow_mem (v :F^ℕ) : F.elem^v ∈ F.LargeIdeal^v := by
+--   apply Ideal.prod_mem_prod
+--   intro i hi
+--   simp only
+--   apply Ideal.pow_mem_pow
+--   exact elem_mem_LargeIdeal F i
 
 
 structure PreDil where
   pow : F^ℕ
   num : A
-  num_mem : num ∈ 𝐋^pow
+  num_mem : num ∈ F.LargeIdeal ^pow
 
 def r : F.PreDil → F.PreDil → Prop := fun x y =>
-  ∃ β : F^ℕ, x.num * 𝐚^(β + y.pow) = y.num * 𝐚^(β + x.pow)
+  ∃ β : F^ℕ, x.num * F.elem^(β + y.pow) = y.num * F.elem^(β + x.pow)
 
 variable {F}
 
@@ -97,13 +100,13 @@ lemma r_trans (x y z : F.PreDil) : F.r x y → F.r y z → F.r x z := by
   intro h g
   rcases h with ⟨β , hβ⟩
   rcases g with ⟨γ , gγ⟩
-  have eq' := congr($hβ * 𝐚^(γ+z.pow))
-  have eq'' := congr($gγ * 𝐚^(β+x.pow))
+  have eq' := congr($hβ * F.elem^(γ+z.pow))
+  have eq'' := congr($gγ * F.elem^(β+x.pow))
   use β+γ+y.pow
-  simp only [← prodElemPow_add, ← mul_assoc] at eq' eq'' ⊢
+  simp only [← familyPow_add, ← mul_assoc] at eq' eq'' ⊢
   rw [show β + γ + y.pow + z.pow = (β + y.pow) + (γ + z.pow) by abel,
-    prodElemPow_add, ← mul_assoc, hβ, mul_assoc, mul_comm (𝐚^ _), ← mul_assoc, gγ,
-    mul_assoc, ← prodElemPow_add]
+    familyPow_add, ← mul_assoc, hβ, mul_assoc, mul_comm (F.elem^(_ : F^ℕ)), ← mul_assoc, gγ,
+    mul_assoc, ← familyPow_add]
   congr 2
   abel
 
@@ -151,26 +154,32 @@ lemma descFun₂_mk_mk {B : Type*} (f : F.PreDil → F.PreDil → B)
 @[simps]
 def add' (x y : F.PreDil) : F.PreDil where
  pow := x.pow + y.pow
- num := 𝐚^y.pow * x.num + 𝐚^x.pow * y.num
- num_mem := Ideal.add_mem _ (by
-  rw[add_comm]
-  exact prod_mem_prodLargeIdealPower_add (prodElemPow_mem F y.pow) x.num_mem) (prod_mem_prodLargeIdealPower_add (prodElemPow_mem F x.pow) y.num_mem)
+ num := F.elem ^ y.pow * x.num + F.elem ^ x.pow * y.num
+ num_mem := Ideal.add_mem _
+  (by
+    rw [add_comm, familyPow_add]
+    exact Ideal.mul_mem_mul (Ideal.mem_familyPow_of_mem fun i _ ↦ elem_mem_LargeIdeal F i)
+      x.num_mem)
+  (by
+    rw [familyPow_add]
+    exact Ideal.mul_mem_mul (Ideal.mem_familyPow_of_mem fun i _ ↦ elem_mem_LargeIdeal F i)
+      y.num_mem)
 
 instance : Add A[F] where
   add := descFun₂ (fun x y ↦ mk (add' x y))  <| by
    rintro x y x' y' ⟨α, hα⟩ ⟨β, hβ⟩
-   have eq := congr($hβ * 𝐚^(x.pow + y.pow + α))
-   have eq' := congr($hα * 𝐚^(x'.pow + y'.pow + β))
+   have eq := congr($hβ * F.elem^(x.pow + y.pow + α))
+   have eq' := congr($hα * F.elem^(x'.pow + y'.pow + β))
    have eq'' := congr($eq + $eq')
    simp only
    rw [mk_eq_mk]
    use α + β
-   simp only [mul_assoc, ← prodElemPow_add] at eq''
+   simp only [mul_assoc, ← familyPow_add] at eq''
    simp only [add'_num, add'_pow, add_mul]
-   rw [mul_comm _ x.num, mul_comm _ x'.num, mul_assoc, ← prodElemPow_add,
-    mul_assoc, ← prodElemPow_add]
-   rw [mul_comm _ y.num, mul_comm _ y'.num, mul_assoc, ← prodElemPow_add,
-    mul_assoc, ← prodElemPow_add]
+   rw [mul_comm _ x.num, mul_comm _ x'.num, mul_assoc, ← familyPow_add,
+    mul_assoc, ← familyPow_add]
+   rw [mul_comm _ y.num, mul_comm _ y'.num, mul_assoc, ← familyPow_add,
+    mul_assoc, ← familyPow_add]
    convert eq'' using 1 <;>
    · rw [add_comm]
      congr 3 <;> abel
@@ -181,12 +190,12 @@ lemma mk_add_mk (x y : F.PreDil) : mk x + mk y = mk (add' x y) := rfl
 def mul' (x y : F.PreDil) : F.PreDil where
   pow := x.pow + y.pow
   num := x.num * y.num
-  num_mem := prod_mem_prodLargeIdealPower_add x.num_mem y.num_mem
+  num_mem := Ideal.mem_familyPow_add x.num_mem y.num_mem
 
 lemma dist' (x y z : F.PreDil) : F.r (mul' x (add' y z))
                                 (add' (mul' x y) (mul' x z))  := by
   use 0
-  simp [prodElemPow_add]
+  simp [familyPow_add]
   ring
 
 instance : Mul A[F] where
@@ -195,11 +204,11 @@ instance : Mul A[F] where
     rw [mk_eq_mk]
     use α + β
     simp only [mul'_num, mul'_pow]
-    rw [show α + β + (b.pow + y.pow) = (α + b.pow) + (β + y.pow) by abel, prodElemPow_add,
-      show a.num * x.num * (𝐚^(α + b.pow) * 𝐚^(β + y.pow)) =
-        (a.num * 𝐚^(α + b.pow)) * (x.num * 𝐚^(β + y.pow)) by ring, hα, hβ,
-      show b.num * 𝐚^(α + a.pow) * (y.num * 𝐚^(β + x.pow)) =
-        b.num * y.num * (𝐚^(α + a.pow) * 𝐚^(β + x.pow)) by ring, ← prodElemPow_add]
+    rw [show α + β + (b.pow + y.pow) = (α + b.pow) + (β + y.pow) by abel, familyPow_add,
+      show a.num * x.num * (F.elem^(α + b.pow) * F.elem^(β + y.pow)) =
+        (a.num * F.elem^(α + b.pow)) * (x.num * F.elem^(β + y.pow)) by ring, hα, hβ,
+      show b.num * F.elem^(α + a.pow) * (y.num * F.elem^(β + x.pow)) =
+        b.num * y.num * (F.elem^(α + a.pow) * F.elem^(β + x.pow)) by ring, ← familyPow_add]
     congr 2
     abel
 
@@ -228,8 +237,7 @@ instance : One A[F] where
 lemma one_def :  (1 :A[F]) =  (mk {
   pow := 0
   num := 1
-  num_mem := by simp only [Finsupp.prod_zero_index, Ideal.one_eq_top,
-  Submodule.mem_top]
+  num_mem := by simp
 } :A[F]):= rfl
 
 instance : AddCommMonoid A[F] where
@@ -238,39 +246,29 @@ instance : AddCommMonoid A[F] where
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
    induction c using induction_on with |h z =>
-    rw[mk_add_mk]
-    rw[mk_add_mk]
-    rw[mk_add_mk]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
+    simp only [mk_add_mk, mk_eq_mk]
     use 0
-    simp[prodElemPow_add]
+    simp only [add'_num, add'_pow, familyPow_add, zero_add]
     ring
   zero_add := by
    intro a
    induction a using induction_on with |h x=>
-    rw[zero_def]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
+    simp only [zero_def, mk_add_mk, mk_eq_mk]
     use 0
-    simp[prodElemPow_add]
+    simp [familyPow_add]
   add_zero := by
    intro a
    induction a using induction_on with |h x=>
-    rw[zero_def]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
+    simp only [zero_def, mk_add_mk, mk_eq_mk]
     use 0
-    simp[prodElemPow_add]
+    simp [familyPow_add]
   add_comm := by
    intro a b
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
-    rw[mk_add_mk]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
+    simp only [mk_add_mk, mk_eq_mk]
     use 0
-    simp[prodElemPow_add]
+    simp [familyPow_add]
     ring
   nsmul := nsmulRec
 
@@ -280,30 +278,22 @@ instance monoid : Monoid A[F] where
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
    induction c using induction_on with |h z =>
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
+    simp only [mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp only [mul'_num, mul'_pow, zero_add, familyPow_add]
     ring
   one_mul := by
    intro a
    induction a using induction_on with |h x =>
-    rw[one_def]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
+    simp only [one_def, mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp [familyPow_add]
   mul_one := by
    intro a
    induction a using induction_on with |h x =>
-    rw[one_def]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
+    simp only [one_def, mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp [familyPow_add]
 
 instance instCommSemiring : CommSemiring A[F] where
   __ := monoid
@@ -312,54 +302,39 @@ instance instCommSemiring : CommSemiring A[F] where
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
    induction c using induction_on with |h z =>
-    rw[mk_add_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
+    simp only [mk_add_mk, mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp only [mul'_num, add'_num, add'_pow, mul'_pow, zero_add, familyPow_add]
     ring
   right_distrib := by
    rintro a b c
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
    induction c using induction_on with |h z =>
-    rw[mk_add_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_add_mk]
-    rw[mk_eq_mk]
+    simp only [mk_add_mk, mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp only [mul'_num, add'_num, add'_pow, mul'_pow, zero_add, familyPow_add]
     ring
   zero_mul := by
    rintro a
    induction a using induction_on with |h x =>
-    rw[zero_def]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
+    simp only [zero_def, mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp [familyPow_add]
   mul_zero := by
    rintro a
    induction a using induction_on with |h x =>
-    rw[zero_def]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
+    simp only [zero_def, mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp [familyPow_add]
+
   mul_comm := by
    intro a b
    induction a using induction_on with |h x =>
    induction b using induction_on with |h y =>
-    rw[mk_mul_mk]
-    rw[mk_mul_mk]
-    rw[mk_eq_mk]
+    simp only [mk_mul_mk, mk_eq_mk]
     use 0
-    simp [prodElemPow_add]
+    simp only [mul'_num, mul'_pow, zero_add, familyPow_add]
     ring
 
 variable (F) in
@@ -392,7 +367,7 @@ lemma smul_mk (x : A) (y : F.PreDil) : x • mk y = mk {
   use 0
   simp
 
-abbrev frac (ν : F^ℕ)  (m: 𝐋^ν) : A[F]:=
+abbrev frac (ν : F^ℕ)  (m: F.LargeIdeal^ν) : A[F]:=
   mk {
     pow := ν
     num := m
@@ -403,59 +378,54 @@ scoped notation:max m"/.[" F"]"ν => frac (F := F) ν m
 
 scoped notation:max m"/."ν => frac ν m
 
-lemma frac_add_frac (v w : F^ℕ) (m : 𝐋^v) (n : 𝐋^w) :
+lemma frac_add_frac (v w : F^ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
     (m/.v) + (n/.w) =
-    (⟨m * 𝐚^w + n * 𝐚^v, Ideal.add_mem _
-      (prod_mem_prodLargeIdealPower_add m.2 (prodElemPow_mem F w))
-      (add_comm v w ▸ prod_mem_prodLargeIdealPower_add n.2 (prodElemPow_mem F v))⟩)/.(v + w) := by
+    (⟨(m : A) * F.elem^w + (n : A) * F.elem^v, Ideal.add_mem _
+      (Ideal.mem_familyPow_add m.2 (Ideal.mem_familyPow_of_mem fun i _ ↦ elem_mem_LargeIdeal F i))
+      (add_comm v w ▸
+        Ideal.mem_familyPow_add n.2 (Ideal.mem_familyPow_of_mem fun i _ ↦ elem_mem_LargeIdeal F i))⟩) /. (v + w) := by
   simp only [frac, mk_add_mk, mk_eq_mk]
   use 0
-  simp only [add'_num, zero_add, prodElemPow_add, add'_pow]
+  simp only [add'_num, zero_add, familyPow_add, add'_pow]
   ring
 
-lemma frac_mul_frac (v w : F^ℕ) (m : 𝐋^v) (n : 𝐋^w) :
+lemma frac_mul_frac (v w : F^ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
     (m/.v) * (n/.w) =
-    (⟨m * n, prod_mem_prodLargeIdealPower_add m.2 n.2⟩)/.(v + w) := by
+    (⟨m * n, Ideal.mem_familyPow_add m.2 n.2⟩)/.(v + w) := by
   simp only [frac, mk_mul_mk, mk_eq_mk]
   use 0
   simp
 
-lemma smul_frac (a : A) (v : F^ℕ) (m : 𝐋^v) : a • (m/.v) = (a • m)/.v := by
+lemma smul_frac (a : A) (v : F^ℕ) (m : F.LargeIdeal^v) : a • (m/.v) = (a • m)/.v := by
   simp only [frac, smul_mk, mk_eq_mk]
   use 0
   simp
 
-
 lemma nonzerodiv_image (v :F^ℕ) :
-   algebraMap A A[F] 𝐚^v ∈ nonZeroDivisors A[F] := by
+   algebraMap A A[F] (F.elem^v) ∈ nonZeroDivisors A[F] := by
     intro x h
     induction x using induction_on with |h x =>
-    rw[algebraMap_apply] at h
-    rw[mk_mul_mk] at h
-    rw[zero_def]  at h
-    rw[mk_eq_mk] at h
+    simp only [algebraMap_apply, mk_mul_mk, zero_def, mk_eq_mk] at h
     rcases h with ⟨ α, hα ⟩
-    simp at hα
-    rw[zero_def]
-    rw[mk_eq_mk]
-    use v +α
-    simp [prodElemPow_add, ← mul_assoc, hα]
-
-
-
+    simp only [mul'_num, add_zero, mul'_pow, zero_mul] at hα
+    simp only [zero_def, mk_eq_mk]
+    use v + α
+    simp [familyPow_add, ← mul_assoc, hα]
 
 lemma image_elem_LargeIdeal_equal  (v : F^ℕ) :
- Ideal.span ({algebraMap A A[F] (𝐚^v)}) =
-    Ideal.map (algebraMap A A[F]) (𝐋^v):= by
+ Ideal.span ({algebraMap A A[F] (F.elem^v)}) =
+    Ideal.map (algebraMap A A[F]) (F.LargeIdeal^v):= by
     refine le_antisymm ?_  ?_
     · rw [Ideal.span_le]
-      simp
-      apply  Ideal.mem_map_of_mem
-      exact prodElemPow_mem F v
+      simp only [Set.singleton_subset_iff, SetLike.mem_coe]
+      apply Ideal.mem_map_of_mem
+      apply Ideal.mem_familyPow_of_mem
+      intros
+      exact elem_mem_LargeIdeal F _
     · rw [Ideal.map_le_iff_le_comap]
       intro x hx
       have eq: algebraMap A A[F] x =
-       algebraMap A A[F] 𝐚^v * ⟨ x , hx⟩  /.v := by
+       algebraMap A A[F] (F.elem^v) * ⟨ x , hx⟩  /.v := by
        simp  [algebraMap_apply, frac, mk_mul_mk, mk_eq_mk]
        use 0
        simp [mul_comm]
@@ -502,7 +472,7 @@ instance : CommRing A[F] where
     use 0
     simp
 
-lemma neg_frac (v : F^ℕ) (m : 𝐋^v) : -(m/.v) = (-m)/.v := by
+lemma neg_frac (v : F^ℕ) (m : F.LargeIdeal^v) : -(m/.v) = (-m)/.v := by
   simp only [frac, mk_neg, mk_eq_mk]
   use 0
   simp
@@ -518,15 +488,13 @@ variable {A B : Type*} [CommRing A] [CommRing B] (F : Multicenter A)
 
 lemma  cond_univ_implies_large_cond [Algebra A B]
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    (∀ (ν : F^ℕ) , (Ideal.span {(algebraMap A B) (𝐚^ν)} = Ideal.map (algebraMap A B) (𝐋^ν))) :=by
+    (∀ (ν : F^ℕ) , (Ideal.span {(algebraMap A B) (F.elem^ν)} = Ideal.map (algebraMap A B) (F.LargeIdeal^ν))) :=by
      classical
      intro v
-     simp[prodLargeIdealPower]
-     simp [prodElemPower]
-     simp only [Finsupp.prod, map_prod, map_pow]
-     rw[Ideal.prod_span']
-     simp[← Ideal.span_singleton_pow, gen]
-     simp[Ideal.prod_map, Ideal.map_pow]
+     simp only [familyPow_def, Finsupp.prod, map_prod, map_pow]
+     rw [Ideal.prod_span']
+     simp [← Ideal.span_singleton_pow, gen]
+     simp [Ideal.prod_map, Ideal.map_pow]
 
 
 lemma equ_trivial_image_divisor_ring  [Algebra A B]  :
@@ -569,9 +537,9 @@ lemma equiv_small_big_cond [Algebra A B]  :
 lemma  lemma_exists_in_image [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    (∀(ν : F^ℕ) (m : 𝐋^ν) ,  (∃! bm : B ,  (algebraMap A B) 𝐚^ν *bm=(algebraMap A B) (m) )):= by
+    (∀(ν : F^ℕ) (m : F.LargeIdeal^ν) ,  (∃! bm : B ,  (algebraMap A B) (F.elem^ν) *bm=(algebraMap A B) (m) )):= by
       intro v m
-      have mem : (algebraMap A B) m ∈  Ideal.map (algebraMap A B) (𝐋^v) := by
+      have mem : (algebraMap A B) m ∈  (F.LargeIdeal^v).map (algebraMap A B) := by
           apply Ideal.mem_map_of_mem
           exact m.2
       rw[← cond_univ_implies_large_cond] at mem
@@ -584,7 +552,7 @@ lemma  lemma_exists_in_image [Algebra A B]
       rw[← eq_bm] at eq
       rw[mul_cancel_left_mem_nonZeroDivisors] at eq
       · exact eq
-      · simp[prodElemPower, Finsupp.prod]
+      · simp only [familyPow_def, Finsupp.prod, map_prod, map_pow]
         apply prod_mem
         intro i hi
         apply pow_mem
@@ -593,21 +561,21 @@ lemma  lemma_exists_in_image [Algebra A B]
 
 
 
-def def_unique_elem [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+def def_unique_elem [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)): B :=
      (lemma_exists_in_image  F  non_zero_divisor gen v m).choose
 
-lemma def_unique_elem_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+lemma def_unique_elem_spec [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    (algebraMap A B) 𝐚^v * def_unique_elem F v m non_zero_divisor gen = (algebraMap A B) m := by
+    (algebraMap A B) (F.elem^v) * def_unique_elem F v m non_zero_divisor gen = (algebraMap A B) m := by
     apply (lemma_exists_in_image F non_zero_divisor gen v m).choose_spec.1
 
-lemma def_unique_elem_unique  [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+lemma def_unique_elem_unique  [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    ∀ bm : B, (algebraMap A B) 𝐚^v * bm = (algebraMap A B) m →  def_unique_elem F v m non_zero_divisor gen =bm:= by
+    ∀ bm : B, (algebraMap A B) (F.elem^v) * bm = (algebraMap A B) m →  def_unique_elem F v m non_zero_divisor gen =bm:= by
     intro bm hbm
     apply ((lemma_exists_in_image F  non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
 
@@ -623,18 +591,18 @@ def desc [Algebra A B]
                               rcases h with ⟨β, hβ⟩
                               simp only
                               apply def_unique_elem_unique
-                              apply_fun (fun z => (algebraMap A B) (𝐚^ (β + y.pow)) * z)
+                              apply_fun (fun z => (algebraMap A B) (F.elem^ (β + y.pow)) * z)
                               · simp only [mul_assoc, hβ]
                                 rw[← map_mul, mul_comm _ x.num]
                                 rw [hβ]
                                 simp only [map_mul]
                                 rw[← def_unique_elem_spec F y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
-                                simp only [prodElemPow_add, map_mul]
+                                simp only [familyPow_add, map_mul]
                                 ring
                               · intro x y hx
                                 simp only at hx
                                 rwa [mul_cancel_left_mem_nonZeroDivisors] at hx
-                                simp only [prodElemPower, Finsupp.prod, Finsupp.coe_add,
+                                simp only [familyPow_def, Finsupp.prod, Finsupp.coe_add,
                                   Pi.add_apply, map_prod, map_pow]
                                 apply prod_mem
                                 intro i hi
@@ -652,10 +620,11 @@ def desc [Algebra A B]
     apply def_unique_elem_unique
     · exact non_zero_divisor
     · exact gen
-    · simp
+    · simp only [Dilatation.mul'_pow, Dilatation.descFun_mk, Dilatation.mul'_num, map_mul]
+      rw [familyPow_add]
       rw[← def_unique_elem_spec F  y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
       rw[← def_unique_elem_spec F x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
-      simp [prodElemPow_add]
+      simp only [map_mul]
       ring
   map_zero' := by
     simp only [Dilatation.descFun, Dilatation.one_def]
@@ -669,10 +638,11 @@ def desc [Algebra A B]
     apply def_unique_elem_unique
     · exact non_zero_divisor
     · exact gen
-    · simp
+    · simp only [Dilatation.add'_pow, Dilatation.descFun_mk, Dilatation.add'_num, map_add, map_mul]
+      rw [familyPow_add]
       rw[← def_unique_elem_spec F  y.pow ⟨y.num, y.num_mem⟩ non_zero_divisor gen]
       rw[← def_unique_elem_spec F x.pow ⟨x.num, x.num_mem⟩ non_zero_divisor gen]
-      simp [prodElemPow_add]
+      simp only [map_mul]
       ring
   commutes' := by
     intro x
@@ -680,14 +650,12 @@ def desc [Algebra A B]
     apply def_unique_elem_unique
     simp
 
-
-
 open Multicenter
 open Dilatation
-lemma dsc_spec [Algebra A B] (v : F^ℕ) (m : 𝐋^v)
+lemma dsc_spec [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    (algebraMap A B) 𝐚^v * desc F non_zero_divisor gen (m/.v)  = (algebraMap A B) m := by
+    (algebraMap A B) (F.elem^v) * desc F non_zero_divisor gen (m/.v)  = (algebraMap A B) m := by
     apply (lemma_exists_in_image F non_zero_divisor gen v m).choose_spec.1
 
 
@@ -697,9 +665,9 @@ lemma  lemma_exists_unique_morphism [Algebra A B]
     (χ':A[F]→ₐ[A] B)  : χ' = desc F non_zero_divisor gen := by
       ext x
       induction x using induction_on with |h x =>
-      have eq1 : ((algebraMap A B) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
-       (χ' (algebraMap A A[F] 𝐚^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by rw[AlgHom.commutes]
-      have eq2 : ((algebraMap A B) 𝐚^x.pow) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+      have eq1 : ((algebraMap A B) (F.elem^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
+       (χ' (algebraMap A A[F] (F.elem^x.pow))) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) := by rw[AlgHom.commutes]
+      have eq2 : ((algebraMap A B) (F.elem^x.pow)) *(χ' ⟨x.num, x.num_mem⟩/.x.pow) =
        ((algebraMap A B) x.num) := by
          rw[eq1, ← map_mul]
          simp only [algebraMap_apply, mk_mul_mk, mul']
@@ -724,26 +692,20 @@ lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
          = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
           intro i
           let v : F^ℕ := Finsupp.single i 1
-          have eq1:  Ideal.span {(algebraMap A A[F]) (𝐚^v)}
-             = Ideal.map (algebraMap A A[F]) (𝐋^v):= by
+          have eq1:  Ideal.span {(algebraMap A A[F]) (F.elem^v)}
+             = Ideal.map (algebraMap A A[F]) (F.LargeIdeal^v):= by
              rw [image_elem_LargeIdeal_equal v]
-          have eq2: 𝐚^v = F.elem i := by
-            rw [prodElemPower]
-            rw [Finsupp.prod_single_index]
-            ring
-            ring
-          have eq3 : 𝐋^v = F.LargeIdeal i := by
-              rw[prodLargeIdealPower]
-              rw [Finsupp.prod_single_index]
-              ring
-              ring
+          have eq2: F.elem^v = F.elem i := by
+            simp [familyPow_def, v]
+          have eq3 : F.LargeIdeal^v = F.LargeIdeal i := by
+            simp [familyPow_def, v]
           have eq4: Ideal.span {(algebraMap A A[F]) (F.elem i)}
              = Ideal.map (algebraMap A A[F]) (F.LargeIdeal i):= by
                    have eq41: Ideal.span {(algebraMap A A[F]) (F.elem i)}=
-                      Ideal.span {(algebraMap A A[F]) (𝐚^v)} := by
+                      Ideal.span {(algebraMap A A[F]) (F.elem^v)} := by
                       rw[eq2]
                    have eq42: Ideal.map (algebraMap A A[F]) (F.LargeIdeal i)=
-                      Ideal.map (algebraMap A A[F]) (𝐋^v) := by
+                      Ideal.map (algebraMap A A[F]) (F.LargeIdeal^v) := by
                       rw[eq3]
                    rw[eq41, eq42, eq1]
           have eqA:  Ideal.map (algebraMap A B) (Ideal.span {F.elem i})
