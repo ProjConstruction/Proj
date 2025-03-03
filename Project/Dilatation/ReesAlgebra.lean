@@ -6,10 +6,6 @@ suppress_compilation
 
 open DirectSum Family
 
-namespace Multicenter
-
-open Dilatation
-
 section semiring
 
 variable {A : Type*} [CommSemiring A]
@@ -39,6 +35,9 @@ instance : Add (ReesAlgebra F) where
 
 lemma add_def {x y : ReesAlgebra F} :
   x + y = { val := x.val + y.val } := rfl
+
+lemma add_val {x y : ReesAlgebra F} :
+  (x + y).val = x.val + y.val := rfl
 
 lemma injective_val : Function.Injective (val : ReesAlgebra F → ⨁ (v : ι →₀ ℕ), F^v) := by
   intro x y h
@@ -78,6 +77,9 @@ instance : Mul (ReesAlgebra F) where
 lemma mul_def (x y : ReesAlgebra F) :
   x * y = { val := mul' x.val y.val } := rfl
 
+lemma mul_val (x y : ReesAlgebra F) :
+  (x * y).val = mul' x.val y.val := rfl
+
 @[simp]
 lemma mul_of_of (v w : ι →₀ ℕ) (x y) :
     ({ val := .of _ v x } : ReesAlgebra F) * { val := .of _ w y } =
@@ -91,6 +93,9 @@ instance : One (ReesAlgebra F) where
 
 lemma one_def :
   (1 : ReesAlgebra F) = { val := .of _ 0 ⟨1, by simp⟩ } := rfl
+
+lemma one_val :
+  (1 : ReesAlgebra F).val = .of _ 0 ⟨1, by simp⟩ := rfl
 
 instance : LeftDistribClass (ReesAlgebra F) where
   left_distrib := by intros; simp [mul_def, add_def]
@@ -227,8 +232,11 @@ instance : Algebra A (ReesAlgebra F) := RingHom.toAlgebra (algebraMap' F)
 
 lemma algebraMap_eq : (algebraMap A (ReesAlgebra F)) = (algebraMap' F) := rfl
 
+lemma algebraMap_apply_val (a : A) :
+  (algebraMap A (ReesAlgebra F) a).val = .of _ 0 ⟨a, by simp⟩  := rfl
 
-@[simp]
+lemma algebraMap'_apply (a : A) :
+  algebraMap' F a = { val := .of _ 0 ⟨a, by simp⟩ } := rfl
 lemma smul_of (a : A) (v : ι →₀ ℕ) (x) :
     (a • { val := .of _ v x } : ReesAlgebra F) = { val := .of _ v (a • x) } := by
   ext : 1
@@ -238,29 +246,74 @@ lemma smul_of (a : A) (v : ι →₀ ℕ) (x) :
   simp only [coe_of_apply, zero_add]
   split_ifs <;> rfl
 
+lemma smul_of_val (a : A) (v : ι →₀ ℕ) (x) :
+    (a • { val := .of _ v x } : ReesAlgebra F).val = .of _ v (a • x) := by
+  simp [smul_of]
+
+lemma smul_val (a : A) (x : ReesAlgebra F) :
+    (a • x).val = a • x.val := by
+  induction x using induction_on with
+  |H_zero =>
+    simp [Algebra.smul_def, algebraMap_apply, zero_def, mul_val]
+  |H_basic i x =>
+    simp only [smul_of_val]
+    ext
+    simp [DirectSum.coe_of_apply, smul_apply]
+    split_ifs <;> simp
+  | H_plus x y hx hy =>
+    simp only [smul_add, add_val] at hx hy ⊢
+    rw [hx, hy]
+
+
+variable (F) in
 @[simps]
 def single (v : ι →₀ ℕ) : F^v →ₗ[A] ReesAlgebra F where
   toFun x := { val := .of _ v x }
   map_add' x y := by ext; simp [add_def]
-  map_smul' x y := by simp
+  map_smul' x y := by simp [smul_of]
+
+lemma single_def (v : ι →₀ ℕ) (x) :
+  single F v x = { val := .of _ v x } := rfl
 
 end ReesAlgebra
 
 end semiring
 
-#exit
 
 section ring
 
-variable {A : Type*} [CommRing A] (F : Multicenter A) [DecidableEq F.index]
+variable {A : Type*} [CommRing A]
+variable {ι : Type*} (F : ι → Ideal A)
 
 namespace ReesAlgebra
 
-instance : CommRing ReesAlgebra F where
-  __ := inferInstanceAs <| CommSemiring ReesAlgebra F
-  __ := inferInstanceAs <| AddCommGroup ReesAlgebra F
+instance : Neg (ReesAlgebra F) where
+  neg x := { val := -x.val }
 
-def grading (v : F^ℕ) : Submodule A ReesAlgebra F := LinearMap.range (single F v)
+lemma neg_def (x : ReesAlgebra F) : -x = { val := -x.val } := rfl
+
+instance : Sub (ReesAlgebra F) where
+  sub x y := { val := x.val - y.val }
+
+lemma sub_def (x y : ReesAlgebra F) : x - y = { val := x.val - y.val } := rfl
+
+instance : SMul ℤ (ReesAlgebra F) where
+  smul n x := { val := n • x.val }
+
+lemma zsmul_def (n : ℤ) (x : ReesAlgebra F) : n • x = { val := n • x.val } := rfl
+
+variable [DecidableEq ι]
+instance : AddCommGroup (ReesAlgebra F) where
+  __ := inferInstanceAs <| AddCommMonoid (ReesAlgebra F)
+  __ := (Function.Injective.addCommGroup (val (F := F)) (injective_val F) rfl
+    (fun _ _ => rfl) (fun _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) (fun _ _ => rfl) : AddCommGroup (ReesAlgebra F))
+
+
+instance : CommRing (ReesAlgebra F) where
+  __ := inferInstanceAs <| CommSemiring (ReesAlgebra F)
+  __ := inferInstanceAs <| AddCommGroup (ReesAlgebra F)
+
+def grading (v : ι →₀ ℕ) : Submodule A (ReesAlgebra F) := LinearMap.range (single F v)
 
 instance : SetLike.GradedOne (grading F) where
   one_mem := by
@@ -273,15 +326,15 @@ instance : SetLike.GradedMul (grading F) where
   mul_mem := by
     rintro v w _ _ ⟨x, rfl⟩ ⟨y, rfl⟩
     simp only [single, LinearMap.coe_mk, AddHom.coe_mk, mul_of_of]
-    exact ⟨⟨x * y, prod_mem_prodLargeIdealPower_add x.2 y.2⟩, rfl⟩
+    exact ⟨⟨x * y, _⟩, rfl⟩
 
 instance : SetLike.GradedMonoid (grading F) where
 
-def decompose : ReesAlgebra F →ₗ[A] ⨁ (v : F^ℕ), grading F v :=
+def decomposeAux : (⨁ (v : ι →₀ ℕ), F^v) →ₗ[A] ⨁ (v : ι →₀ ℕ), grading F v :=
   DirectSum.toModule _ _ _ fun v ↦
   { toFun x := .of _ v ⟨_, ⟨x, rfl⟩⟩
     map_add' x y := by
-      simp only [single_apply, map_add]
+      simp only [single_def, map_add]
       ext w w'
       simp only [coe_of_apply, add_apply, Submodule.coe_add]
       split_ifs <;> simp
@@ -289,53 +342,45 @@ def decompose : ReesAlgebra F →ₗ[A] ⨁ (v : F^ℕ), grading F v :=
       dsimp
       ext w w'
       rw [coe_of_apply, smul_apply]
-      simp only [SetLike.val_smul, SetLike.coe_eq_coe]
-      rw [smul_apply, coe_of_apply]
-      simp only
-      split_ifs
-      · dsimp
-        ext
-        rw [coe_of_apply]
-        simp only [SetLike.val_smul, smul_eq_mul]
-        rw [coe_of_apply]
-        split_ifs <;> simp
-      · simp}
+      simp only [map_smul, SetLike.val_smul, SetLike.coe_eq_coe]
+      split_ifs with h
+      · subst h
+        simp only [of_eq_same]
+      · simp [zero_def, Algebra.smul_def, algebraMap_eq, algebraMap'_apply, mul_def, mul'_of_of,
+          DirectSum.coe_of_apply, if_neg h] }
+
+def decompose : ReesAlgebra F →ₗ[A] ⨁ (v : ι →₀ ℕ), grading F v :=
+  decomposeAux F ∘ₗ
+    { toFun := val
+      map_add' _ _ := rfl
+      map_smul' _ _ := by dsimp; rw [smul_val] }
 
 @[simp]
-lemma decompose_of (v : F^ℕ) (x) :
-    decompose F (.of _ v x) = .of _ v ⟨_, ⟨x, rfl⟩⟩ := by
-  simp only [decompose, single_apply]
+lemma decompose_single (v : ι →₀ ℕ) (x) :
+    decompose F (single F v x) = .of _ v ⟨_, ⟨x, rfl⟩⟩ := by
+  simp only [decompose, decomposeAux, LinearMap.coe_comp, LinearMap.coe_mk, AddHom.coe_mk,
+    Function.comp_apply, single_apply_val]
   erw [toModule_lof]
   rfl
 
 @[simp]
-lemma decompose_single (v : F^ℕ) (x) :
-    decompose F (single F v x) = .of _ v ⟨_, ⟨x, rfl⟩⟩ := decompose_of _ _ _
-
+lemma decompose_val_of (v : ι →₀ ℕ) (x) :
+    decompose F { val := .of _ v x } = .of _ v ⟨_, ⟨x, rfl⟩⟩ :=
+  decompose_single ..
 
 instance : GradedAlgebra (grading F) where
   decompose' := decompose F
   left_inv x := by
-    induction x using DirectSum.induction_on with
-    |H_zero =>
-      rw [(decompose F).map_zero, (DirectSum.coeAddMonoidHom (grading F)).map_zero]
-    |H_basic v x =>
-      simp only [decompose_of, single_apply, coeAddMonoidHom_of]
-    |H_plus x y hx hy =>
-      rw [map_add, (DirectSum.coeAddMonoidHom (grading F)).map_add, hx, hy]
+    induction x using induction_on with
+    |H_zero => simp
+    |H_basic v x => simp [single]
+    |H_plus x y hx hy => simp [hx, hy]
   right_inv x := by
     induction x using DirectSum.induction_on with
-    |H_zero =>
-      rw [(DirectSum.coeAddMonoidHom (grading F)).map_zero, (decompose F).map_zero]
-    |H_basic v x =>
-      rcases x with ⟨_, ⟨x, rfl⟩⟩
-      simp
-    |H_plus x y hx hy =>
-      rw [(DirectSum.coeAddMonoidHom (grading F)).map_add, map_add, hx, hy]
+    |H_zero => simp
+    |H_basic v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
+    |H_plus x y hx hy => simp [hx, hy]
 
 end ReesAlgebra
 
 end ring
-
-
-end Multicenter

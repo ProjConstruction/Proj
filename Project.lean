@@ -1,4 +1,7 @@
-import Project.Dialation.Multicenter
+import Project.Dilatation.Family
+import Project.Dilatation.Multicenter
+import Project.Dilatation.ReesAlgebra
+import Project.Dilatation.lemma
 import Project.Example
 import Project.ForMathlib.SetLikeHomogeneous
 import Project.ForMathlib.SubgroupBasic
