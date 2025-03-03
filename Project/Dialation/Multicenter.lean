@@ -936,6 +936,8 @@ def monopoly (F : Multicenter A) (F.index is finite) :
 end universal_property
 -/
 
+/-
+
 open Dilatation
 open Multicenter
 variable {A : Type*} [CommRing A] (F : Multicenter A)
@@ -1168,4 +1170,5 @@ lemma open_implies_flat_ring (χ : A →+* B):
            --- IsLocalization.AtPrime f^-1(q) A → IsLocalization.AtPrime b B
                ----- is an isomorphism
   sorry
+-/
 -/
