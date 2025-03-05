@@ -77,9 +77,9 @@ lemma projHomOfLE_eq_apply (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.
     (projHomOfLE ℱ ℱ' le).base (((glueData ℱ).ι S).base x) = ((glueData ℱ').ι ⟨S.1, le S.2⟩).base x := by
   exact congr($(projHomOfLE_comp_ι ℱ ℱ' le S).base x)
 
-lemma projHomOfLE_stalkMap (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.of S.1.Potion)) :
-    Scheme.Hom.stalkMap (projHomOfLE ℱ ℱ' le) (((glueData ℱ).ι S).base x) =
-    _ ≫ (stalkIso ℱ' ⟨S.1, le S.2⟩ x).hom ≫ (stalkIso ℱ S x).inv := by sorry
+-- lemma projHomOfLE_stalkMap (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.of S.1.Potion)) :
+--     Scheme.Hom.stalkMap (projHomOfLE ℱ ℱ' le) (((glueData ℱ).ι S).base x) =
+--     _ ≫ (stalkIso ℱ' ⟨S.1, le S.2⟩ x).hom ≫ (stalkIso ℱ S x).inv := by sorry
 
 instance (le : ℱ ⊆ ℱ') : IsOpenImmersion (projHomOfLE ℱ ℱ' le) := by
   rw [AlgebraicGeometry.isOpenImmersion_isLocalAtTarget.iff_of_openCover' (projHomOfLE ℱ ℱ' le)
@@ -108,16 +108,11 @@ def over : Proj ℱ ⟶ SpecBase 𝒜 :=
       RingEquiv.toRingHom_eq_coe]
     congr 1
 
--- Spec A_(ST) -> Proj F
--- Proj F |_ (D†(S) ∩ D†(T)) ≅ Proj F |_ D†(S T) ≅ D†(S) ×_{Proj F} D†(T) as morphisms over Spec A_0
--- example (S T : ℱ) : Ddagger (S.1 * T.1) ≅ _ := sorry
-
 instance : Scheme.Over (X := Proj ℱ) (SpecBase 𝒜) where
   hom :=  over ℱ
 
 lemma proj_structureMorphism_eq : (Proj ℱ) ↘ (SpecBase 𝒜) = over ℱ := rfl
 
--- D(S) ↘ Proj A ↘ Spec A_0
 instance (S : ℱ) : IsOverTower (Ddagger S) (Proj ℱ) (SpecBase 𝒜) := by
   simp only [Scheme.Hom.isOver_iff]
   rw [Ddagger_structureMorphism_over_spec_eq, proj_structureMorphism_eq,
