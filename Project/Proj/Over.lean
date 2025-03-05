@@ -6,7 +6,7 @@ import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
 
 suppress_compilation
 
-open AlgebraicGeometry CategoryTheory CategoryTheory.Limits
+open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite
 
 namespace GoodPotionIngredient
 
@@ -73,21 +73,79 @@ lemma projHomOfLE_comp_ι (le : ℱ ⊆ ℱ') (S : ℱ) :
     (glueData ℱ).ι S ≫ projHomOfLE ℱ ℱ' le = (glueData ℱ').ι ⟨S.1, le S.2⟩ := by
   erw [Multicoequalizer.π_desc]
 
+@[simp]
 lemma projHomOfLE_eq_apply (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.of S.1.Potion)) :
     (projHomOfLE ℱ ℱ' le).base (((glueData ℱ).ι S).base x) = ((glueData ℱ').ι ⟨S.1, le S.2⟩).base x := by
   exact congr($(projHomOfLE_comp_ι ℱ ℱ' le S).base x)
 
--- lemma projHomOfLE_stalkMap (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.of S.1.Potion)) :
---     Scheme.Hom.stalkMap (projHomOfLE ℱ ℱ' le) (((glueData ℱ).ι S).base x) =
---     _ ≫ (stalkIso ℱ' ⟨S.1, le S.2⟩ x).hom ≫ (stalkIso ℱ S x).inv := by sorry
+@[reassoc]
+lemma projHomOfLE_stalkMap_aux (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.of S.1.Potion)) :
+    Scheme.Hom.stalkMap
+      (projHomOfLE ℱ ℱ' le) (((glueData ℱ).ι S).base x) ≫
+    (stalkIso ℱ S x).hom =
+    (TopCat.Presheaf.stalkCongr _ (by simp only [projHomOfLE_eq_apply]; rfl)).hom ≫
+      (stalkIso ℱ' ⟨S.1, le S.2⟩ x).hom  := by
+
+  simp only [stalkIso, asIso_hom]
+  erw [← Scheme.Hom.stalkMap_comp]
+  apply TopCat.Presheaf.stalk_hom_ext
+
+  intro U hxU
+  simp only [Scheme.comp_coeBase, TopCat.comp_app, TopCat.Presheaf.stalkCongr_hom,
+    TopCat.Presheaf.germ_stalkSpecializes_assoc]
+  erw [PresheafedSpace.stalkMap_germ]
+  simp only [TopCat.Presheaf.pushforward_obj_obj]
+  have := PresheafedSpace.stalkMap_germ ((glueData ℱ).ι S ≫ projHomOfLE ℱ ℱ' le).toLRSHom.toShHom
+    U x hxU
+  erw [this]
+  change ((glueData ℱ).ι S ≫ projHomOfLE ℱ ℱ' le).c.app _ ≫ ((glueData ℱ).U S).presheaf.germ _ _ _ = _
+  have : ((glueData ℱ).ι S ≫ projHomOfLE ℱ ℱ' le).c.app (op U) =
+    ((glueData ℱ').ι ⟨S.1, le S.2⟩).c.app (op U) ≫
+    (((glueData ℱ').U ⟨S.1, le S.2⟩).presheaf |>.map (eqToHom (by simp))) := by
+    have := projHomOfLE_comp_ι ℱ ℱ' le S
+    rw [Scheme.Hom.ext_iff] at this
+    obtain ⟨h_base, h_app⟩ := this
+    have := h_app U
+    simp only [glueData_U, Scheme.comp_coeBase, TopologicalSpace.Opens.map_comp_obj, Scheme.Hom.app,
+      Scheme.comp_app, eqToHom_op, Category.assoc, TopCat.Presheaf.pushforward_obj_obj,
+      Functor.op_obj] at this ⊢
+    rw [← this]
+    simp
+  rw [this]
+  simp
+
+lemma projHomOfLE_stalkMap_eq (le : ℱ ⊆ ℱ') (S : ℱ) (x : Spec (CommRingCat.of S.1.Potion)) :
+    Scheme.Hom.stalkMap
+      (projHomOfLE ℱ ℱ' le) (((glueData ℱ).ι S).base x)
+     =
+    (TopCat.Presheaf.stalkCongr _ (by simp only [projHomOfLE_eq_apply]; rfl)).hom ≫
+      (stalkIso ℱ' ⟨S.1, le S.2⟩ x).hom ≫ (stalkIso ℱ S x).inv  := by
+  rw [← projHomOfLE_stalkMap_aux_assoc]
+  simp
+
+lemma projHomOfLE_base_isOpenMap (le : ℱ ⊆ ℱ') :
+    IsOpenMap (projHomOfLE ℱ ℱ' le).base := by
+  sorry
+
+lemma projHomOfLE_base_injective (le : ℱ ⊆ ℱ') :
+    Function.Injective (projHomOfLE ℱ ℱ' le).base := by
+  sorry
+
+lemma projHomOfLE_base_isOpenEmbedding (le : ℱ ⊆ ℱ') :
+    Topology.IsOpenEmbedding (projHomOfLE ℱ ℱ' le).base := by
+  apply Topology.IsOpenEmbedding.of_continuous_injective_isOpenMap
+  · continuity
+  · apply projHomOfLE_base_injective
+  · apply projHomOfLE_base_isOpenMap
 
 instance (le : ℱ ⊆ ℱ') : IsOpenImmersion (projHomOfLE ℱ ℱ' le) := by
-  rw [AlgebraicGeometry.isOpenImmersion_isLocalAtTarget.iff_of_openCover' (projHomOfLE ℱ ℱ' le)
-    (glueData ℱ').openCover]
-  simp only [Scheme.Cover.pullbackCover_obj, Scheme.Cover.pullbackHom]
-  intro S
   rw [isOpenImmersion_iff_stalk]
-  sorry
+  constructor
+  · apply projHomOfLE_base_isOpenEmbedding
+  · intro x
+    obtain ⟨S, hS, rfl⟩ := (glueData ℱ).ι_jointly_surjective x
+    rw [projHomOfLE_stalkMap_eq]
+    infer_instance
 -- Ideal ℱ := {S * S'}
 lemma proj_isIso_projClosure :
     IsIso (projHomOfLE _ _ Subsemigroup.subset_closure :

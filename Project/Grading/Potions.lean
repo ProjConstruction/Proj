@@ -1283,6 +1283,7 @@ lemma t'_fac (R S T : GoodPotionIngredient 𝒜) :
 
 set_option maxHeartbeats 1000000 in
 open Limits in
+@[simps]
 def glueData (ℱ : Set (GoodPotionIngredient 𝒜)) : Scheme.GlueData where
   J := ℱ
   U S := Spec <| CommRingCat.of S.1.Potion
