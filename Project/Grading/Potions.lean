@@ -894,6 +894,12 @@ instance : Mul (GoodPotionIngredient 𝒜) where
     relevant := x.relevant.mul y.relevant
     fg := x.fg.mul y.fg }
 
+instance : Semigroup (GoodPotionIngredient 𝒜) where
+  mul_assoc := by
+    intro R S T
+    refine toHomogeneousSubmonoid_inj ?_
+    exact mul_assoc _ _ _
+
 @[simp]
 lemma mul_toHomogeneousSubmonoid (x y : GoodPotionIngredient 𝒜) :
     (x * y).toHomogeneousSubmonoid = x.toHomogeneousSubmonoid * y.toHomogeneousSubmonoid := rfl
