@@ -7,7 +7,8 @@ import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
 
 suppress_compilation
 
-open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite TopologicalSpace
+open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite
+open TopologicalSpace Topology
 
 namespace GoodPotionIngredient
 
@@ -111,37 +112,56 @@ lemma projHomOfLE_base_injective (le : ℱ ⊆ ℱ') :
 
   sorry
 
--- lemma projHomOfLE_base_isOpenMap_aux
+lemma projHomOfLE_base_isOpenMap_aux (le : ℱ ⊆ ℱ') (U : Opens (Proj ℱ)) (S : ℱ) :
+    IsOpen <| (projHomOfLE le).base '' (interPotion U S) := by
+  -- U(S) -x-> Spec A_(S) -emb-> Proj F
+  --                               |
+  -- U(S) -x'-> Spec A_(S) -emb'-> Proj F'
+  let x : (interPotion'' U S) → ((glueData ℱ).U S) := Subtype.val
+  have cont_x : Continuous x := by continuity
+  let emb : ((glueData ℱ).U S) → Proj ℱ := (glueData ℱ).ι S |>.base
+  have cont_emb : Continuous emb := by continuity
+
+  let x' : (interPotion'' U S) → ((glueData ℱ').U ⟨S.1, le S.2⟩) := Subtype.val
+  have cont_x' : Continuous x' := by continuity
+  have x'_openMap : IsOpenMap x' := (interPotion'' U S).2.isOpenMap_subtype_val
+  let emb' : ((glueData ℱ').U ⟨S.1, le S.2⟩) → Proj ℱ' := (glueData ℱ').ι ⟨S.1, le S.2⟩ |>.base
+  have cont_emb' : Continuous emb' := by continuity
+  have emb'_openEmb : IsOpenEmbedding emb' :=
+    (inferInstance : IsOpenImmersion <| (glueData ℱ').ι ⟨S.1, le S.2⟩).1
+  have emb'_openMap : IsOpenMap emb' := emb'_openEmb.isOpenMap
+
+  have H : IsOpenMap (emb' ∘ x') := emb'_openMap.comp x'_openMap
+
+  have comm : (projHomOfLE le).base ∘ emb ∘ x = emb' ∘ x' := by
+    ext pt
+    simp only [glueData_U, Function.comp_apply, emb, emb', x]
+    erw [projHomOfLE_comp_ι_base_apply]
+    rfl
+
+  have eq : (projHomOfLE le).base '' (interPotion U S) = Set.range ((projHomOfLE le).base ∘ emb ∘ x) := by
+    ext pt
+    simp only [Opens.coe_inf, glueData_U, Scheme.Hom.coe_opensRange, Set.mem_image,
+      Set.mem_inter_iff, Set.mem_range, SetLike.mem_coe, Function.comp_apply, Subtype.exists,
+      Opens.mem_mk, Opens.carrier_eq_coe, Set.mem_preimage, exists_prop, emb, x]
+    constructor
+    · rintro ⟨pt, ⟨⟨pt, rfl⟩, hpt⟩, rfl⟩
+      exact ⟨pt, hpt, rfl⟩
+    · rintro ⟨pt, hpt, rfl⟩
+      exact ⟨((glueData ℱ).ι S).base pt, ⟨⟨_, rfl⟩, hpt⟩, rfl⟩
+  rw [eq, comm]
+  exact H.isOpen_range
 
 lemma projHomOfLE_base_isOpenMap (le : ℱ ⊆ ℱ') :
     IsOpenMap (projHomOfLE le).base := by
   intro U hU
   lift U to (Opens (Proj ℱ)) using hU
   rw [open_eq_iSup _ U]
-  simp only [Opens.iSup_mk, Opens.carrier_eq_coe, Opens.coe_inf, Scheme.Hom.coe_opensRange,
-    Set.iUnion_coe_set, Opens.coe_mk, Set.image_iUnion]
-  sorry
-  -- apply isOpen_sUnion
-  -- rintro _ ⟨S, rfl⟩
-  -- apply isOpen_sUnion
-  -- rintro _ ⟨hS, rfl⟩
-  -- simp only
-  -- rw [show (glueData ℱ).openCover.map ⟨S, hS⟩ = (glueData ℱ).ι ⟨S, hS⟩ by rfl]
-
-  -- -- rw [Set.image_inter (projHomOfLE_base_injective _ _ le)]
-
-  -- -- apply IsOpen.inter
-  -- -- · rw [← Set.image_univ, show (glueData ℱ).openCover.map ⟨S, hS⟩ = (glueData ℱ).ι ⟨S, hS⟩ by rfl,
-  -- --     ← Set.image_comp]
-  -- --   erw [projHomOfLE_comp_ι_base']
-  -- have : IsOpenImmersion ((glueData ℱ').ι ⟨S, le hS⟩) := inferInstance
-  -- have : IsOpenMap ((glueData ℱ').ι ⟨S, le hS⟩).base := this.1.isOpenMap
-  -- -- suffices IsOpen (((glueData ℱ').ι ⟨S, le hS⟩).base '' ((projHomOfLE ℱ ℱ' le).base '' (Set.range ⇑((glueData ℱ).openCover.map ⟨S, hS⟩).base ∩ U.1))) by sorry
-  -- -- rw [this.1.isOpen_iff_of_cover]
-  -- --   refine this _ ?_
-  -- --   exact isOpen_univ
-  -- -- ·
-  -- --   sorry
+  erw [show (projHomOfLE le).base '' (⨆ S, interPotion U S).1 =
+    ⨆ (S : ℱ), (projHomOfLE le).base '' (interPotion U S) by simp [Set.image_iUnion]]
+  apply isOpen_sUnion
+  rintro _ ⟨S, rfl⟩
+  exact projHomOfLE_base_isOpenMap_aux le U S
 
 
 lemma projHomOfLE_base_isOpenEmbedding (le : ℱ ⊆ ℱ') :

@@ -13,7 +13,39 @@ variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
 variable (ℱ : Set (GoodPotionIngredient 𝒜)) (U : Opens (Proj ℱ))
 
-lemma open_eq_iSup : U = ⨆ (S : ℱ), (((glueData ℱ).openCover.map S).opensRange ⊓ U) := by
+variable {ℱ} in
+abbrev interPotion (S : ℱ) : Opens (Proj ℱ) :=
+  ((glueData ℱ).ι S).opensRange ⊓ U
+
+variable {ℱ} in
+lemma mem_interPotion (S : ℱ) (x : Proj ℱ) :
+    x ∈ interPotion U S ↔
+    x ∈ ((glueData ℱ).ι S).opensRange ∧ x ∈ U :=
+  Iff.rfl
+
+variable {ℱ} in
+abbrev interPotion' (S : ℱ) : Opens ((glueData ℱ).ι S).opensRange :=
+  ⟨{x | x.1 ∈ U}, by
+    have : Continuous (X := ((glueData ℱ).ι S).opensRange) (Y := Proj ℱ) (Subtype.val) := by continuity
+    erw [show {x | x.1 ∈ U} = (Subtype.val : ((glueData ℱ).ι S).opensRange → Proj ℱ) ⁻¹'
+      (interPotion U S).1 by ext; simp [interPotion]]
+    refine Continuous.isOpen_preimage (by continuity) _ ?_
+    exact (interPotion U S).2⟩
+
+variable {ℱ} in
+lemma mem_interPotion' (S : ℱ) (x : ((glueData ℱ).ι S).opensRange) :
+    x ∈ interPotion' U S ↔ x.1 ∈ U :=
+  Iff.rfl
+
+variable {ℱ} in
+abbrev interPotion'' (S : ℱ) : Opens (Spec <| CommRingCat.of S.1.Potion) :=
+  ⟨((glueData ℱ).ι S).base ⁻¹' U.1, Continuous.isOpen_preimage (by continuity) _ U.2⟩
+
+lemma mem_interPotion'' (S : ℱ) (x : Spec <| CommRingCat.of S.1.Potion) :
+    x ∈ interPotion'' U S ↔ ((glueData ℱ).ι S).base x ∈ U :=
+  Iff.rfl
+
+lemma open_eq_iSup : U = ⨆ (S : ℱ), interPotion U S := by
   ext x
   obtain ⟨S, x, rfl⟩ := (glueData ℱ).ι_jointly_surjective x
   simp only [glueData_U, SetLike.mem_coe, Opens.iSup_mk, Opens.carrier_eq_coe, Opens.coe_inf,
