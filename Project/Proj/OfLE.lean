@@ -1,4 +1,5 @@
 import Project.Proj.Opens
+import Project.Proj.Over
 import Project.Proj.Stalk
 import Project.ForMathlib.SchemeIsOpenImmersion
 
@@ -107,10 +108,18 @@ lemma projHomOfLE_base_injective (le : ℱ ⊆ ℱ') :
   obtain ⟨S, x, rfl⟩ := (glueData ℱ).ι_jointly_surjective x
   obtain ⟨S', x', rfl⟩ := (glueData ℱ).ι_jointly_surjective x'
   rw [projHomOfLE_comp_ι_base_apply, projHomOfLE_comp_ι_base_apply] at h
-  have := congr($((glueData ℱ').glue_condition ⟨S.1, le S.2⟩ ⟨S'.1, le S'.2⟩).base)
-  simp? at this
-
-  sorry
+  rw [Scheme.GlueData.ι_eq_iff] at h
+  obtain eq|⟨y, h₁, h₂⟩ := h
+  · simp only [glueData_J, glueData_U, Sigma.mk.inj_iff, Subtype.mk.injEq] at eq
+    rcases eq with ⟨eq₁, eq₂⟩
+    rw [← Subtype.ext_iff] at eq₁
+    subst eq₁
+    simp only [heq_eq_eq] at eq₂
+    subst eq₂
+    rfl
+  dsimp only at h₁ h₂
+  rw [← h₁, ← h₂]
+  exact congr($((glueData ℱ).glue_condition _ _).base y).symm
 
 lemma projHomOfLE_base_isOpenMap_aux (le : ℱ ⊆ ℱ') (U : Opens (Proj ℱ)) (S : ℱ) :
     IsOpen <| (projHomOfLE le).base '' (interPotion U S) := by
@@ -180,14 +189,16 @@ instance (le : ℱ ⊆ ℱ') : IsOpenImmersion (projHomOfLE le) := by
     rw [projHomOfLE_stalkMap_eq]
     infer_instance
 
+instance (le : ℱ ⊆ ℱ') : (projHomOfLE le).IsOver (SpecBase 𝒜) where
+  comp_over := Multicoequalizer.hom_ext _ _ _ <| fun _ ↦ by
+    erw [Multicoequalizer.π_desc, Multicoequalizer.π_desc_assoc, Multicoequalizer.π_desc]
 
--- Ideal ℱ := {S * S'}
-lemma proj_isIso_projClosure :
-    IsIso (projHomOfLE Subsemigroup.subset_closure : Proj ℱ ⟶ Proj (Subsemigroup.closure ℱ)) := by
-  apply (config := { allowSynthFailures := true }) AlgebraicGeometry.IsOpenImmersion.to_iso
-  rw [TopCat.epi_iff_surjective]
-  intro x
-  have := (glueData (Subsemigroup.closure ℱ : Set (GoodPotionIngredient 𝒜))).ι
-  sorry
+-- lemma proj_isIso_projClosure :
+--     IsIso (projHomOfLE Subsemigroup.subset_closure : Proj ℱ ⟶ Proj (Subsemigroup.closure ℱ)) := by
+--   apply (config := { allowSynthFailures := true }) AlgebraicGeometry.IsOpenImmersion.to_iso
+--   rw [TopCat.epi_iff_surjective]
+--   intro x
+--   have := (glueData (Subsemigroup.closure ℱ : Set (GoodPotionIngredient 𝒜))).ι
+--   sorry
 
 end GoodPotionIngredient
