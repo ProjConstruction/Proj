@@ -4,6 +4,7 @@ import Project.Dilatation.ReesAlgebra
 import Project.Dilatation.lemma
 import Project.Example
 import Project.ForMathlib.HomogeneousLocalization
+import Project.ForMathlib.Ideal
 import Project.ForMathlib.LocalizationAway
 import Project.ForMathlib.SchemeIsOpenImmersion
 import Project.ForMathlib.SetLikeHomogeneous
@@ -20,4 +21,7 @@ import Project.Grading.LocalizedModule
 import Project.Grading.Potions
 import Project.Grading.TensorProduct
 import Project.Grading.Twisting
+import Project.Proj.OfLE
+import Project.Proj.Opens
 import Project.Proj.Over
+import Project.Proj.Stalk
