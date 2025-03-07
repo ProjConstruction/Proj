@@ -285,6 +285,11 @@ example (s : Set A) : ∀ x ∈ closure s, x = x := by
   | basic => rfl
   | ideal x y mem ih => rfl
 
+open Pointwise in
+lemma mem_closure {s : Set A} {x : A} : x ∈ closure s ↔ x ∈ s ∪ s * Set.univ := by
+  rw [closure_eq]
+  rfl
+
 end Ideal
 
 end CommSemigroup

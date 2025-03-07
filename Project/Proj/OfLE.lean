@@ -2,6 +2,7 @@ import Project.Proj.Opens
 import Project.Proj.Over
 import Project.Proj.Stalk
 import Project.ForMathlib.SchemeIsOpenImmersion
+import Project.ForMathlib.Ideal
 
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
@@ -193,12 +194,84 @@ instance (le : ℱ ⊆ ℱ') : (projHomOfLE le).IsOver (SpecBase 𝒜) where
   comp_over := Multicoequalizer.hom_ext _ _ _ <| fun _ ↦ by
     erw [Multicoequalizer.π_desc, Multicoequalizer.π_desc_assoc, Multicoequalizer.π_desc]
 
--- lemma proj_isIso_projClosure :
---     IsIso (projHomOfLE Subsemigroup.subset_closure : Proj ℱ ⟶ Proj (Subsemigroup.closure ℱ)) := by
---   apply (config := { allowSynthFailures := true }) AlgebraicGeometry.IsOpenImmersion.to_iso
---   rw [TopCat.epi_iff_surjective]
---   intro x
---   have := (glueData (Subsemigroup.closure ℱ : Set (GoodPotionIngredient 𝒜))).ι
---   sorry
+open HomogeneousSubmonoid in
+instance proj_isIso_projClosure :
+    IsIso (projHomOfLE (CommSemigroup.Ideal.subset_closure ℱ)) := by
+  apply (config := { allowSynthFailures := true }) AlgebraicGeometry.IsOpenImmersion.to_iso
+  rw [TopCat.epi_iff_surjective]
+  intro x
+  obtain ⟨(⟨S, hS⟩: CommSemigroup.Ideal.closure ℱ), (x : Spec _), rfl⟩ :=
+    (glueData _).ι_jointly_surjective x
+  have hS' := hS
+  rw [CommSemigroup.Ideal.mem_closure] at hS'
+  rcases hS' with (hS'|⟨S, hS', T, hT, (rfl : _ * _ = _)⟩)
+  · refine ⟨((glueData ℱ).ι ⟨S, hS'⟩).base x, ?_⟩
+    erw [projHomOfLE_comp_ι_base_apply]
+  · refine ⟨((glueData ℱ).ι ⟨S, hS'⟩).base ?_, ?_⟩
+    · exact ⟨Ideal.comap (algebraMap (S.1.Potion) _) <|
+        Ideal.comap
+          (localizationRingEquivPotion (S := S.1) (T := T.1) (finitePotionGen S.relevant T.fg)) x.asIdeal, inferInstance⟩
+    erw [projHomOfLE_comp_ι_base_apply]
+    rw [Scheme.GlueData.ι_eq_iff]
+    right
+    let e : (S.1 * (S.1 * T.1)).Potion ≃+* (S.1 * T.1).Potion := potionEquiv (by simp [← mul_assoc])
+    refine ⟨⟨Ideal.comap e x.asIdeal, inferInstance⟩, ?_, ?_⟩
+
+    · refine PrimeSpectrum.ext ?_
+      change Ideal.comap _ _ = _
+      simp only [SetLike.coe_sort_coe, mul_toHomogeneousSubmonoid, mul_toSubmonoid]
+      erw [Ideal.comap_comap, Ideal.comap_comap]
+      congr 1
+      ext x
+      induction x using Quotient.inductionOn' with | h x =>
+      simp only [mul_toSubmonoid, RingHom.coe_comp, Function.comp_apply, toMul_mk]
+      erw [HomogeneousLocalization.map_mk]
+      simp only [RingHom.id_apply, Subtype.coe_eta, HomogeneousLocalization.val_mk, id_eq]
+      rw [← Localization.mk_one_eq_algebraMap]
+      have eq := localizationToPotion_mk' S.1 T.1 (finitePotionGen S.relevant T.fg) x ∅ id (fun _ ↦ 1)
+      simp only [mul_toSubmonoid, id_eq, pow_one, Finset.prod_empty, map_one, mul_one] at eq
+      erw [eq]
+      rfl
+    · let ι :=
+        (glueData (CommSemigroup.Ideal.closure ℱ)).ι
+          ⟨S * T, (CommSemigroup.Ideal.closure ℱ).mul_mem_left
+          (CommSemigroup.Ideal.subset_closure _ hS') _⟩
+      have io : IsOpenImmersion ι := inferInstance
+      have io : IsOpenEmbedding ι.base := ι.isOpenEmbedding
+      have inj : Function.Injective ι.base := io.injective
+      apply inj
+      dsimp only
+      have := (glueData (𝒜 := 𝒜) (CommSemigroup.Ideal.closure ℱ)).glue_condition
+        ⟨S, CommSemigroup.Ideal.subset_closure _ hS'⟩
+        ⟨S * T, (CommSemigroup.Ideal.closure ℱ).mul_mem_left
+          (CommSemigroup.Ideal.subset_closure _ hS') _⟩
+      have := congr($(this).base ⟨Ideal.comap e x.asIdeal, inferInstance⟩)
+      erw [this]
+      simp only [glueData_J, SetLike.coe_sort_coe, glueData_V, mul_toHomogeneousSubmonoid,
+        mul_toSubmonoid, glueData_U, glueData_f, Scheme.comp_coeBase, TopCat.comp_app]
+      erw [Scheme.GlueData.ι_eq_iff]
+      right
+      refine ⟨⟨Ideal.comap e x.asIdeal, inferInstance⟩, ?_⟩
+      simp only [glueData_J, SetLike.coe_sort_coe, glueData_U, mul_toSubmonoid,
+        mul_toHomogeneousSubmonoid, glueData_V, glueData_f, glueData_t, RingEquiv.toRingHom_eq_coe,
+        Scheme.comp_coeBase, TopCat.comp_app, true_and]
+      refine PrimeSpectrum.ext ?_
+      change Ideal.comap _ (Ideal.comap _ _) = _
+      rw [Ideal.comap_comap]
+      ext z
+      simp only [Ideal.mem_comap, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+        potionEquiv_trans_apply, mul_toSubmonoid, e]
+      induction z using Quotient.inductionOn' with | h z =>
+      simp only [mul_toSubmonoid, e]
+      erw [HomogeneousLocalization.map_mk]
+      swap
+      · simp only [mul_toSubmonoid, e]
+        rw [mul_comm S.1.1, mul_assoc, Submonoid.mul_self]
+        erw [Submonoid.comap_id]
+      swap
+      · intro _ _ h
+        exact h
+      simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta, e]
+      rfl
 
 end GoodPotionIngredient
