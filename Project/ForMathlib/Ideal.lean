@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Group.Subsemigroup.Operations
 import Mathlib.Order.CompleteLattice
+import Mathlib.Algebra.Group.Pointwise.Set.Basic
 
 variable (A : Type*) [CommSemigroup A]
 
@@ -226,6 +227,63 @@ instance : CompleteLattice (Ideal A) where
   __ := inferInstanceAs <| CompleteSemilatticeInf (Ideal A)
   le_top _ _ _ := by simp
   bot_le _ _ _ := by simp_all
+
+def closure (s : Set A) : Ideal A :=
+  sInf { I | s ⊆ I }
+
+lemma closure_eq_sInf (s : Set A) : closure s = (sInf { I | s ⊆ I } : Ideal A) := rfl
+
+open Pointwise in
+lemma subset_closure (s : Set A) : s ⊆ closure s := by
+  intro x hx
+  rw [closure_eq_sInf, SetLike.mem_coe, mem_sInf]
+  aesop
+
+open Pointwise in
+lemma closure_eq (s : Set A) : closure s =
+  ⟨s ∪ s * Set.univ, by
+    rintro a b (h|⟨c, hc, d, -, (rfl : c * d = a)⟩)
+    · right
+      exact ⟨a, h, b, ⟨⟩, rfl⟩
+    · right
+      rw [mul_assoc]
+      exact ⟨c, hc, d * b, ⟨⟩, rfl⟩⟩ := by
+  refine le_antisymm ?_ ?_
+  · apply sInf_le
+    intro x hx
+    left
+    exact hx
+  · refine le_sInf ?_
+    rintro I (hI : s ⊆ I) a (h|⟨c, hc, d, -, (rfl : _ * _ = _)⟩)
+    · exact hI h
+    · exact I.mul_mem_left (hI hc) d
+
+open Pointwise in
+@[elab_as_elim]
+lemma closure_induction {s : Set A}
+    {p : A → Prop} (basic : ∀ x ∈ s, p x) (ideal : ∀ x y, x ∈ s → p x → p (x * y)) :
+    ∀ x, x ∈ closure s → p x := by
+  intro x hx
+  rw [closure_eq] at hx
+  rcases hx with (hx|⟨c, hc, d, ⟨⟩, (rfl : _ * _ = _ )⟩) <;> aesop
+
+open Pointwise in
+@[elab_as_elim]
+lemma closure_induction' {s : Set A}
+    {p : ∀ a : A, a ∈ closure s → Prop}
+    (basic : ∀ x, ∀ (h : x ∈ s), p x (subset_closure _ h))
+    (ideal : ∀ x y, ∀ (h : x ∈ s), p x (subset_closure _ h) → p (x * y)
+      (Ideal.mul_mem_left _ (subset_closure _ h) y)) :
+    ∀ x, ∀ h : x ∈ closure s, p x h := by
+  intro x hx
+  rw [closure_eq] at hx
+  rcases hx with (hx|⟨c, hc, d, ⟨⟩, (rfl : _ * _ = _ )⟩) <;> aesop
+
+example (s : Set A) : ∀ x ∈ closure s, x = x := by
+  intro x hx
+  induction x, hx using closure_induction' with
+  | basic => rfl
+  | ideal x y mem ih => rfl
 
 end Ideal
 
