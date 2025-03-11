@@ -109,12 +109,7 @@ lemma mem_mul_iff {S T : HomogeneousSubmonoid 𝒜} (x : A) :
 @[simp]
 lemma mul_self (S : HomogeneousSubmonoid 𝒜) : S * S = S := by
   ext x
-  simp [mem_mul_iff]
-  fconstructor
-  · rintro ⟨s, hs, t, ht, rfl⟩
-    exact mul_mem hs ht
-  · rintro hx
-    exact ⟨x, hx, 1, one_mem _, by simp⟩
+  simp
 
 instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
   mul_assoc R S T:= toSubmonoid_injective _ <| mul_assoc _ _ _

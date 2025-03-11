@@ -71,6 +71,16 @@ instance : CommMonoid (Submonoid A) where
     · rintro ⟨t, ht, s, hs, rfl⟩
       exact ⟨s, hs, t, ht, by simp [mul_comm]⟩
 
+@[simp]
+lemma mul_self (S : Submonoid A) : S * S = S := by
+  ext x
+  simp only [mem_mul_iff]
+  fconstructor
+  · rintro ⟨y, hy, z, hz, rfl⟩
+    exact mul_mem hy hz
+  · intro hx
+    exact ⟨x, hx, 1, one_mem _, by simp⟩
+
 lemma closure_union_eq_mul (s t : Set A) : Submonoid.closure (s ∪ t) = Submonoid.closure s * Submonoid.closure t := by
   classical
   refine le_antisymm ?_ ?_
