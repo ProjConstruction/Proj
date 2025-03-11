@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: Multigraded-Proj construction in Lean4
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: 'Mayeux '
+    family-names: Arnaud
+  - given-names: Jujian
+    family-names: Zhang
+    email: joz19@ic.ac.uk
+    affiliation: Imperial College London
+    orcid: 'https://orcid.org/0000-0001-7340-2703'
+identifiers:
+  - type: url
+    value: 'https://arxiv.org/pdf/2310.13502'
+    description: >-
+      The mathematical background of multigraded Proj
+      construction
+repository-code: 'https://github.com/ProjConstruction/Proj'
+url: 'https://projconstruction.github.io/Proj/'
