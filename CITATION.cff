@@ -19,4 +19,5 @@ identifiers:
       The mathematical background of multigraded Proj
       construction
 repository-code: 'https://github.com/ProjConstruction/Proj'
+license: 'Apache-2.0'
 url: 'https://projconstruction.github.io/Proj/'
