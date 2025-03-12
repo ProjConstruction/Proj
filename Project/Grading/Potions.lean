@@ -269,8 +269,8 @@ def localizationToPotion (T' : PotionGen S T) :
       simp only [mem_bar] at s_mem_bar' s'_mem_bar'
       obtain ⟨s_hom, y, hy, dvd⟩ := s_mem_bar'
       obtain ⟨s'_hom, y', hy', dvd'⟩ := s'_mem_bar'
-      obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 s_hom (S.2 hy) dvd
-      obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 s'_hom (S.2 hy') dvd'
+      obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 s_hom (S.homogeneous hy) dvd
+      obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 s'_hom (S.homogeneous hy') dvd'
       have t_deg : (T'.elem t : A)^(n : ℕ) ∈ 𝒜 (i - i') := T'.t_deg t
       have s_deg : s ∈ 𝒜 i := T'.s_deg t
       have s'_deg : s' ∈ 𝒜 i' := T'.s'_deg t
@@ -324,14 +324,14 @@ lemma localizationToPotion_mk (T' : PotionGen S T)
   have := T'.s_mem_bar t
   simp only [mem_bar] at this
   obtain ⟨-, y, h_mem, dvd⟩ := this
-  obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s_deg _⟩ (S.2 h_mem) dvd
+  obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s_deg _⟩ (S.homogeneous h_mem) dvd
   rw [equivBarPotion_symm_apply (z_mem := hj) (hz := h_mem)]
 
   simp only [map_pow, mul_toSubmonoid, toMul_mk, eq_mp_eq_cast]
   have := T'.s'_mem_bar t
   simp only [mem_bar] at this
   obtain ⟨-, y, h_mem', dvd'⟩ := this
-  obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s'_deg _⟩ (S.2 h_mem') dvd'
+  obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s'_deg _⟩ (S.homogeneous h_mem') dvd'
 
   rw [equivBarPotion_symm_apply (S * T) (z_mem := hj') (hz := by
     rw [mul_assoc]
@@ -380,7 +380,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
   simp only [← T'.gen, SetLike.mem_coe, Submonoid.mem_closure_iff, exists_prop] at h𝔱
   obtain ⟨d, hd, rfl⟩ := h𝔱
   choose i hi using hd
-  obtain ⟨i𝔰, 𝔰_deg⟩ := S.2 h𝔰
+  obtain ⟨i𝔰, 𝔰_deg⟩ := S.homogeneous h𝔰
   refine ⟨∏ t ∈ d.support.attach, S.equivBarPotion.symm (.mk ⟨i𝔰 + T'.i (i _ t.2),
     ⟨𝔰 * (t ^ (T'.n (i _ t.2) : ℕ) * T'.s' (i _ t.2)), SetLike.mul_mem_graded 𝔰_deg <| by
       have := SetLike.mul_mem_graded (T'.t_deg (i _ t.2)) (T'.s'_deg (i _ t.2))
@@ -421,7 +421,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
   · subst Hd
     simp only [Finsupp.prod_zero_index, mul_one, Finsupp.support_zero, Finset.attach_empty,
       Finsupp.coe_zero, Pi.zero_apply, pow_zero, Finset.prod_const_one, one_mul] at eq1 ⊢
-    exact ⟨𝔰, ⟨S.2 ‹_›, 𝔰, ‹_›, by rfl⟩, eq1⟩
+    exact ⟨𝔰, ⟨S.homogeneous ‹_›, 𝔰, ‹_›, by rfl⟩, eq1⟩
 
 
   refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, ?_⟩
@@ -487,9 +487,9 @@ lemma localizationToPotion_surjective (T' : PotionGen S T) :
     exact HomogeneousLocalization.mk_eq_zero_of_den _ rfl
 
 
-  obtain ⟨i𝔰, 𝔰_deg⟩ := S.2 h𝔰
+  obtain ⟨i𝔰, 𝔰_deg⟩ := S.homogeneous h𝔰
   choose x hx using hd
-  have H : ∀ i ∈ d.support, SetLike.Homogeneous 𝒜 i := fun i hi ↦ T.2 <| by
+  have H : ∀ i ∈ d.support, SetLike.Homogeneous 𝒜 i := fun i hi ↦ T.homogeneous <| by
     simpa [hx] using T'.elem_mem <| (x _ hi)
   choose degt hdegt using H
   have h𝔰𝔱' : (𝔰 * d.prod fun y i ↦ y ^ i) ∈ 𝒜 (i𝔰 + ∑ t ∈ d.support.attach, d t • degt _ t.2) := by
@@ -585,7 +585,7 @@ lemma localizationToPotion_surjective (T' : PotionGen S T) :
     have := T'.s_mem_bar (x _ ht)
     simp only [mem_bar] at this
     obtain ⟨hom, y, hy, dvd⟩ := this
-    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hom (S.2 hy) dvd
+    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hom (S.homogeneous hy) dvd
     rw [equivBarPotion_symm_apply (z_mem := hj) (hz := hy)]
     simp only
     apply pow_mem
@@ -726,31 +726,31 @@ def finitePotionGen (S_rel : IsRelevant S) (T_fg : T.FG) : PotionGen S T :=
       have := T_fg.choose_spec ▸ Submonoid.subset_closure hx
       exact this
   let gen : Submonoid.closure carrier = T.toSubmonoid := T_fg.choose_spec
-  let n : carrier → ℕ+ := fun t ↦ (finite_potionGen_exists_aux₂ S_rel t <| T.2 <| subset t.2).choose
+  let n : carrier → ℕ+ := fun t ↦ (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <| subset t.2).choose
   let s : carrier → A :=
-    fun t ↦ (finite_potionGen_exists_aux₂ S_rel t <| T.2 <| subset t.2).choose_spec.choose
+    fun t ↦ (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <| subset t.2).choose_spec.choose
   let s' : carrier → A := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <| subset t.2).choose_spec.choose_spec.choose
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <| subset t.2).choose_spec.choose_spec.choose
   let i : carrier → ι := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose
   let i' : carrier → ι := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose
   let t_deg : ∀ (x : carrier), x.1 ^ (n x : ℕ) ∈ 𝒜 (i x - i' x) := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.1
   let s_deg : ∀ (x : carrier), s x ∈ 𝒜 (i x) := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.1
   let s'_deg : ∀ (x : carrier), s' x ∈ 𝒜 (i' x) := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.2.1
   let s_mem_bar : ∀ (x : carrier), s x ∈ S.bar := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.2.2.1
   let s'_mem_bar : ∀ (x : carrier), s' x ∈ S.bar := fun t ↦
-    (finite_potionGen_exists_aux₂ S_rel t <| T.2 <|
+    (finite_potionGen_exists_aux₂ S_rel t <| T.homogeneous <|
       subset t.2).choose_spec.choose_spec.choose_spec.choose_spec.choose_spec.2.2.2.2
   {
     index := carrier
@@ -1073,7 +1073,7 @@ lemma mixing_left (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (
     simp only [mem_bar] at this
     obtain ⟨hom, y, hy, dvd⟩ := this
     obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜  ⟨_, T'.s'_deg (i _ hx)⟩
-      (S.1.2 hy) dvd
+      (S.1.homogeneous hy) dvd
     rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
       rw [mul_assoc]
       apply mul_mem
@@ -1185,7 +1185,7 @@ lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) 
     simp only [mem_bar] at this
     obtain ⟨hom, y, hy, dvd⟩ := this
     obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜  ⟨_, R'.s'_deg (i _ hx)⟩
-      (S.1.2 hy) dvd
+      (S.1.homogeneous hy) dvd
     rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
       rw [mul_assoc]
       apply mul_mem

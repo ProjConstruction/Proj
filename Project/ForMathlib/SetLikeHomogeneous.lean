@@ -33,7 +33,7 @@ lemma prod {s : Finset A} (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) :
     exact SetLike.GradedOne.one_mem
   · intro a s ha hs' ih
     rw [Finset.prod_insert ha]
-    simp? at ih
+    simp only [Finset.mem_insert, forall_eq_or_imp] at ih
     exact SetLike.homogeneous_mul ih.1 <| hs' ih.2
 
 lemma prod' {n : ℕ} (v : Fin n → A) (hs : ∀ i, SetLike.Homogeneous 𝒜 (v i)) :
@@ -63,5 +63,18 @@ lemma pow {a : A} (ha : SetLike.Homogeneous 𝒜 a) (n : ℕ) :
   | succ n ih =>
     simp only [pow_succ]
     apply SetLike.homogeneous_mul ih ⟨_, h⟩
+
+lemma prod'' {ι : Type*} (f : ι → A) {s : Finset ι} (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 (f x)) :
+    SetLike.Homogeneous 𝒜 (∏ i ∈ s, f i)  := by
+  classical
+  induction s using Finset.induction_on with
+  | empty =>
+    simp only [Finset.prod_empty]
+    exact homogeneous_one 𝒜
+  | @insert i s hi ih =>
+    rw [Finset.prod_insert hi]
+    apply SetLike.homogeneous_mul ?_ ?_
+    · exact hs i (by simp)
+    exact ih fun x hx => hs x (by aesop)
 
 end SetLike.Homogeneous
