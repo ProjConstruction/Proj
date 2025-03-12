@@ -1,16 +1,11 @@
 import Mathlib.RingTheory.Localization.Basic
-
-import Project.Grading.HomogeneousSubmonoid
-
 import Mathlib.Algebra.Module.LocalizedModule.Basic
-
+import Mathlib.Algebra.DirectSum.Decomposition
+import Mathlib.Algebra.Module.GradedModule
 import Mathlib.Algebra.GradedMulAction
 
+import Project.HomogeneousSubmonoid.Basic
 import Project.Grading.Localization
-
-import Mathlib.Algebra.DirectSum.Decomposition
-
-import Mathlib.Algebra.Module.GradedModule
 
 open DirectSum
 

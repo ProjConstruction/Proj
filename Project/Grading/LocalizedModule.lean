@@ -2,7 +2,6 @@ import Mathlib.RingTheory.Localization.Basic
 import Mathlib.Algebra.Module.LocalizedModule.Basic
 import Mathlib.Algebra.Module.GradedModule
 
-import Project.Grading.HomogeneousSubmonoid
 import Project.Grading.Localization
 
 open DirectSum LocalizedModule

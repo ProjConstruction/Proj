@@ -1,4 +1,4 @@
-import Project.Grading.HomogeneousSubmonoid
+import Project.HomogeneousSubmonoid.Basic
 import Project.Grading.GradedRingHom
 
 

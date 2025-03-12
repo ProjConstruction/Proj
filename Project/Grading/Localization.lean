@@ -1,6 +1,6 @@
 import Mathlib.RingTheory.Localization.Basic
 
-import Project.Grading.HomogeneousSubmonoid
+import Project.HomogeneousSubmonoid.Basic
 
 open DirectSum
 

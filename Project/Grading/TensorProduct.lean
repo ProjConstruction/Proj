@@ -1,7 +1,7 @@
 import Mathlib.RingTheory.GradedAlgebra.Basic
 import Mathlib.RingTheory.TensorProduct.Basic
 
-import Project.Grading.HomogeneousSubmonoid
+import Project.HomogeneousSubmonoid.Basic
 
 import Project.ForMathlib.TensorProduct
 
