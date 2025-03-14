@@ -44,7 +44,7 @@ def localizationToPotion (T' : PotionGen S T) :
       have s_deg : s ∈ 𝒜 i := T'.s_deg t
       have s'_deg : s' ∈ 𝒜 i' := T'.s'_deg t
       change IsUnit <| S.potionToMul T <| S.equivBarPotion.symm <| .mk ⟨i, ⟨T'.elem t^(n : ℕ) * s', _⟩, ⟨s, _⟩, _⟩
-      rw [equivBarPotion_symm_apply (z_mem := hj) (hz := hy), toMul_mk]
+      rw [equivBarPotion_symm_apply (z_mem := hj) (hz := hy), potionToMul_mk]
       simp only [eq_mp_eq_cast]
       refine isUnit_of_mul_eq_one _ (.mk ⟨i + j', ⟨s * z', SetLike.mul_mem_graded s_deg hj'⟩,
         ⟨T'.elem t ^ (n : ℕ) * s' * z',
@@ -87,7 +87,7 @@ lemma localizationToPotion_mk (T' : PotionGen S T)
         mul_mem (pow_mem (bar_mono _ _ (right_le_mul _ _) (T.le_bar <| T'.elem_mem t)) _)
           (bar_mono _ _ (left_le_mul _ _) (T'.s'_mem_bar t))⟩) ^ n) := by
   simp only [mul_toSubmonoid, localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk',
-    toMul_mk, RingHom.toMonoidHom_eq_coe]
+    potionToMul_mk, RingHom.toMonoidHom_eq_coe]
   rw [Units.mul_inv_eq_iff_eq_mul, IsUnit.coe_liftRight]
   simp only [MonoidHom.restrict_apply, MonoidHom.coe_coe]
   have := T'.s_mem_bar t
@@ -96,7 +96,7 @@ lemma localizationToPotion_mk (T' : PotionGen S T)
   obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s_deg _⟩ (S.homogeneous h_mem) dvd
   rw [equivBarPotion_symm_apply (z_mem := hj) (hz := h_mem)]
 
-  simp only [map_pow, mul_toSubmonoid, toMul_mk, eq_mp_eq_cast]
+  simp only [map_pow, mul_toSubmonoid, potionToMul_mk, eq_mp_eq_cast]
   have := T'.s'_mem_bar t
   simp only [mem_bar] at this
   obtain ⟨-, y, h_mem', dvd'⟩ := this
@@ -135,7 +135,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
   rcases a with ⟨j, ⟨num, h_num⟩, ⟨den, h_den⟩, (den_mem : den ∈ S)⟩
   simp only [eq_mp_eq_cast, RingHom.mem_ker] at hx ⊢
   rw [localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk'] at hx
-  simp only [toMul_mk, RingHom.toMonoidHom_eq_coe, Units.mul_left_eq_zero] at hx
+  simp only [potionToMul_mk, RingHom.toMonoidHom_eq_coe, Units.mul_left_eq_zero] at hx
   rw [HomogeneousLocalization.zero_eq] at hx
   erw [Quotient.eq'] at hx
   simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,

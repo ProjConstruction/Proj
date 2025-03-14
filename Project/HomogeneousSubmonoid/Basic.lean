@@ -12,13 +12,16 @@ import Project.ForMathlib.SubgroupBasic
 import Project.ForMathlib.Submonoid
 import Project.ForMathlib.SetLikeHomogeneous
 import Project.GR.Basic
+import Project.Grading.GradedRingHom
 
 open DirectSum TensorProduct
 open scoped NNReal
 
-variable {ι A σ : Type*}
+variable {ι A B σ σ' : Type*}
 variable [AddCommGroup ι] [CommRing A] [SetLike σ A]  (𝒜 : ι → σ)
 variable [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜]
+variable [CommRing B] [SetLike σ' B]  (ℬ : ι → σ')
+variable [AddSubgroupClass σ' B] [GradedRing ℬ]
 
 @[ext]
 structure HomogeneousSubmonoid extends Submonoid A where
@@ -29,7 +32,7 @@ open scoped GR
 
 namespace HomogeneousSubmonoid
 
-variable {𝒜} (S : HomogeneousSubmonoid 𝒜)
+variable {𝒜 ℬ} (S : HomogeneousSubmonoid 𝒜)
 
 omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
 variable (𝒜) in
@@ -67,6 +70,40 @@ lemma homogeneous {x : A} : x ∈ S → SetLike.Homogeneous 𝒜 x := by
   intro i hi
   apply SetLike.Homogeneous.pow
   apply h _ (hn _ hi)
+
+open scoped Graded in
+def map (Φ : 𝒜 →+* ℬ) (S : HomogeneousSubmonoid 𝒜) : HomogeneousSubmonoid ℬ where
+  toSubmonoid := S.toSubmonoid.map Φ
+  homogeneous_gen := by
+    obtain ⟨s, hs, h⟩ := S.homogeneous_gen
+    refine ⟨Φ '' s, le_antisymm ?_ ?_, ?_⟩
+    · rw [Submonoid.map_le_iff_le_comap, hs, Submonoid.closure_le]
+      rintro x hx
+      simp only [Submonoid.coe_comap, Set.mem_preimage, SetLike.mem_coe]
+      apply Submonoid.subset_closure
+      use x
+    · rw [Submonoid.closure_le]
+      rintro - ⟨x, hx, rfl⟩
+      simp only [Submonoid.coe_map, Set.mem_image, SetLike.mem_coe, mem_toSubmonoid_iff]
+      refine ⟨x, ?_, rfl⟩
+      rw [← mem_toSubmonoid_iff, hs]
+      apply Submonoid.subset_closure
+      exact hx
+    · rintro - ⟨x, hx, rfl⟩
+      exact Φ.map_homogeneous (h x hx)
+
+open scoped Graded in
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] [AddSubgroupClass σ' B] [GradedRing ℬ] in
+lemma map_toSubmonoid (Φ : 𝒜 →+* ℬ) (S : HomogeneousSubmonoid 𝒜) :
+    (S.map Φ).toSubmonoid = S.toSubmonoid.map Φ := rfl
+
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] [AddSubgroupClass σ' B] [GradedRing ℬ] in
+open scoped Graded in
+lemma mem_map_of_mem (Φ : 𝒜 →+* ℬ) {S : HomogeneousSubmonoid 𝒜} {x : A} :
+    x ∈ S → Φ x ∈ S.map Φ := by
+  intro hx
+  rw [mem_iff, map_toSubmonoid]
+  exact Submonoid.mem_map_of_mem _ hx
 
 def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) : HomogeneousSubmonoid 𝒜 where
   __ := Submonoid.closure s
@@ -139,6 +176,11 @@ instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
   mul_comm S T :=  toSubmonoid_injective _ <| mul_comm _ _
   one_mul _ := toSubmonoid_injective _ <| one_mul _
   mul_one _ := toSubmonoid_injective _ <| mul_one _
+
+
+open scoped Graded in
+protected lemma map_mul (Φ : 𝒜 →+* ℬ) (S T : HomogeneousSubmonoid 𝒜)  : (S * T).map Φ = S.map Φ * T.map Φ :=
+  toSubmonoid_injective ℬ <| Submonoid.map_mul ..
 
 def bar : HomogeneousSubmonoid 𝒜 where
   carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
@@ -403,6 +445,20 @@ lemma IsRelevant.mul {S T : HomogeneousSubmonoid 𝒜}
   simp only [← sub_eq_add_neg, add_smul, neg_add_rev, add_sub] at hab hcd ⊢
   rw [hab, hcd]
   abel
+
+open scoped Graded in
+variable {S} in
+lemma IsRelevant.map (S_rel : S.IsRelevant) (Φ : 𝒜 →+* ℬ)  :
+    (S.map Φ).IsRelevant := by
+  intro i
+  obtain ⟨n, hn1, hn2⟩ := S_rel i
+  refine ⟨n, hn1, ?_⟩
+  suffices S.bar.agrDeg ≤ (S.map Φ).bar.agrDeg by exact this hn2
+  refine AddSubgroup.closure_mono ?_
+  intro x hx
+  simp only [coe_deg, mem_bar, Set.mem_setOf_eq] at hx ⊢
+  obtain ⟨y, ⟨hy1, z, hz1, hz2⟩, hy2⟩ := hx
+  exact ⟨Φ y, ⟨Φ.map_homogeneous hy1, Φ z, (mem_map_of_mem _ hz1), map_dvd _ hz2⟩, Φ.map_mem hy2⟩
 
 lemma isRelevant_iff_isTorsion_quotient : S.IsRelevant ↔ AddMonoid.IsTorsion (ι ⧸ ι[S.bar]) := by
   fconstructor

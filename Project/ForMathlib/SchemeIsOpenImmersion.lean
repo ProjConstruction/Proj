@@ -33,4 +33,8 @@ lemma Hom.ext_iff {X Y : Scheme} (f g : X ⟶ Y) : f = g ↔
   · rintro ⟨h_base, h_app⟩
     ext : 1 <;> aesop
 
+open Opposite
+lemma Hom.comp_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U : Opens Z) :
+  (f ≫ g).c.app (op U) = g.c.app _ ≫ f.c.app _ := rfl
+
 end AlgebraicGeometry.Scheme

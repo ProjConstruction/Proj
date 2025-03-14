@@ -1,11 +1,13 @@
 import Project.Potions.Localization
+import Project.Grading.GradedRingHom
 
 suppress_compilation
 
 universe u
-variable {ι R₀ A : Type u}
+variable {ι R₀ A B : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
+variable [CommRing B] [Algebra R₀ B] {ℬ : ι → Submodule R₀ B} [GradedAlgebra ℬ]
 
 variable (𝒜) in
 structure GoodPotionIngredient extends (HomogeneousSubmonoid 𝒜) where
@@ -47,6 +49,12 @@ instance : CommSemigroup (GoodPotionIngredient 𝒜) where
   mul_comm R S := by
     apply_fun GoodPotionIngredient.toHomogeneousSubmonoid using toHomogeneousSubmonoid_inj
     simp [mul_comm]
+
+open scoped Graded in
+def map (Φ : 𝒜 →+* ℬ) (x : GoodPotionIngredient 𝒜) :  GoodPotionIngredient ℬ where
+  toHomogeneousSubmonoid := x.toHomogeneousSubmonoid.map Φ
+  relevant := x.relevant.map Φ
+  fg := x.fg.map Φ.toMonoidHom
 
 open CategoryTheory AlgebraicGeometry TensorProduct
 
@@ -102,7 +110,7 @@ def mixingAux₄ (R S T : GoodPotionIngredient 𝒜) :
     intro x
     simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, mul_potion_algebraMap_eq]
     induction x using Quotient.inductionOn' with | h x =>
-    simp only [potionEquiv, mul_toSubmonoid, toMul_mk, RingEquiv.ofHomInv_apply]
+    simp only [potionEquiv, mul_toSubmonoid, potionToMul_mk, RingEquiv.ofHomInv_apply]
     erw [HomogeneousLocalization.map_mk]
 
 def mixing {R S T : GoodPotionIngredient 𝒜} (R' : PotionGen S.1 R.1) (T' : PotionGen S.1 T.1) :
@@ -196,8 +204,8 @@ lemma mixing_left (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (
     simp only [SubmonoidClass.coe_finset_prod, f]
     rfl
   · erw [smul_eq_mul]
-    simp only [mul_toSubmonoid, toMul_mk, map_mul, map_prod, map_pow, f]
-    rw [toMul_mk, potionEquiv_mk]
+    simp only [mul_toSubmonoid, potionToMul_mk, map_mul, map_prod, map_pow, f]
+    rw [potionToMul_mk, potionEquiv_mk]
     simp only [mul_toSubmonoid, Subtype.coe_eta, f]
     congr 1
     refine Finset.prod_congr rfl ?_
@@ -223,7 +231,7 @@ lemma mixing_left (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (
       · apply pow_mem
         exact right_le_mul _ _ <| left_le_mul _ _ (T'.elem_mem _)
       exact left_le_mul _ _ hy)]
-    rw [toMul_mk, potionEquiv_mk]
+    rw [potionToMul_mk, potionEquiv_mk]
 
 set_option maxHeartbeats 1000000 in
 lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (T' : PotionGen S.1 T.1)
@@ -308,8 +316,8 @@ lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) 
     simp only [SubmonoidClass.coe_finset_prod, f]
     rfl
   · erw [smul_eq_mul]
-    simp only [mul_toSubmonoid, toMul_mk, map_mul, map_prod, map_pow, f]
-    rw [toMul_mk, potionEquiv_mk]
+    simp only [mul_toSubmonoid, potionToMul_mk, map_mul, map_prod, map_pow, f]
+    rw [potionToMul_mk, potionEquiv_mk]
     simp only [mul_toSubmonoid, Subtype.coe_eta, f]
     congr 1
     refine Finset.prod_congr rfl ?_
@@ -335,7 +343,7 @@ lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) 
       · apply pow_mem
         exact right_le_mul _ _ <| right_le_mul _ _ (R'.elem_mem _)
       exact left_le_mul _ _ hy)]
-    rw [toMul_mk, potionEquiv_mk]
+    rw [potionToMul_mk, potionEquiv_mk]
 
 def t'Aux₀ (R S T : GoodPotionIngredient 𝒜) :
     (S * T).Potion ⊗[S.Potion] (S * R).Potion ≃+* (R * S * T).Potion :=
@@ -383,8 +391,8 @@ lemma t'_apply_SR (R S T : GoodPotionIngredient 𝒜) (x : (S * R).Potion) :
   erw [t'Aux₁_RS R S T _]
   induction x using Quotient.inductionOn' with | h x =>
   simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, potionEquiv_refl, RingEquiv.refl_apply]
-  erw [toMul_mk]
-  erw [toMul_mk]
+  erw [potionToMul_mk]
+  erw [potionToMul_mk]
   rw [potionEquiv_mk']
   simp
 

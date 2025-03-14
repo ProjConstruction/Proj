@@ -10,12 +10,26 @@ suppress_compilation
 
 namespace HomogeneousSubmonoid
 
-variable {ι R A : Type*}
+variable {ι R A B : Type*}
 variable [AddCommGroup ι] [CommRing R] [CommRing A] [Algebra R A] {𝒜 : ι → Submodule R A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
+variable [CommRing B] [Algebra R B] {ℬ : ι → Submodule R B}
+variable [GradedAlgebra ℬ]
 variable (S T : HomogeneousSubmonoid 𝒜)
 
 abbrev Potion := HomogeneousLocalization 𝒜 S.toSubmonoid
+
+open scoped Graded in
+def potionToMap (Φ : 𝒜 →+* ℬ) : S.Potion →+* (S.map Φ).Potion :=
+  HomogeneousLocalization.map _ _ Φ (by simp [map_toSubmonoid]; apply Submonoid.le_comap_map)
+    fun i hi ↦ Φ.map_mem
+
+open scoped Graded in
+@[simp]
+lemma potionToMap_mk (Φ : 𝒜 →+* ℬ) (x) :
+    S.potionToMap Φ (.mk x) =
+      .mk ⟨x.deg, ⟨Φ x.num.1, Φ.map_mem x.num.2⟩, ⟨Φ x.den.1, Φ.map_mem x.den.2⟩,
+        by simp only [mem_toSubmonoid_iff]; apply Submonoid.mem_map_of_mem; exact x.den_mem⟩ := rfl
 
 def potionEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃+* T.Potion :=
   RingEquiv.ofHomInv
@@ -77,10 +91,26 @@ lemma potionEquiv_trans {R S T : HomogeneousSubmonoid 𝒜} (eq1 : R = S) (eq2 :
   rfl
 
 @[simp]
+lemma potionEquiv_comp {R S T : HomogeneousSubmonoid 𝒜} (eq1 : R = S) (eq2 : S = T) :
+    (S.potionEquiv eq2).toRingHom.comp (R.potionEquiv eq1).toRingHom =
+    (R.potionEquiv (eq1.trans eq2)).toRingHom := by
+  subst eq1 eq2
+  simp only [potionEquiv_refl]
+  rfl
+
+@[simp]
 lemma potionEquiv_trans_apply {R S T : HomogeneousSubmonoid 𝒜} (eq1 : R = S) (eq2 : S = T) (x) :
     S.potionEquiv eq2 (R.potionEquiv eq1 x) =
     R.potionEquiv (eq1.trans eq2) x :=
   congr($(potionEquiv_trans eq1 eq2) x)
+
+open scoped Graded in
+lemma potionToMap_comp_potionEquiv (Φ : 𝒜 →+* ℬ) (eq : S = T) :
+    (S.potionToMap Φ).comp (potionEquiv eq.symm).toRingHom =
+    RingHom.comp (potionEquiv (by rw [eq])).toRingHom (T.potionToMap Φ) := by
+  ext x
+  induction x using Quotient.inductionOn' with | h x =>
+  rfl
 
 def potionToMul : S.Potion →+* (S * T).Potion :=
   HomogeneousLocalization.map _ _ (RingHom.id _) (by
@@ -91,15 +121,36 @@ def potionToMulSelf : S.Potion ≃+* (S * S).Potion :=
   potionEquiv (by simp)
 
 @[simp]
-lemma toMul_mk (x) : S.potionToMul T (.mk x) = .mk ⟨x.deg, x.num, x.den, left_le_mul _ _ x.den_mem⟩ := rfl
+lemma potionToMul_mk (x) : S.potionToMul T (.mk x) = .mk ⟨x.deg, x.num, x.den, left_le_mul _ _ x.den_mem⟩ := rfl
 
+@[simp]
+lemma potionToMul_mk' (x) : S.potionToMul T (Quotient.mk'' x) = .mk ⟨x.deg, x.num, x.den, left_le_mul _ _ x.den_mem⟩ := rfl
+
+/-
+A_(S) -> A_(ST) -> B_(φ(ST))
+  |                 |
+B_(φS) ->         B_(φ(S)φ(T))
+
+-/
+open scoped Graded in
+lemma potionToMul_comp_potionToMap (Φ : 𝒜 →+* ℬ) :
+    ((S.map Φ).potionToMul (T.map Φ)).comp (S.potionToMap Φ) =
+    (RingHom.comp (potionEquiv (HomogeneousSubmonoid.map_mul ..)).toRingHom
+      ((S * T).potionToMap Φ)).comp (S.potionToMul T) := by
+  ext x
+  induction x using Quotient.inductionOn' with | h x =>
+  simp only [mul_toSubmonoid, RingHom.coe_comp, Function.comp_apply, potionToMap_mk, potionToMul_mk,
+    id_eq, eq_mpr_eq_cast, cast_eq, HomogeneousLocalization.val_mk, RingEquiv.toRingHom_eq_coe,
+    RingHom.coe_coe]
+  rw [potionToMap_mk, potionEquiv_mk]
+  simp
 
 @[simp]
 lemma potionEquiv_potionToMul_assoc {R S T : HomogeneousSubmonoid 𝒜} (x : R.Potion):
   ((R*S).potionToMul T (R.potionToMul S x)) =
   potionEquiv (by rw [mul_assoc]) (R.potionToMul (S * T) x) := by
   induction x using Quotient.inductionOn' with | h x =>
-  rw [toMul_mk, toMul_mk, toMul_mk, potionEquiv_mk]
+  rw [potionToMul_mk, potionToMul_mk, potionToMul_mk, potionEquiv_mk]
 
 instance : Algebra S.Potion (S * T).Potion := RingHom.toAlgebra (potionToMul S T)
 
@@ -200,7 +251,7 @@ lemma toMul_equivBarPotion_symm (x) :
   obtain ⟨hn', y, hy, dvd⟩ := hn'
   obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hn'
     (S.homogeneous hy) dvd
-  rw [equivBarPotion_symm_apply (z_mem := hz) (hz := hy), toMul_mk]
+  rw [equivBarPotion_symm_apply (z_mem := hz) (hz := hy), potionToMul_mk]
   simp only
   rw [equivBarPotion_symm_apply (z_mem := hz) (hz := left_le_mul S T hy)]
 

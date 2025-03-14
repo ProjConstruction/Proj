@@ -112,6 +112,19 @@ lemma FG.mul {S T : Submonoid A} (hS : S.FG) (hT : T.FG) : (S * T).FG := by
   obtain ⟨t, rfl, ht⟩ := hT
   refine ⟨s ∪ t, closure_union_eq_mul s t, hs.union ht⟩
 
+protected lemma map_mul {A B : Type*} [CommMonoid A] [CommMonoid B] (f : A →* B) (S T : Submonoid A) :
+    (S * T).map f = S.map f * T.map f := by
+  refine le_antisymm ?_ ?_
+  · rw [map_le_iff_le_comap]
+    rintro _ ⟨s, hs, t, ht, rfl⟩
+    simp only [mem_comap, _root_.map_mul]
+    refine ⟨f s, ?_, f t, ?_, by simp⟩ <;>
+    · apply mem_map_of_mem
+      assumption
+  · rintro _ ⟨_, ⟨s, hs, rfl⟩, _, ⟨t, ht, rfl⟩, rfl⟩
+    simp only [mem_map]
+    exact ⟨s * t, ⟨s, hs, t, ht, rfl⟩, by simp⟩
+
 end Submonoid
 
 namespace Localization

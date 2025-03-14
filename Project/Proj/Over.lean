@@ -12,11 +12,11 @@ open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite Topological
 namespace GoodPotionIngredient
 
 universe u
-variable {ι R₀ A : Type u}
+variable {τ ι R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
-variable (ℱ ℱ' : Set (GoodPotionIngredient 𝒜))
+variable (ℱ : τ → GoodPotionIngredient 𝒜)
 
 scoped notation "SpecBase"ℬ => Spec (CommRingCat.of (ℬ 0))
 
