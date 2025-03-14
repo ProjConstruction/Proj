@@ -1,5 +1,5 @@
 import Project.ForMathlib.SchemeIsOpenImmersion
-import Project.Grading.Potions
+import Project.Proj.Construction
 
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion

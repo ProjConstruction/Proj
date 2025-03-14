@@ -22,7 +22,8 @@ variable [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜]
 
 @[ext]
 structure HomogeneousSubmonoid extends Submonoid A where
-  homogeneous : ∀ {x}, x ∈ toSubmonoid → SetLike.Homogeneous 𝒜 x
+  homogeneous_gen : ∃ (s : Set A),
+    toSubmonoid = Submonoid.closure s ∧ ∀ x ∈ s, SetLike.Homogeneous 𝒜 x
 
 open scoped GR
 
@@ -56,10 +57,24 @@ instance : SubmonoidClass (HomogeneousSubmonoid 𝒜) A where
   mul_mem ha hb := mul_mem (S := Submonoid A) ha hb
   one_mem S := one_mem S.toSubmonoid
 
+
+lemma homogeneous {x : A} : x ∈ S → SetLike.Homogeneous 𝒜 x := by
+  rintro hx
+  obtain ⟨s, hs, h⟩ := S.homogeneous_gen
+  rw [← mem_toSubmonoid_iff, hs] at hx
+  obtain ⟨n, hn, rfl⟩ := Submonoid.mem_closure_iff _ _ _ |>.1 hx
+  apply SetLike.Homogeneous.prod'' 𝒜
+  intro i hi
+  apply SetLike.Homogeneous.pow
+  apply h _ (hn _ hi)
+
 def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) : HomogeneousSubmonoid 𝒜 where
   __ := Submonoid.closure s
-  homogeneous {x} (hx : x ∈ Submonoid.closure s) :=
-    Submonoid.closure_induction hs
+  homogeneous_gen := by
+    use Submonoid.closure s
+    simp only [Submonoid.closure_eq, SetLike.mem_coe, true_and]
+    intro x hx
+    exact Submonoid.closure_induction hs
       (SetLike.homogeneous_one 𝒜)
       (fun _ _ _ _ hx hy => SetLike.homogeneous_mul hx hy) hx
 
@@ -73,7 +88,11 @@ protected def bot : HomogeneousSubmonoid 𝒜 where
   carrier := {1}
   mul_mem' := by simp
   one_mem' := by simp
-  homogeneous := by
+  homogeneous_gen := by
+    use {1}
+    fconstructor
+    · ext x
+      simp [Submonoid.mem_closure_singleton, eq_comm]
     simp only [Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_singleton_iff, forall_eq]
     exact ⟨0, SetLike.GradedOne.one_mem⟩
 
@@ -90,11 +109,15 @@ open Pointwise in
 instance : Mul (HomogeneousSubmonoid 𝒜) where
   mul S T :=
   { toSubmonoid := S.toSubmonoid * T.toSubmonoid
-    homogeneous := by
-      rintro _ ⟨a, ha, b, hb, rfl⟩
-      obtain ⟨i, hi⟩ := S.homogeneous ha
-      obtain ⟨j, hj⟩ := T.homogeneous hb
-      exact ⟨i + j, SetLike.mul_mem_graded hi hj⟩ }
+    homogeneous_gen := by
+      use S ∪ T
+      simp only [Submonoid.closure_union_eq_mul, Set.mem_union, SetLike.mem_coe]
+      constructor
+      · erw [Submonoid.closure_eq, Submonoid.closure_eq]
+      rintro a (ha|hb)
+      · exact S.homogeneous ha
+
+      · exact T.homogeneous hb }
 
 @[simp]
 lemma mul_toSubmonoid (S T : HomogeneousSubmonoid 𝒜) : (S * T).toSubmonoid = S.toSubmonoid * T.toSubmonoid := rfl
@@ -124,7 +147,13 @@ def bar : HomogeneousSubmonoid 𝒜 where
     exact ⟨SetLike.homogeneous_mul hom_x hom_y, ⟨ax * ay, ⟨mul_mem hax hay,
       mul_dvd_mul hax' hay'⟩⟩⟩
   one_mem' := ⟨SetLike.homogeneous_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
-  homogeneous := by rintro x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩; exact hom_x
+  homogeneous_gen := by
+    use {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
+    constructor
+    · refine le_antisymm Submonoid.subset_closure ?_
+      rw [Submonoid.closure_le]
+      rfl
+    rintro x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩; exact hom_x
 
 @[simp]
 lemma mem_bar (x : A) :
@@ -174,7 +203,7 @@ instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
 
 lemma le_bar : S ≤ S.bar := by
   rintro x hx
-  exact ⟨S.2 hx, x, hx, by rfl⟩
+  exact ⟨S.homogeneous hx, x, hx, by rfl⟩
 
 lemma mem_bot_bar (x : A) :
     x ∈ HomogeneousSubmonoid.bot.bar (𝒜 := 𝒜) ↔
@@ -213,7 +242,6 @@ lemma closure_one :
   simp [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup, bot_carrier,
     Set.mem_singleton_iff, closure, Submonoid.mem_closure_singleton, eq_comm,
     HomogeneousSubmonoid.bot]
-
 
 lemma mem_deg_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)).deg ↔
