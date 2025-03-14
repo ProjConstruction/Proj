@@ -290,6 +290,12 @@ lemma mem_closure {s : Set A} {x : A} : x ∈ closure s ↔ x ∈ s ∪ s * Set.
   rw [closure_eq]
   rfl
 
+def closureToType(s : Set A) : (s ⊕ s × A) ≃ closure s  :=
+  Equiv.ofBijective
+    (Sum.rec (fun x => ⟨x, subset_closure s x.2⟩)
+      (fun x => ⟨x.1 * x.2, Ideal.mul_mem_left _ (subset_closure _ x.1.2) _⟩)) <| by
+
+
 end Ideal
 
 end CommSemigroup

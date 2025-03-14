@@ -320,24 +320,24 @@ abbrev idealify (ℱ : τ → GoodPotionIngredient 𝒜) :
     τ ⊕ (τ × GoodPotionIngredient 𝒜) → GoodPotionIngredient 𝒜 :=
   Sum.rec ℱ (fun p ↦ ℱ p.1 * p.2)
 
-abbrev idealify_le (ℱ : τ → GoodPotionIngredient 𝒜) : LE_ ℱ (idealify ℱ) where
+abbrev le_idealify (ℱ : τ → GoodPotionIngredient 𝒜) : LE_ ℱ (idealify ℱ) where
   t :=
   { toFun := Sum.inl
     inj' := Sum.inl_injective }
   comp := rfl
 
 @[simp]
-lemma idealift_le_apply (x) : idealify_le ℱ x = Sum.inl x := rfl
+lemma le_idealify_apply (x) : le_idealify ℱ x = Sum.inl x := rfl
 
 @[simp]
-lemma idealift_le_potionEquivMap (i : τ) : (idealify_le ℱ).potionEquivMap i = RingEquiv.refl _ := by
+lemma le_idealify_potionEquivMap (i : τ) : (le_idealify ℱ).potionEquivMap i = RingEquiv.refl _ := by
   ext x
   induction x using Quotient.inductionOn' with | h x =>
   rfl
 
 open HomogeneousSubmonoid in
-instance proj_isIso_projClosure :
-    IsIso (projHomOfLE (idealify_le ℱ)) := by
+instance proj_iso_proj_idealify :
+    IsIso (projHomOfLE (le_idealify ℱ)) := by
   apply (config := { allowSynthFailures := true }) AlgebraicGeometry.IsOpenImmersion.to_iso
   rw [TopCat.epi_iff_surjective]
   intro x
@@ -358,8 +358,8 @@ instance proj_isIso_projClosure :
 
     · refine PrimeSpectrum.ext ?_
       change Ideal.comap _ _ = _
-      simp only [glueData_J, glueData_U, idealift_le_apply, mul_toHomogeneousSubmonoid,
-        mul_toSubmonoid, idealift_le_potionEquivMap, RingEquiv.coe_ringHom_refl,
+      simp only [glueData_J, glueData_U, le_idealify_apply, mul_toHomogeneousSubmonoid,
+        mul_toSubmonoid, le_idealify_potionEquivMap, RingEquiv.coe_ringHom_refl,
         CommRingCat.ofHom_id, Spec.map_id, Scheme.id.base, TopCat.id_app]
       erw [Ideal.comap_comap, Ideal.comap_comap]
       congr 1
@@ -410,5 +410,40 @@ instance proj_isIso_projClosure :
         exact h
       simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta, e]
       rfl
+
+section Sets
+
+variable {ℱ ℱ' : Set <| GoodPotionIngredient 𝒜}
+
+def LE_.of_subset (subset : ℱ ⊆ ℱ') :
+    LE_ (𝒜 := 𝒜) (τ := ℱ) (τ' := ℱ') Subtype.val Subtype.val where
+  t := ℱ.embeddingOfSubset ℱ' subset
+  comp := rfl
+
+def projHomOfSubset (subset : ℱ ⊆ ℱ') : Proj (τ := ℱ) Subtype.val ⟶ Proj (τ := ℱ') Subtype.val :=
+  projHomOfLE (LE_.of_subset subset)
+
+def projClosureIso :
+    Proj (τ := (CommSemigroup.Ideal.closure ℱ)) (ℱ := Subtype.val) ≅
+    Proj (idealify (τ := ℱ) Subtype.val) where
+  hom := Multicoequalizer.desc _ _
+    (fun (p : CommSemigroup.Ideal.closure ℱ) ↦
+      _ ≫
+      (glueData (idealify (τ := ℱ) Subtype.val)).ι (Sum.inr ⟨_, _⟩)) _
+  inv := sorry
+  hom_inv_id := sorry
+  inv_hom_id := sorry
+
+instance proj_iso_proj_subset :
+    IsIso (projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ)) := by
+  have := proj_iso_proj_idealify (τ := ℱ) (ℱ := Subtype.val)
+  have eq : projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ) =
+      projHomOfLE (le_idealify (τ := ℱ) Subtype.val) ≫
+      (by
+
+        sorry) := by sorry
+
+
+end Sets
 
 end GoodPotionIngredient
