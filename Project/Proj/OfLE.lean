@@ -411,39 +411,39 @@ instance proj_iso_proj_idealify :
       simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta, e]
       rfl
 
-section Sets
+-- section Sets
 
-variable {ℱ ℱ' : Set <| GoodPotionIngredient 𝒜}
+-- variable {ℱ ℱ' : Set <| GoodPotionIngredient 𝒜}
 
-def LE_.of_subset (subset : ℱ ⊆ ℱ') :
-    LE_ (𝒜 := 𝒜) (τ := ℱ) (τ' := ℱ') Subtype.val Subtype.val where
-  t := ℱ.embeddingOfSubset ℱ' subset
-  comp := rfl
+-- def LE_.of_subset (subset : ℱ ⊆ ℱ') :
+--     LE_ (𝒜 := 𝒜) (τ := ℱ) (τ' := ℱ') Subtype.val Subtype.val where
+--   t := ℱ.embeddingOfSubset ℱ' subset
+--   comp := rfl
 
-def projHomOfSubset (subset : ℱ ⊆ ℱ') : Proj (τ := ℱ) Subtype.val ⟶ Proj (τ := ℱ') Subtype.val :=
-  projHomOfLE (LE_.of_subset subset)
+-- def projHomOfSubset (subset : ℱ ⊆ ℱ') : Proj (τ := ℱ) Subtype.val ⟶ Proj (τ := ℱ') Subtype.val :=
+--   projHomOfLE (LE_.of_subset subset)
 
-def projClosureIso :
-    Proj (τ := (CommSemigroup.Ideal.closure ℱ)) (ℱ := Subtype.val) ≅
-    Proj (idealify (τ := ℱ) Subtype.val) where
-  hom := Multicoequalizer.desc _ _
-    (fun (p : CommSemigroup.Ideal.closure ℱ) ↦
-      _ ≫
-      (glueData (idealify (τ := ℱ) Subtype.val)).ι (Sum.inr ⟨_, _⟩)) _
-  inv := sorry
-  hom_inv_id := sorry
-  inv_hom_id := sorry
+-- def projClosureIso :
+--     Proj (τ := (CommSemigroup.Ideal.closure ℱ)) (ℱ := Subtype.val) ≅
+--     Proj (idealify (τ := ℱ) Subtype.val) where
+--   hom := Multicoequalizer.desc _ _
+--     (fun (p : CommSemigroup.Ideal.closure ℱ) ↦
+--       _ ≫
+--       (glueData (idealify (τ := ℱ) Subtype.val)).ι (Sum.inr ⟨_, _⟩)) _
+--   inv := sorry
+--   hom_inv_id := sorry
+--   inv_hom_id := sorry
 
-instance proj_iso_proj_subset :
-    IsIso (projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ)) := by
-  have := proj_iso_proj_idealify (τ := ℱ) (ℱ := Subtype.val)
-  have eq : projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ) =
-      projHomOfLE (le_idealify (τ := ℱ) Subtype.val) ≫
-      (by
+-- instance proj_iso_proj_subset :
+--     IsIso (projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ)) := by
+--   have := proj_iso_proj_idealify (τ := ℱ) (ℱ := Subtype.val)
+--   have eq : projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ) =
+--       projHomOfLE (le_idealify (τ := ℱ) Subtype.val) ≫
+--       (by
 
-        sorry) := by sorry
+--         sorry) := by sorry
 
 
-end Sets
+-- end Sets
 
 end GoodPotionIngredient
