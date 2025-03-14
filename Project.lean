@@ -14,6 +14,7 @@ import Project.ForMathlib.Submonoid
 import Project.ForMathlib.TensorProduct
 import Project.GR.Basic
 import Project.Grading.GradedRingHom
+import Project.Grading.Injection
 import Project.Grading.Localization
 import Project.Grading.LocalizedModule
 import Project.Grading.TensorProduct

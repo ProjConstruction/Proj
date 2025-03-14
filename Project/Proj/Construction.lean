@@ -5,7 +5,7 @@ suppress_compilation
 
 universe u
 variable {ι R₀ A : Type u}
-variable [AddCommMonoid ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
+variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
 open AlgebraicGeometry CategoryTheory HomogeneousSubmonoid TensorProduct
