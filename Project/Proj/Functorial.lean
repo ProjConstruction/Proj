@@ -37,6 +37,8 @@ def Proj.map (ℱ : τ → GoodPotionIngredient 𝒜) :
       erw [potionToMul_comp_potionToMap, ← RingHom.comp_assoc, ← RingHom.comp_assoc]
     erw [potionEquiv_comp]
     generalize_proofs _ _ h1
+    swap
+    · rw [mul_comm]
     have eq :
       (potionEquiv h1).toRingHom.comp
         (((ℱ j).toHomogeneousSubmonoid * (ℱ i).toHomogeneousSubmonoid).potionToMap Φ) =

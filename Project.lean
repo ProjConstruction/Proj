@@ -5,6 +5,7 @@ import Project.Dilatation.lemma
 import Project.Example
 import Project.ForMathlib.HomogeneousLocalization
 import Project.ForMathlib.Ideal
+import Project.ForMathlib.ImageSplitting
 import Project.ForMathlib.LocalizationAway
 import Project.ForMathlib.SchemeIsOpenImmersion
 import Project.ForMathlib.SetLikeHomogeneous
@@ -24,6 +25,7 @@ import Project.Potions.Basic
 import Project.Potions.GoodPotionIngredient
 import Project.Potions.Localization
 import Project.Proj.Construction
+import Project.Proj.Functorial
 import Project.Proj.OfLE
 import Project.Proj.Opens
 import Project.Proj.Over

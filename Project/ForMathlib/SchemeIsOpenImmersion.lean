@@ -24,6 +24,10 @@ lemma Hom.stalkMap_comp  {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
     Scheme.Hom.stalkMap (f ≫ g) x = Scheme.Hom.stalkMap g (f.base x) ≫ Scheme.Hom.stalkMap f x := by
   apply LocallyRingedSpace.stalkMap_comp
 
+instance Hom.stalkMap.isIso  {X Y : Scheme} (f : X ⟶ Y) (x : X) [IsIso f] :
+    IsIso (Scheme.Hom.stalkMap f x) :=
+  AlgebraicGeometry.PresheafedSpace.stalkMap.isIso f.toLRSHom.toShHom x
+
 lemma Hom.ext_iff {X Y : Scheme} (f g : X ⟶ Y) : f = g ↔
   (∃ (h_base : f.base = g.base),
     (∀ U, f.app U ≫ X.presheaf.map
