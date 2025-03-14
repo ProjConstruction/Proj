@@ -1,4 +1,5 @@
-import Project.Dilatation.Multicenter
+import Project.Dilatation.Family
+import Project.Grading.Injection
 
 import Mathlib.RingTheory.GradedAlgebra.Basic
 
@@ -380,6 +381,10 @@ instance : GradedAlgebra (grading F) where
     |H_zero => simp
     |H_basic v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
     |H_plus x y hx hy => simp [hx, hy]
+
+variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))] in
+instance : GradedAlgebra (gradingOfInjection (grading F) (ρNatToInt ι)) :=
+  gradingOfInjection_isGradedAlgebra (grading F) (ρNatToInt ι) ρNatToInt_inj
 
 end ReesAlgebra
 

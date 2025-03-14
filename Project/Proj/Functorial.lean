@@ -18,8 +18,8 @@ namespace GoodPotionIngredient
 variable (Φ : 𝒜 →+* ℬ)
 
 set_option maxHeartbeats 1000000 in
-def Proj.map (ℱ : τ → GoodPotionIngredient 𝒜) :
-    Proj ((GoodPotionIngredient.map Φ) ∘ ℱ) ⟶ Proj ℱ  :=
+protected def Proj.map (ℱ : τ → GoodPotionIngredient 𝒜) :
+    Proj ((map Φ) ∘ ℱ) ⟶ Proj ℱ  :=
   Multicoequalizer.desc _ _
     (fun (i : τ) ↦ Spec.map (CommRingCat.ofHom ((ℱ i).potionToMap Φ)) ≫ (glueData ℱ).ι i) <| by
     rintro ⟨(i : τ), (j : τ)⟩

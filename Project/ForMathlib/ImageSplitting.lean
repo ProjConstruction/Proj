@@ -17,4 +17,11 @@ theorem imageSplitting_comp (S : Set A) :
     f ∘ Subtype.val ∘ imageSplitting f S = Subtype.val := by
   ext x; simp
 
+
+@[simp]
+theorem rangeSplitting_apply_coe (f : A → B) (inj : Function.Injective f)  (x : A) :
+    Set.rangeSplitting f ⟨f x, by simp⟩ = x := by
+  apply inj
+  rw [Set.apply_rangeSplitting f]
+
 end Set
