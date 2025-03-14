@@ -119,7 +119,6 @@ instance : AddGroup.FG (M × N) := by
   obtain ⟨⟨s, h⟩⟩ : FG M := inferInstance
   obtain ⟨⟨t, h'⟩⟩ : FG N := inferInstance
   refine ⟨⟨(s.product {(0 : N)}) ∪ (Finset.product {(0 : M)} t), ?_⟩⟩
-  -- have := (s.product {(0 : N)}) ∪ (Finset.product {(0 : M)} t)
   rw [eq_top_iff] at h h' ⊢
   rintro ⟨m, n⟩ -
   specialize @h m ⟨⟩
@@ -150,6 +149,30 @@ instance : AddGroup.FG (M × N) := by
       simp
 
 end AddGroup
+
+namespace Subgroup.FG
+
+variable {A B : Type*} [Group A] [Group B] {S : Subgroup A}
+
+@[to_additive]
+lemma map (h : S.FG) (f : A →* B)  : (S.map f).FG := by
+  classical
+  obtain ⟨s, rfl⟩ := h
+  refine ⟨s.image f, le_antisymm ?_ ?_⟩
+  · rw [closure_le]
+    rintro x hx
+    simp only [Finset.coe_image, Set.mem_image, Finset.mem_coe] at hx
+    obtain ⟨x, hx, rfl⟩ := hx
+    simp only [coe_map, Set.mem_image, SetLike.mem_coe]
+    exact ⟨x, Subgroup.subset_closure hx, rfl⟩
+
+  · rw [map_le_iff_le_comap, closure_le]
+    rintro x hx
+    simp only [Finset.coe_image, coe_comap, Set.mem_preimage, SetLike.mem_coe]
+    apply Subgroup.subset_closure
+    simpa using ⟨x, hx, rfl⟩
+
+end Subgroup.FG
 
 namespace Submonoid
 
