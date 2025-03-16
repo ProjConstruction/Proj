@@ -4,7 +4,7 @@ import Project.Proj.Stalk
 import Project.ForMathlib.SchemeIsOpenImmersion
 import Project.ForMathlib.Ideal
 
-import Project.Proj.Delab
+-- import Project.Proj.Delab
 
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
@@ -425,6 +425,8 @@ def LE_.of_subset (subset : ℱ ⊆ ℱ') :
 def projHomOfSubset (subset : ℱ ⊆ ℱ') : Proj (τ := ℱ) Subtype.val ⟶ Proj (τ := ℱ') Subtype.val :=
   projHomOfLE (LE_.of_subset subset)
 
+set_option trace.PrettyPrinter.delab true in
+-- attribute [app_delab] proj_delab
 open HomogeneousSubmonoid
 instance proj_iso_proj_subset :
     IsIso (projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ)) := by
