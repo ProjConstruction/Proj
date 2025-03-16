@@ -13,6 +13,7 @@ suppress_compilation
 
 open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite
 open TopologicalSpace Topology
+open HomogeneousSubmonoid
 
 namespace GoodPotionIngredient
 
