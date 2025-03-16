@@ -4,6 +4,8 @@ import Project.Proj.Stalk
 import Project.ForMathlib.SchemeIsOpenImmersion
 import Project.ForMathlib.Ideal
 
+import Project.Proj.Delab
+
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
 

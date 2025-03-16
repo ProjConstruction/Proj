@@ -26,6 +26,7 @@ import Project.Potions.Basic
 import Project.Potions.GoodPotionIngredient
 import Project.Potions.Localization
 import Project.Proj.Construction
+import Project.Proj.Delab
 import Project.Proj.Functorial
 import Project.Proj.OfLE
 import Project.Proj.Opens

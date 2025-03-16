@@ -4,6 +4,8 @@ import Project.Proj.Construction
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
 
+import Project.Proj.Delab
+
 suppress_compilation
 
 open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite TopologicalSpace
