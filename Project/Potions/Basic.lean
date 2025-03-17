@@ -20,8 +20,11 @@ variable (S T : HomogeneousSubmonoid 𝒜)
 
 abbrev Potion := HomogeneousLocalization 𝒜 S.toSubmonoid
 
-lemma potion_nonzero_divisor (a : A) (deg_zero : a ∈ 𝒜 0) (mem : a ∈ S) :
-    algebraMap (𝒜 0) S.Potion ⟨a, deg_zero⟩ ∈ nonZeroDivisors S.Potion := by
+lemma potion_nonzero_divisor {i : ι} (s s' : A)
+    (deg : s ∈ 𝒜 i) (deg' : s' ∈ 𝒜 i)
+    (mem : s ∈ S) (mem' : s' ∈ S) :
+    HomogeneousLocalization.mk
+      ⟨i, ⟨s, deg⟩, ⟨s', deg'⟩, mem'⟩ ∈ nonZeroDivisors S.Potion := by
   intro x hx
   induction x using Quotient.inductionOn' with | h x =>
   change Quotient.mk'' _ = Quotient.mk'' 0 at hx
@@ -36,10 +39,14 @@ lemma potion_nonzero_divisor (a : A) (deg_zero : a ∈ 𝒜 0) (mem : a ∈ S) :
   ext
   simp only [HomogeneousLocalization.val_mk, HomogeneousLocalization.val_zero]
   rw [← Localization.mk_zero 1, Localization.mk_eq_mk_iff, Localization.r_iff_exists]
-  refine ⟨c * ⟨a, mem⟩, ?_⟩
+  refine ⟨c * ⟨s, mem⟩, ?_⟩
   simp only [Submonoid.coe_mul, OneMemClass.coe_one, one_mul, mul_zero]
   rw [← hc]
   ring
+
+lemma potion_nonzero_divisor' (a : A) (deg_zero : a ∈ 𝒜 0) (mem : a ∈ S) :
+    algebraMap (𝒜 0) S.Potion ⟨a, deg_zero⟩ ∈ nonZeroDivisors S.Potion :=
+  potion_nonzero_divisor S a 1 deg_zero SetLike.GradedOne.one_mem mem (one_mem _)
 
 open scoped Graded in
 def potionToMap (Φ : 𝒜 →+* ℬ) : S.Potion →+* (S.map Φ).Potion :=
