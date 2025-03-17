@@ -26,7 +26,6 @@ lemma potion_nonzero_divisor (a : A) (deg_zero : a ∈ 𝒜 0) (mem : a ∈ S) :
   induction x using Quotient.inductionOn' with | h x =>
   change Quotient.mk'' _ = Quotient.mk'' 0 at hx
   rw [HomogeneousLocalization.ext_iff_val] at hx
-  -- rw [Quotient.eq'', Setoid.ker_iff_mem_preimage] at hx
   simp only [HomogeneousLocalization.mk_mul, HomogeneousLocalization.val_mul,
     HomogeneousLocalization.val_mk, SetLike.GradeZero.coe_one, Localization.mk_mul,
     Submonoid.mk_mul_mk, mul_one, HomogeneousLocalization.mk_zero,
