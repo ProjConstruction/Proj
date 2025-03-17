@@ -20,6 +20,28 @@ variable (S T : HomogeneousSubmonoid 𝒜)
 
 abbrev Potion := HomogeneousLocalization 𝒜 S.toSubmonoid
 
+lemma potion_nonzero_divisor (a : A) (deg_zero : a ∈ 𝒜 0) (mem : a ∈ S) :
+    algebraMap (𝒜 0) S.Potion ⟨a, deg_zero⟩ ∈ nonZeroDivisors S.Potion := by
+  intro x hx
+  induction x using Quotient.inductionOn' with | h x =>
+  change Quotient.mk'' _ = Quotient.mk'' 0 at hx
+  rw [HomogeneousLocalization.ext_iff_val] at hx
+  -- rw [Quotient.eq'', Setoid.ker_iff_mem_preimage] at hx
+  simp only [HomogeneousLocalization.mk_mul, HomogeneousLocalization.val_mul,
+    HomogeneousLocalization.val_mk, SetLike.GradeZero.coe_one, Localization.mk_mul,
+    Submonoid.mk_mul_mk, mul_one, HomogeneousLocalization.mk_zero,
+    HomogeneousLocalization.val_zero] at hx
+  rw [← Localization.mk_zero 1, Localization.mk_eq_mk_iff, Localization.r_iff_exists] at hx
+  obtain ⟨c, hc⟩ := hx
+  simp only [OneMemClass.coe_one, one_mul, mul_zero] at hc
+  ext
+  simp only [HomogeneousLocalization.val_mk, HomogeneousLocalization.val_zero]
+  rw [← Localization.mk_zero 1, Localization.mk_eq_mk_iff, Localization.r_iff_exists]
+  refine ⟨c * ⟨a, mem⟩, ?_⟩
+  simp only [Submonoid.coe_mul, OneMemClass.coe_one, one_mul, mul_zero]
+  rw [← hc]
+  ring
+
 open scoped Graded in
 def potionToMap (Φ : 𝒜 →+* ℬ) : S.Potion →+* (S.map Φ).Potion :=
   HomogeneousLocalization.map _ _ Φ (by simp [map_toSubmonoid]; apply Submonoid.le_comap_map)
