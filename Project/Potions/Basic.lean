@@ -1,4 +1,5 @@
 import Project.HomogeneousSubmonoid.IsoBar
+import Project.HomogeneousSubmonoid.Relevant
 import Project.ForMathlib.HomogeneousLocalization
 import Project.ForMathlib.LocalizationAway
 

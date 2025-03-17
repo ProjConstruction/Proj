@@ -425,8 +425,6 @@ def LE_.of_subset (subset : ℱ ⊆ ℱ') :
 def projHomOfSubset (subset : ℱ ⊆ ℱ') : Proj (τ := ℱ) Subtype.val ⟶ Proj (τ := ℱ') Subtype.val :=
   projHomOfLE (LE_.of_subset subset)
 
-set_option trace.PrettyPrinter.delab true in
--- attribute [app_delab] proj_delab
 open HomogeneousSubmonoid
 instance proj_iso_proj_subset :
     IsIso (projHomOfSubset (CommSemigroup.Ideal.subset_closure ℱ)) := by
@@ -455,7 +453,8 @@ instance proj_iso_proj_subset :
     rfl
   · refine ⟨((glueData (τ := ℱ) Subtype.val).ι ⟨S, hS'⟩).base
       ⟨Ideal.comap (algebraMap (S.Potion) _) <| Ideal.comap
-        (localizationRingEquivPotion (finitePotionGen S.relevant T.fg)) x.asIdeal, inferInstance⟩, ?_⟩
+        (HomogeneousSubmonoid.localizationRingEquivPotion (finitePotionGen S.relevant T.fg))
+          x.asIdeal, inferInstance⟩, ?_⟩
 
 
     erw [projHomOfLE_comp_ι_base_apply]

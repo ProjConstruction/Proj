@@ -20,8 +20,10 @@ import Project.Grading.LocalizedModule
 import Project.Grading.TensorProduct
 import Project.Grading.Twisting
 import Project.HomogeneousSubmonoid.Basic
+import Project.HomogeneousSubmonoid.ConvDeg
 import Project.HomogeneousSubmonoid.Dagger
 import Project.HomogeneousSubmonoid.IsoBar
+import Project.HomogeneousSubmonoid.Relevant
 import Project.Potions.Basic
 import Project.Potions.GoodPotionIngredient
 import Project.Potions.Localization
@@ -31,4 +33,5 @@ import Project.Proj.Functorial
 import Project.Proj.OfLE
 import Project.Proj.Opens
 import Project.Proj.Over
+import Project.Proj.PP_Proj
 import Project.Proj.Stalk
