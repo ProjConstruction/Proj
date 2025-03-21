@@ -127,13 +127,47 @@ omit [Fintype ι] in
 lemma mu_potion_algebraMap_eq (P: Mu L) [DecidableEq P.multicenter.index] :
   algebraMap A (clo_mu L P).Potion = mu_potion_algebraMap L P := rfl
 
+open Family
+lemma mu_potion_algebraMap_eq_sq_over_self (P: Mu L) [DecidableEq P.multicenter.index] (i) :
+  (algebraMap A (clo_mu L P).Potion (P.multicenter.elem i)) =
+  (HomogeneousLocalization.mk
+    { deg := ρNatToInt _ <| Finsupp.single (P.Ψ i) 1,
+      num := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i)^2, by
+        rw [familyPow_single, ← P.cond]
+        apply Ideal.pow_mem_of_mem
+        apply Multicenter.elem_mem_LargeIdeal
+        norm_num⟩, ReesAlgebra.single_has_degree' ..⟩
+      den := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i), by
+        rw [familyPow_single, ← P.cond]
+        apply Multicenter.elem_mem_LargeIdeal⟩, ReesAlgebra.single_has_degree' ..⟩
+      den_mem := by
+        refine Submonoid.subset_closure ?_
+        use i } : (clo_mu L P).Potion) := sorry
+
+/-
+
+(ReesAlgebra.single L (Finsupp.single (P.Ψ i) 1))
+  ⟨a², ⋯⟩ ≠
+((ReesAlgebra.single L (Finsupp.single (P.Ψ i) 1))
+  ⟨a, ⋯⟩)²
+-/
 open Multicenter Multicenter.Dilatation
 def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
   A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
    Multicenter.desc P.multicenter
     (by
-     -- apply that s is nonzero in Potion (A,S)
-     sorry
+      intro i
+      rw [mu_potion_algebraMap_eq_sq_over_self]
+      -- simp only [mu_potion_algebraMap_eq, mu_potion_algebraMap, RingEquiv.toRingHom_eq_coe,
+      --  RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply]
+      -- change HomogeneousLocalization.mk _ ∈ _
+      apply HomogeneousSubmonoid.potion_nonzero_divisor
+      refine Submonoid.subset_closure ?_
+      simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe, ReesAlgebra.degreeZeroIso_apply_coe,
+        Set.mem_setOf_eq]
+      use i
+      -- apply that s is nonzero in Potion (A,S)
+      sorry
      )
     (by
       -- let i ∈ F.index
@@ -141,12 +175,15 @@ def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
       -- Reciprocally, we write m=m/a .a.
       sorry)
 
-lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
-  by  injective surjective
-   sorry
+def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
+    A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
+  AlgEquiv.ofBijective _ _
+-- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
+--   by  injective surjective
+--    sorry
 
 
- sorry
+--  sorry
 
 
 def Po (P: Mu) : open subscheme of Bl :=

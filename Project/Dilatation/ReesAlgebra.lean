@@ -392,6 +392,12 @@ instance : GradedAlgebra (grading F) where
     |H_basic v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
     |H_plus x y hx hy => simp [hx, hy]
 
+lemma single_has_degree (v : ι →₀ ℕ) (x) :
+    single F v x ∈ grading F v := by
+  rw [grading, LinearMap.mem_range]
+  use x
+
+@[simps]
 def degreeZeroIso : A ≃+* (ReesAlgebra.grading F 0) where
   toFun a := ⟨.single F 0 ⟨a, by simp⟩, by simp [grading]⟩
   invFun a := a.1.val 0 |>.1
@@ -427,6 +433,15 @@ instance : GradedAlgebra (intGrading F) :=
 def degreeZeroIso' : A ≃+* (ReesAlgebra.intGrading F 0) :=
   degreeZeroIso F |>.trans
   (gradingOfInjection₀Iso (ReesAlgebra.grading F) (ρNatToInt ι)).symm
+
+
+lemma single_has_degree' (v : ι →₀ ℕ) (x) :
+    single F v x ∈ intGrading F (ρNatToInt _ v) := by
+  rw [intGrading, gradingOfInjection]
+  rw [dif_pos (by simp)]
+  erw [Set.rangeSplitting_apply_coe]
+  exact single_has_degree F v x
+  exact ρNatToInt_inj
 
 end ReesAlgebra
 
