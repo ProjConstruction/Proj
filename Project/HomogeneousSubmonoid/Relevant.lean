@@ -62,7 +62,7 @@ lemma isRelevant_iff_isTorsion_quotient : S.IsRelevant ↔ AddMonoid.IsTorsion (
     change Quotient.mk'' (n • i) = _ at hni
     rwa [QuotientAddGroup.eq_zero_iff] at hni
 
-lemma IsRelevant.of_le (h : T ≤ S) (T_rel : T.IsRelevant) : S.IsRelevant := by
+lemma IsRelevant.ofLE (h : T ≤ S) (T_rel : T.IsRelevant) : S.IsRelevant := by
   rw [isRelevant_iff_isTorsion_quotient] at T_rel ⊢
   apply AddIsTorsion.of_surjective
     (f :=  QuotientAddGroup.map T.bar.agrDeg S.bar.agrDeg (AddMonoidHom.id ι) (by
