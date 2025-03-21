@@ -1,11 +1,20 @@
-import Project.HomogeneousSubmonoid.Basic
+import Project.HomogeneousSubmonoid.Relevant
 import Project.Grading.GradedRingHom
-
 
 variable {ι A B σ τ : Type*}
 variable [AddCommGroup ι] [AddGroup.FG ι] [DecidableEq ι]
 variable [CommRing A] [SetLike σ A] [AddSubgroupClass σ A] (𝒜 : ι → σ) [GradedRing 𝒜]
 variable [CommRing B] [SetLike τ B] [AddSubgroupClass τ B] (ℬ : ι → τ) [GradedRing ℬ]
+
+namespace HomogeneousSubmonoid
+
+def dagger : HomogeneousIdeal 𝒜 where
+  __ := Ideal.span { x | ∃ (h : SetLike.Homogeneous 𝒜 x), ElemIsRelevant x h }
+  is_homogeneous' := Ideal.homogeneous_span _ _ (by rintro x ⟨h, _⟩; exact h)
+
+scoped postfix:max "†" => dagger
+
+end HomogeneousSubmonoid
 
 open HomogeneousSubmonoid Graded
 

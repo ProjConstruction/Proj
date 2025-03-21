@@ -1,6 +1,7 @@
 import Project.Proj.Construction
 import Project.Grading.GradedRingHom
-import Project.ForMathlib.ImageSplitting
+
+import Project.Proj.Delab
 
 suppress_compilation
 
