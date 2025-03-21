@@ -9,13 +9,12 @@ variable [AddCommMonoid ι] [AddCommMonoid ι']
 variable [CommRing R] [CommRing A] [Algebra R A] (𝒜 : ι → Submodule R A)
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
-variable (ρ : ι →+ ι') (inj : Function.Injective ρ) [∀ i : ι', Decidable (i ∈ Set.range ρ)]
+variable (ρ : ι →+ ι') [inj : Fact <| Function.Injective ρ] [∀ i : ι', Decidable (i ∈ Set.range ρ)]
 
 def gradingOfInjection : ι' → Submodule R A := fun i =>
   if mem : i ∈ Set.range ρ then 𝒜 (Set.rangeSplitting ρ ⟨i, mem⟩) else ⊥
 
 variable [DecidableEq ι']
--- SetLike.GradedMonoid 𝒜, DirectSum.Decomposition 𝒜
 
 instance gradingOfInjection_isGradedMonoid : SetLike.GradedMonoid (gradingOfInjection 𝒜 ρ) where
   one_mem := by
@@ -26,7 +25,7 @@ instance gradingOfInjection_isGradedMonoid : SetLike.GradedMonoid (gradingOfInje
     · infer_instance
     swap
     · infer_instance
-    apply inj
+    apply inj.out
     rw [Set.apply_rangeSplitting ρ ⟨0, ⟨0, by simp⟩⟩]
     simp
   mul_mem := by
@@ -36,12 +35,12 @@ instance gradingOfInjection_isGradedMonoid : SetLike.GradedMonoid (gradingOfInje
     · rcases ha' with ⟨i, rfl⟩
       split_ifs at hb with hb'
       · rcases hb' with ⟨j, rfl⟩
-        rw [Set.rangeSplitting_apply_coe _ inj] at ha
-        rw [Set.rangeSplitting_apply_coe _ inj] at hb
+        rw [Set.rangeSplitting_apply_coe _ inj.out] at ha
+        rw [Set.rangeSplitting_apply_coe _ inj.out] at hb
         delta gradingOfInjection
         rw [dif_pos ⟨i + j, by simp⟩]
         simp_rw [← map_add]
-        rw [Set.rangeSplitting_apply_coe _ inj]
+        rw [Set.rangeSplitting_apply_coe _ inj.out]
         exact SetLike.mul_mem_graded (A := 𝒜) ha hb
       · simp only [Submodule.mem_bot] at hb
         subst hb
@@ -56,7 +55,7 @@ def decomposeOfInjectionAux : (⨁ i, 𝒜 i) →+ (⨁ i, gradingOfInjection �
   DirectSum.toAddMonoid fun i ↦
     { toFun x := DirectSum.of _ (ρ i) ⟨x, by
         simp only [gradingOfInjection, Set.mem_range, exists_apply_eq_apply, ↓reduceDIte]
-        rw [Set.rangeSplitting_apply_coe _ inj]
+        rw [Set.rangeSplitting_apply_coe _ inj.out]
         exact x.2⟩
       map_zero' := by
         simp only [ZeroMemClass.coe_zero]
@@ -74,7 +73,7 @@ def decomposeOfInjectionAux : (⨁ i, 𝒜 i) →+ (⨁ i, gradingOfInjection �
 
 instance gradingOfInjection_decomposition :
     DirectSum.Decomposition (gradingOfInjection 𝒜 ρ) where
-  decompose' := decomposeOfInjectionAux 𝒜 ρ inj ∘ decompose 𝒜
+  decompose' := decomposeOfInjectionAux 𝒜 ρ  ∘ decompose 𝒜
   left_inv := by
     classical
     intro x
@@ -92,7 +91,7 @@ instance gradingOfInjection_decomposition :
       by_cases mem : i ∈ Set.range ρ
       · rcases mem with ⟨i, rfl⟩
         simp only [gradingOfInjection, Set.mem_range, exists_apply_eq_apply, ↓reduceDIte] at hx
-        rw [Set.rangeSplitting_apply_coe _ inj] at hx
+        rw [Set.rangeSplitting_apply_coe _ inj.out] at hx
         simp only [coeAddMonoidHom_of, Function.comp_apply]
         rw [decompose_of_mem 𝒜 hx]
         simp only [decomposeOfInjectionAux, toAddMonoid_of, AddMonoidHom.coe_mk, ZeroHom.coe_mk]
@@ -107,9 +106,31 @@ instance gradingOfInjection_decomposition :
       rw [hx, hy]
 
 instance gradingOfInjection_isGradedAlgebra : GradedAlgebra (gradingOfInjection 𝒜 ρ) where
-  __ := gradingOfInjection_isGradedMonoid 𝒜 ρ inj
-  __ := gradingOfInjection_decomposition 𝒜 ρ inj
+  __ := gradingOfInjection_isGradedMonoid 𝒜 ρ
+  __ := gradingOfInjection_decomposition 𝒜 ρ
 
+@[simps]
+def gradingOfInjection₀Iso : (gradingOfInjection 𝒜 ρ) 0 ≃+* 𝒜 0 where
+  toFun a := ⟨a.1, by
+    convert a.2
+    delta gradingOfInjection
+    rw [dif_pos ⟨0, by simp⟩]
+    congr 1
+    apply inj.out
+    rw [Set.apply_rangeSplitting ρ ⟨0, ⟨0, by simp⟩⟩]
+    simp⟩
+  invFun a := ⟨a.1, by
+    convert a.2
+    delta gradingOfInjection
+    rw [dif_pos ⟨0, by simp⟩]
+    congr 1
+    apply inj.out
+    rw [Set.apply_rangeSplitting ρ ⟨0, ⟨0, by simp⟩⟩]
+    simp⟩
+  left_inv _ := rfl
+  right_inv _ := rfl
+  map_mul' _ _ := rfl
+  map_add' _ _ := rfl
 
 variable (ι) in
 @[simps]
@@ -128,3 +149,5 @@ lemma ρNatToInt_inj : Function.Injective (ρNatToInt ι) := by
   have := congr($h i)
   simp only [Finsupp.mapRange_apply, Int.ofNat_eq_coe, Nat.cast_inj] at this
   exact this
+
+instance : Fact (Function.Injective (ρNatToInt ι)) := ⟨ρNatToInt_inj⟩

@@ -148,6 +148,8 @@ instance : AddGroup.FG (M × N) := by
       convert neg_mem hx' using 1
       simp
 
+instance (ι : Type*) [Fintype ι] : AddGroup.FG (ι →₀ ℤ) := sorry
+
 end AddGroup
 
 namespace Subgroup.FG

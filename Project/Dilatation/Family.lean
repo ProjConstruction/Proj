@@ -28,6 +28,10 @@ lemma familyPow_zero (f : ι → A) : f^(0 : ι →₀ ℕ) = (1 : A) := by
   simp only [familyPow_def]
   rw [Finsupp.prod_zero_index]
 
+@[simp]
+lemma familyPow_single (f : ι → A) (i : ι) : f^(Finsupp.single i 1) = f i := by
+  simp [familyPow_def]
+
 end
 
 namespace Ideal

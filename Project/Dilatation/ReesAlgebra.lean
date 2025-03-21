@@ -276,6 +276,16 @@ def single (v : ι →₀ ℕ) : F^v →ₗ[A] ReesAlgebra F where
 lemma single_def (v : ι →₀ ℕ) (x) :
   single F v x = { val := .of _ v x } := rfl
 
+lemma single_eq (v v' : ι →₀ ℕ) (eq : v = v') (x : A) (hx : x ∈ F^v) :
+    single F v ⟨x, hx⟩ = single F v' ⟨x, by subst eq; exact hx⟩ := by
+  subst eq
+  rfl
+
+lemma single_mul (v w : ι →₀ ℕ) (x y) :
+    single F v x * single F w y = single F (v + w) ⟨x.1 * y.1, Ideal.mem_familyPow_add x.2 y.2⟩ := by
+  ext : 1
+  simp only [mul_val, single_def, mul'_of_of]
+
 end ReesAlgebra
 
 end semiring
@@ -382,9 +392,41 @@ instance : GradedAlgebra (grading F) where
     |H_basic v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
     |H_plus x y hx hy => simp [hx, hy]
 
-variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))] in
-instance : GradedAlgebra (gradingOfInjection (grading F) (ρNatToInt ι)) :=
-  gradingOfInjection_isGradedAlgebra (grading F) (ρNatToInt ι) ρNatToInt_inj
+def degreeZeroIso : A ≃+* (ReesAlgebra.grading F 0) where
+  toFun a := ⟨.single F 0 ⟨a, by simp⟩, by simp [grading]⟩
+  invFun a := a.1.val 0 |>.1
+  left_inv a := by simp
+  right_inv a := by
+    ext v
+    simp only [Subtype.coe_eta, single_apply_val, SetLike.coe_eq_coe]
+    ext
+    rw [DirectSum.coe_of_apply]
+    obtain ⟨x, hx⟩ := a.2
+    rw [← hx]
+    simp only [ZeroMemClass.coe_zero, single_apply_val]
+    rw [DirectSum.coe_of_apply]
+    simp
+  map_mul' x y := by
+    ext v
+    simp only [single_apply_val, SetLike.GradeZero.coe_mul, single_mul, SetLike.coe_eq_coe]
+    ext
+    simp only [coe_of_apply, zero_add]
+  map_add' x y := by
+    ext v
+    simp only [single_apply_val, coe_of_apply, AddMemClass.mk_add_mk, add_val, add_apply,
+      Submodule.coe_add]
+    split_ifs
+    · rfl
+    · simp
+
+variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
+abbrev intGrading := (gradingOfInjection (grading F) (ρNatToInt ι))
+instance : GradedAlgebra (intGrading F) :=
+  gradingOfInjection_isGradedAlgebra (grading F) (ρNatToInt ι)
+
+def degreeZeroIso' : A ≃+* (ReesAlgebra.intGrading F 0) :=
+  degreeZeroIso F |>.trans
+  (gradingOfInjection₀Iso (ReesAlgebra.grading F) (ρNatToInt ι)).symm
 
 end ReesAlgebra
 
