@@ -180,13 +180,16 @@ def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
   AlgEquiv.ofBijective _ _
 -- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
---   by  injective surjective
-def MuIngredient : Subset  GoodPotionIngredient (ReesAlgebra.intGrading L):=
-   {clo_mu L P| P: Mu L  }   by := Mu_rel
-      sorry
+--   by  in
 
 
-def BlMu  := Proj (τ := GoodPotionIngredient (ReesAlgebra.intGrading L)) id
+def map_index : Mu L → GoodPotionIngredient (ReesAlgebra.intGrading L) :=
+   sorry
+
+
+
+def BlMu  := Proj (τ := Mu L ) map_index
+    sorry
 
 
 def Po (P: Mu) : open subscheme of Bl :=
