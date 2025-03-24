@@ -30,3 +30,32 @@ condiso: for all i γ  Spec(A_γ/L_iγ)= mor^{-1} (Spec(A_γ))
 structure Cars extends Clos where
 nonz: indnumb → indcov → nonZeroDivisors A γ
 condcar : ideal i γ = Ideal.span nonz i γ
+
+
+
+def ideal_loc (Z: Clos X) (γ : Z.indcov) : indnumb → ideal A γ :=
+  fun i ↦ ideal i γ
+
+def Proj_loc  (Z: Clos X) (γ : Z.indcov) := Bl (ideal_loc Z γ)
+
+def Proj_loc_pair (Z: Clos X) (γ δ : Z.indcov) :=
+    inverse image of Spec(A_γ) ∩ Spec(A_δ) in Bl (ideal_loc Z γ)
+
+lemma Proj_loc_pair_iso (Z: Clos X) (γ δ : Z.indcov) : Proj_loc_pair γ δ ≅ Proj_loc_pair δ γ :=
+       by
+       sorry
+
+def BlGlob  (Z: Clos X) :=  Scheme.GlueData where
+  J := Clos.indcov
+  U γ := Proj_loc γ
+  V pair := Proj_loc pair.1 pair.2
+  f γ δ := Proj_loc_pair_iso
+  f_id i :=
+  f_open i j :=
+  t i j :=
+  t_id i :=
+  t' i j k :=
+  t_fac i j k :=
+  cocycle i j k :=
+
+-- set_option maxHeartbeats 1000000 in
