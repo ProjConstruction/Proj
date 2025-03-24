@@ -158,14 +158,15 @@ def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
     (by
       intro i
       rw [mu_potion_algebraMap_eq_sq_over_self]
-      -- simp only [mu_potion_algebraMap_eq, mu_potion_algebraMap, RingEquiv.toRingHom_eq_coe,
-      --  RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply]
-      -- change HomogeneousLocalization.mk _ ∈ _
-      apply HomogeneousSubmonoid.potion_nonzero_divisor
-      refine Submonoid.subset_closure ?_
-      simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe, ReesAlgebra.degreeZeroIso_apply_coe,
-        Set.mem_setOf_eq]
-      use i
+      intro x
+      rw[]
+      -- Add a meaningful rewrite here or remove this line if unnecessary
+
+      --simp only [mu_potion_algebraMap_eq, mu_potion_algebraMap, RingEquiv.toRingHom_eq_coe,
+      --refine Submonoid.subset_closure ?_]
+      --simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe, ReesAlgebra.degreeZeroIso_apply_coe,
+      -- Set.mem_setOf_eq]
+      --use i
       -- apply that s is nonzero in Potion (A,S)
       sorry
      )
@@ -180,10 +181,12 @@ def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
   AlgEquiv.ofBijective _ _
 -- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
 --   by  injective surjective
---    sorry
+def MuIngredient : Subset  GoodPotionIngredient (ReesAlgebra.intGrading L):=
+   {clo_mu L P| P: Mu L  }   by := Mu_rel
+      sorry
 
 
---  sorry
+def BlMu  := Proj (τ := GoodPotionIngredient (ReesAlgebra.intGrading L)) id
 
 
 def Po (P: Mu) : open subscheme of Bl :=
