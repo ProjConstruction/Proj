@@ -1,8 +1,8 @@
 
 
 
-lemma ProjBlowup_UnivProp_unicity_affine :  ( Spec(B) ↘ BlMu L over Spec(A) )
-(φ φ': Spec(B) →over Spec(A) BlMu L ): φ=φ' := by
+lemma ProjBlowup_UnivProp_unicity_affine :  ( T ↘ BlMu L over Spec(A) )
+(φ φ': T →over Spec(A) BlMu L ): φ=φ' := by
   Let x ∈ T.
   Reduce to local neighborhood
   put y=φx

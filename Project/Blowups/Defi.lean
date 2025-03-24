@@ -41,8 +41,44 @@ def Proj_loc  (Z: Clos X) (γ : Z.indcov) := Bl (ideal_loc Z γ)
 def Proj_loc_pair (Z: Clos X) (γ δ : Z.indcov) :=
     inverse image of Spec(A_γ) ∩ Spec(A_δ) in Bl (ideal_loc Z γ)
 
-lemma Proj_loc_pair_iso (Z: Clos X) (γ δ : Z.indcov) : Proj_loc_pair γ δ ≅ Proj_loc_pair δ γ :=
-       by
+
+lemma base_change_dil_stand (F: multicenter A) (f: A) ;
+  ∃ unique iso of A-algebra A[F]⊗[A]Af ≅ Af[im F]:= by
+     A[F]⊗[A]Af= A[F]f = Af[im F] by classical and univ prop
+     sorry
+
+lemma base_change_dil_open [Algebra A B]
+   (i:Spec(B) → Spec(A) is Open immersion)
+   (F: multicenter A) :
+   ∃! (Spec(A[F]))×[Spec(A)](Spec(B))≅ Spec(B[im F]) over Spec(B):= by
+     byy univ prop exists unique φ →
+     exists θ <- by fiber product
+     φ ∘ θ = id by univ prop
+     so θ is injective
+     to prove that θ is surjective enough to do it locally on target
+     let x in target. Let f in A such that x in Df and Df ⊆ Spec (B).
+     Then we are reduced to base_change_dil_stand
+      sorry
+
+lemma base_change_Bl_open [Algebra A B]
+   (i:Spec(B) → Spec(A) is Open immersion)
+   (L: ι → ideal A) :
+   ∃! (Bl (L))×[Spec(A)](Spec(B))≅ Bl (im L) over Spec(B):=  by
+     byy univ prop exists unique φ →
+     exists θ <- by fiber product
+     φ ∘ θ = id by univ prop
+     so θ is injective
+     to prove that θ is surjective enough to do it locally on target
+     we chose a potion and apply base_change_dil_open
+     sorry
+
+
+
+lemma Proj_loc_pair_iso (Z: Clos X) (γ δ : Z.indcov) : ∃ ! Proj_loc_pair γ δ ≅ Proj_loc_pair δ γ
+       such that for each covering the restriction is the unique mor from univ prop :=
+       write Spec A γ ∩ spec Aδ as union of Spec A β (open affine cov)
+       for each β construct a map using base_change_Bl_open we get two morphism on each side
+       to prove that iti is an iso we proceed locally using diltation
        sorry
 
 def BlGlob  (Z: Clos X) :=  Scheme.GlueData where
