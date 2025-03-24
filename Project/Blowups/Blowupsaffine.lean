@@ -2,7 +2,7 @@
 
 
 lemma ProjBlowup_UnivProp_unicity_affine :  ( T ↘ BlMu L over Spec(A) )
-(φ φ': T →over Spec(A) BlMu L ): φ=φ' := by
+(φ φ': T →over Spec(A) BlMu L ): φ=φ' + condition := by
   Let x ∈ T.
   Reduce to local neighborhood
   put y=φx
