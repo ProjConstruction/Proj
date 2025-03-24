@@ -211,30 +211,14 @@ def (P P': Mu) : A[P]→ₐ[A] A[union_center P  P'] :=
   sorry
 
 
-lemma lemm_dila  (f: A →+*B) (P P': Mu L) (c: ι→  nonZeroDivisors B)
-(g: A[P]→ B)
-(g':  A[P']→ B)
-(cond1: Ideal.map (f) (L i) = Ideal.span {c i})
-(cond2: f= g (algebramap A A[P] ) )
-(cond2': f= g' (algebramap A A[P'] ) ) :
-∃! (g'' : A[union_center P P'] →ₐ[A]B), g = g'' (algebramap A[P] A[union_center P P'])
- ∧  g= g' (algebramap A[P'] A[union_center P P']) := by
+lemma lemm_dila  [Algebra A B] (P P': Mu L) (c: ι→  nonZeroDivisors B) (i : ι)
+(g: A[P]→ₐ[A] B)
+(g':  A[P']→ₐ[A] B)
+(cond1: Ideal.map (algebraMap A B) (L i) = Ideal.span  {(algebraMap A B) ((c i).1)})
+(cond2: (algebraMap A B)= AlgHom.comp g (algebraMap A A[P]) )
+(cond2': (algebraMap A B)= AlgHom.comp (g') (algebraMap A A[P'] ) ) :
+∃! (g'' : A[union_center P P'] →ₐ[A]B),
+   g = AlgHom.comp (g'') (algebraMap A[P] A[union_center P P'])
+ ∧  g= AlgHom.comp (g') (algebraMap A[P'] A[union_center P P']) := by
+    desc union_center P P'
     sorry
-
-lemma ProjBlowup_UnivProp_unicity_affine : [Scheme T Spec(A)]
-(φ φ': T →over Spec(A) Bl L ): φ=φ' := by
-  Let x ∈ T.
-  Reduce to local neighborhood
-  put y=φx
-  put y'=φ'x
-  obtain P ∈ Mu L such that y ∈ Mu P
-  obtain p' ∈ Mu L such that y ∈ Mu P'
-  Let U=Spec(B) be an affine neighborhood of x in φ^-1 (Po P) ∩ φ'^-1 (Po P').
-  consider the restrictions of φ and φ' to U
-  Phi factors through Po P, Phi' factors through Po P'
-  apply lemma 2
-  apply univ prop of dilatations
-  sorry
-
-/-obtain ⟨j, x, rfl⟩ := (glueData ℱ).ι_jointly_surjective x
-  obtain ⟨j', x', rfl⟩ := (glueData ℱ).ι_jointly_surjective x'-/
