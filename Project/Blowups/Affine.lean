@@ -183,17 +183,17 @@ def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
 --   by  in
 
 
-def map_index : Mu L → GoodPotionIngredient (ReesAlgebra.intGrading L) :=
+def map_index : fun (P: Mu L)↦
+   (clo_mu L P : GoodPotionIngredient (ReesAlgebra.intGrading L)) := by
+   Mu_rel
    sorry
 
 
 
-def BlMu  := Proj (τ := Mu L ) map_index
+def BlMu  := Proj (τ := Mu L ) map_index L P
     sorry
 
 
-def Po (P: Mu) : open subscheme of Bl :=
-    Spec(Potion P in Rees)
 
 lemma inter_Po (P,P' : Mu L) : Po.P ∩ Po.P' = Po.union.Mu P P' (as open subschemes) := by
    many already stasblished lemmas
@@ -201,8 +201,7 @@ lemma inter_Po (P,P' : Mu L) : Po.P ∩ Po.P' = Po.union.Mu P P' (as open subsch
 
 
 
-lemma Dila_cov_proj : ∪ (F: Mu) dila F
-                     = Bl L  :=
+lemma Dila_cov_proj : BlMu → Bl isIso := by
      --in the paper
     sorry
 
