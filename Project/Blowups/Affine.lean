@@ -18,6 +18,7 @@ import Project.Dilatation.Multicenter
 suppress_compilation
 universe u
 variable {A : Type u} [CommRing A]
+variable {B : Type u} [CommRing B]
 variable {ι : Type u} [Fintype ι] (L : ι → Ideal A)
 [DecidableEq ι]
 variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
@@ -205,15 +206,20 @@ lemma Dila_cov_proj : BlMu → Bl isIso := by
      --in the paper
     sorry
 
+def (P P': Mu) : A[P]→ₐ[A] A[union_center P  P'] :=
+  desc
+  sorry
 
-lemma lemm_dila :  (f: A →+*B) (P P': Mu) (c: nonzerodiv B)
+
+lemma lemm_dila  (f: A →+*B) (P P': Mu) (c: nonZeroDivisors B)
 (g: A[P]→ B)
 (g':  A[P']→ B)
 (cond1: Ideal.map (f) (L) = Ideal.span {c})
 (cond2: f= g (algebramap A A[P] ) )
 (cond2': f= g' (algebramap A A[P'] ) ) :
-∃! g''A[union_center P P'] →ₐ[A]B such that ....
-
+∃! (g'' : A[union_center P P'] →ₐ[A]B), g = g'' (algebramap A[P] A[union_center P P'])
+ ∧  g= g' (algebramap A[P'] A[union_center P P']) := by
+    sorry
 
 lemma ProjBlowup_UnivProp_unicity_affine : [Scheme T Spec(A)]
 (φ φ': T →over Spec(A) Bl L ): φ=φ' := by
