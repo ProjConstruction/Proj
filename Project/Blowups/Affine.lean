@@ -211,10 +211,10 @@ def (P P': Mu) : A[P]→ₐ[A] A[union_center P  P'] :=
   sorry
 
 
-lemma lemm_dila  (f: A →+*B) (P P': Mu) (c: nonZeroDivisors B)
+lemma lemm_dila  (f: A →+*B) (P P': Mu L) (c: ι→  nonZeroDivisors B)
 (g: A[P]→ B)
 (g':  A[P']→ B)
-(cond1: Ideal.map (f) (L) = Ideal.span {c})
+(cond1: Ideal.map (f) (L i) = Ideal.span {c i})
 (cond2: f= g (algebramap A A[P] ) )
 (cond2': f= g' (algebramap A A[P'] ) ) :
 ∃! (g'' : A[union_center P P'] →ₐ[A]B), g = g'' (algebramap A[P] A[union_center P P'])
