@@ -423,12 +423,12 @@ lemma ProjBlowup_UnivProp_unicity : (Z: Clos X) (f: T → X)
        use locall
        sorry
 
-lemma ProjBlowup_UnivProp_existence_affine (Z: Clos X) (f: T → X)
+lemma ProjBlowup_UnivProp_existence (Z: Clos X) (f: T → X)
      (cond: pullback on T oof Z is in Cars T) : ∃  T →over X BlGlob Y := by
         glue local map
         sorry
 
-lemma ProjBlowup_UnivProp_affine (Z: Clos X) (f: T → X)
+lemma ProjBlowup_UnivProp (Z: Clos X) (f: T → X)
      (cond: pullback on T oof Z is in Cars T) : ∃!  T →over X BlGlob Y by
        ProjBlowup_UnivProp_unicity + ProjBlowup_UnivProp_existence
        sorry
