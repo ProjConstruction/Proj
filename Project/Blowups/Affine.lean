@@ -265,14 +265,27 @@ def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
       simp only [Submodule.mk_eq_zero, ← hs2]
       ring)
     (by
-      -- let i ∈ F.index
-      -- Then (a) ⊆ (L_i) is trivial, so same holds for image
-      -- Reciprocally, we write m=m/a .a.
-      sorry)
+      intro i
+      refine le_antisymm ?_ ?_
+      · rw [Ideal.span_le]
+        rintro _ rfl
+        apply Ideal.mem_map_of_mem
+        exact elem_mem_LargeIdeal P.multicenter i
+      · rw [Ideal.map_le_iff_le_comap, Multicenter.LargeIdeal, Ideal.add_eq_sup, sup_le_iff]
+
+        fconstructor
+        · intro a ha
+          simp only [Ideal.mem_comap]
+
+          sorry
+        · rw [Ideal.span_le]
+          rintro _ rfl
+          simp only [Ideal.coe_comap, Set.mem_preimage, SetLike.mem_coe]
+          exact Ideal.subset_span rfl)
 
 def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
-  AlgEquiv.ofBijective _ _
+  AlgEquiv.ofBijective sorry sorry
 -- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
 --   by  in
 
