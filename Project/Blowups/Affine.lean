@@ -35,6 +35,22 @@ sec : ι → multicenter.index
 surj : ∀ i, Ψ (sec i) = i
 cond : ∀ i, multicenter.LargeIdeal i = L (Ψ i)
 
+instance [Nonempty ι] (P : Mu L) : Nonempty P.multicenter.index := by
+  apply Nonempty.map P.sec
+  assumption
+
+instance [IsEmpty ι] (P : Mu L) : IsEmpty P.multicenter.index := by
+  by_contra rid
+  simp only [not_isEmpty_iff] at rid
+  have : IsEmpty (P.multicenter.index → ι) := by
+    infer_instance
+  exact this.elim P.Ψ
+
+omit [Fintype ι] [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))] in
+lemma Mu.surjective (P: Mu L) : Function.Surjective P.Ψ := by
+  intro i
+  use P.sec i
+  exact P.surj i
 
 
 @[simps]
@@ -108,6 +124,57 @@ def clo_mu (P: Mu L) [DecidableEq P.multicenter.index] :
     ext j
     simp [ρNatToInt]
 
+omit [Fintype ι] in
+lemma mu_clo_isEmpty [IsEmpty ι] (P: Mu L) [DecidableEq P.multicenter.index] :
+    clo_mu L P = HomogeneousSubmonoid.bot := by
+  ext x
+  simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+    HomogeneousSubmonoid.mem_toSubmonoid_iff, HomogeneousSubmonoid.mem_bot]
+  refine ⟨?_, by rintro rfl; exact one_mem _⟩
+  intro H
+  refine Submonoid.closure_induction (hx := H) ?_ ?_ ?_
+  · rintro _ ⟨i, rfl⟩
+    exact (inferInstance : IsEmpty P.multicenter.index).elim i
+  · rfl
+  · rintro x y hx hy rfl rfl
+    simp
+
+open Family
+omit [Fintype ι] in
+lemma mem_clo_mu (P : Mu L) [DecidableEq P.multicenter.index] (x) :
+    x ∈ clo_mu L P ↔
+      ∃ (n : P.multicenter.index →₀ ℕ), x =
+      (fun i ↦ .single L (Finsupp.single (P.Ψ i) 1)
+      ⟨P.multicenter.elem i, by
+        simp only [familyPow_single]
+        rw [← P.cond]
+        exact Multicenter.elem_mem_LargeIdeal P.multicenter i⟩ : P.multicenter.index → ReesAlgebra L) ^ n := by
+  obtain (E|⟨i⟩) := isEmpty_or_nonempty ι
+  · fconstructor
+    · rintro h
+      rw [mu_clo_isEmpty] at h
+      simp only [HomogeneousSubmonoid.mem_bot] at h
+      subst h
+      use 0
+      simp
+    · rintro ⟨n, hn, rfl⟩
+      refine prod_mem fun i hi ↦ ?_
+      exact (inferInstance : IsEmpty P.multicenter.index).elim i
+  fconstructor
+  · intro hx
+    refine Submonoid.closure_induction (hx := hx) ?_ ?_ ?_
+    · rintro _ ⟨i, rfl⟩
+      use Finsupp.single i 1
+      simp only [familyPow_single]
+    · use Finsupp.single (inferInstance : Nonempty P.multicenter.index).some 0
+      simp
+    · rintro x y hx hy ⟨m, rfl⟩ ⟨n, rfl⟩
+      use m + n
+      rw [familyPow_add]
+
+  · rintro ⟨n, hn, rfl⟩
+    refine prod_mem fun i hi ↦ Submonoid.pow_mem _ (Submonoid.subset_closure ?_) _
+    use i
 
 lemma Mu_rel (P: Mu L) [DecidableEq P.multicenter.index]  : (clo_mu L P).IsRelevant := by
   rw [HomogeneousSubmonoid.isRelevant_iff_finiteIndex_of_FG]
@@ -129,21 +196,21 @@ lemma mu_potion_algebraMap_eq (P: Mu L) [DecidableEq P.multicenter.index] :
   algebraMap A (clo_mu L P).Potion = mu_potion_algebraMap L P := rfl
 
 open Family
-lemma mu_potion_algebraMap_eq_sq_over_self (P: Mu L) [DecidableEq P.multicenter.index] (i) :
-  (algebraMap A (clo_mu L P).Potion (P.multicenter.elem i)) =
-  (HomogeneousLocalization.mk
-    { deg := ρNatToInt _ <| Finsupp.single (P.Ψ i) 1,
-      num := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i)^2, by
-        rw [familyPow_single, ← P.cond]
-        apply Ideal.pow_mem_of_mem
-        apply Multicenter.elem_mem_LargeIdeal
-        norm_num⟩, ReesAlgebra.single_has_degree' ..⟩
-      den := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i), by
-        rw [familyPow_single, ← P.cond]
-        apply Multicenter.elem_mem_LargeIdeal⟩, ReesAlgebra.single_has_degree' ..⟩
-      den_mem := by
-        refine Submonoid.subset_closure ?_
-        use i } : (clo_mu L P).Potion) := sorry
+-- lemma mu_potion_algebraMap_eq_sq_over_self (P: Mu L) [DecidableEq P.multicenter.index] (i) :
+--   (algebraMap A (clo_mu L P).Potion (P.multicenter.elem i)) =
+--   (HomogeneousLocalization.mk
+--     { deg := ρNatToInt _ <| Finsupp.single (P.Ψ i) 1,
+--       num := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i)^2, by
+--         rw [familyPow_single, ← P.cond]
+--         apply Ideal.pow_mem_of_mem
+--         apply Multicenter.elem_mem_LargeIdeal
+--         norm_num⟩, ReesAlgebra.single_has_degree' ..⟩
+--       den := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i), by
+--         rw [familyPow_single, ← P.cond]
+--         apply Multicenter.elem_mem_LargeIdeal⟩, ReesAlgebra.single_has_degree' ..⟩
+--       den_mem := by
+--         refine Submonoid.subset_closure ?_
+--         use i } : (clo_mu L P).Potion) := sorry
 
 /-
 
@@ -158,19 +225,45 @@ def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
    Multicenter.desc P.multicenter
     (by
       intro i
-      rw [mu_potion_algebraMap_eq_sq_over_self]
-      intro x
-      rw[]
-      -- Add a meaningful rewrite here or remove this line if unnecessary
+      -- rw [mu_potion_algebraMap_eq_sq_over_self]
+      intro x hx
+      induction x using Quotient.inductionOn' with | h x =>
+      change HomogeneousLocalization.mk x = 0
+      change HomogeneousLocalization.mk x * HomogeneousLocalization.mk _ = 0 at hx
 
-      --simp only [mu_potion_algebraMap_eq, mu_potion_algebraMap, RingEquiv.toRingHom_eq_coe,
-      --refine Submonoid.subset_closure ?_]
-      --simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe, ReesAlgebra.degreeZeroIso_apply_coe,
-      -- Set.mem_setOf_eq]
-      --use i
-      -- apply that s is nonzero in Potion (A,S)
-      sorry
-     )
+
+      simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+        HomogeneousLocalization.ext_iff_val, HomogeneousLocalization.val_mul,
+        HomogeneousLocalization.val_mk, Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast,
+        cast_eq, SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, mul_one,
+        HomogeneousLocalization.val_zero, ← Localization.mk_zero 1, Localization.mk_eq_mk_iff,
+        Localization.r_iff_exists, OneMemClass.coe_one, one_mul, mul_zero, Subtype.exists,
+        HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop] at hx ⊢
+      obtain ⟨s, hs1, hs2⟩ := hx
+      rw [mem_clo_mu] at hs1
+      obtain ⟨n, rfl⟩ := hs1
+      rw [ReesAlgebra.single_familyPow] at hs2
+
+      obtain ⟨w, hw⟩ := ReesAlgebra.eq_single_of_homogeneous' L x.num ⟨_, x.num.2⟩
+      rw [hw] at hs2 ⊢
+      rw [ReesAlgebra.single_mul, ReesAlgebra.single_mul, ReesAlgebra.single_eq_zero] at hs2
+      simp only [Submodule.mk_eq_zero] at hs2
+      refine ⟨(∏ x ∈ n.support, .single _ (Finsupp.single (P.Ψ x) 1) ⟨P.multicenter.elem x, by
+        simp only [familyPow_single', pow_one]
+        rw [← P.cond]
+        exact elem_mem_LargeIdeal P.multicenter x⟩ ^ n x) *
+        .single _ (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, by
+          simp only [familyPow_single', pow_one]
+          rw [← P.cond]
+          exact elem_mem_LargeIdeal P.multicenter i⟩, mul_mem (Submonoid.prod_mem _ fun j hj ↦
+            Submonoid.pow_mem _ (Submonoid.subset_closure ?_) _) (Submonoid.subset_closure ?_), ?_⟩
+      · simp
+      · simp
+      simp_rw [ReesAlgebra.single_npow]
+      rw [ReesAlgebra.single_prod, ReesAlgebra.single_mul, ReesAlgebra.single_mul,
+        ReesAlgebra.single_eq_zero]
+      simp only [Submodule.mk_eq_zero, ← hs2]
+      ring)
     (by
       -- let i ∈ F.index
       -- Then (a) ⊆ (L_i) is trivial, so same holds for image

@@ -281,10 +281,59 @@ lemma single_eq (v v' : ι →₀ ℕ) (eq : v = v') (x : A) (hx : x ∈ F^v) :
   subst eq
   rfl
 
+lemma single_eq' (v v' : ι →₀ ℕ) (eq : v = v')
+    (x : A) (hx : x ∈ F^v)
+    (y : A) (hy : y ∈ F^v')
+    (eq' : x = y) :
+    single F v ⟨x, hx⟩ = single F v' ⟨y, hy⟩ := by
+  subst eq eq'
+  rfl
+
+@[simp]
+lemma single_eq_zero (v : ι →₀ ℕ) (x) :
+    single F v x = 0 ↔ x = 0 := by
+  refine ⟨?_, by rintro rfl; simp⟩
+  intro h
+  simp only [zero_def, ReesAlgebra.ext_iff, single_apply_val, DirectSum.ext_iff] at h
+  simpa using h v
+
 lemma single_mul (v w : ι →₀ ℕ) (x y) :
     single F v x * single F w y = single F (v + w) ⟨x.1 * y.1, Ideal.mem_familyPow_add x.2 y.2⟩ := by
   ext : 1
   simp only [mul_val, single_def, mul'_of_of]
+
+lemma single_prod {index : Type*} (v : index → (ι →₀ ℕ)) (x : ∀ j : index, F^(v j)) (s : Finset index) :
+    ∏ j ∈ s, single F (v j) (x j) = single F (∑ j in s, v j) ⟨∏ j ∈ s, x j, by
+      classical
+      rw [familyPow_sum]
+      apply Ideal.prod_mem_prod
+      simp⟩ := by
+  induction s using Finset.cons_induction with
+  | empty =>
+    simp only [Finset.prod_empty, Finset.sum_empty]; rfl
+  | cons i s hi ih =>
+    simp only [Finset.prod_cons, ih, single_mul]
+    apply single_eq
+    rw [Finset.sum_cons]
+
+lemma single_npow (v : ι →₀ ℕ) (x) (n : ℕ) :
+    single F v x ^ n = single F (n • v) ⟨x.1 ^ n, by
+      rw [familyPow_nsmul]
+      apply Ideal.pow_mem_pow
+      exact x.2⟩ := by
+  induction n with
+  | zero =>
+    ext : 1
+    simp only [pow_zero, one_def, single_apply_val]
+    ext w
+    rw [DirectSum.coe_of_apply, DirectSum.coe_of_apply]
+    simp_rw [zero_smul]
+    split_ifs <;> rfl
+
+  | succ n ih =>
+    simp only [pow_succ, ih, single_mul, one_mul]
+    apply single_eq
+    rw [add_smul, one_smul]
 
 end ReesAlgebra
 
@@ -397,6 +446,65 @@ lemma single_has_degree (v : ι →₀ ℕ) (x) :
   rw [grading, LinearMap.mem_range]
   use x
 
+lemma eq_single_of_homogeneous (x : ReesAlgebra F) (hx : SetLike.Homogeneous (grading F) x) :
+    ∃ v, x = single F v (x.val v) := by
+  rcases hx with ⟨v, ⟨y, rfl⟩⟩
+  use v
+  simp
+
+lemma single_familyPow {index : Type*}
+    (n : index →₀ ℕ) (v : index → (ι →₀ ℕ)) (a : ∀ i : index, F^(v i)) :
+    (fun i : index ↦ single F (v i) (a i))^n =
+    single F (∑ i ∈ n.support, n i • v i)
+      ⟨∏ i ∈ n.support, (a i)^(n i), n.induction (by simp) (by
+        intro i n f _ _ ih
+        change (f.prod fun j ↦ _) ∈ _ at ih
+        change Finsupp.prod _ _ ∈ _
+        rw [Finsupp.prod_add_index']
+        · simp only [pow_zero, Finsupp.prod_single_index]
+          change _ ∈ F ^ ((Finsupp.single i n + f).sum (fun i n ↦ n • (v i)) : ι →₀ ℕ)
+          rw [Finsupp.sum_add_index']
+          · rw [familyPow_add]
+            apply Ideal.mul_mem_mul
+            · simp only [zero_smul, Finsupp.sum_single_index, familyPow_nsmul]
+              apply Ideal.pow_mem_pow
+              exact (a i).2
+            · exact ih
+          · simp
+          · simp [add_smul]
+        · simp
+        · simp [pow_add])⟩ := by
+  refine n.induction ?_ ?_
+  · simp only [familyPow_zero, Finsupp.support_zero, Finsupp.coe_zero, Pi.zero_apply,
+    Finset.sum_empty, pow_zero, Finset.prod_const_one]
+    rfl
+  · intro j n f hj hn ih
+    rw [familyPow_add, ih, familyPow_single', single_npow, single_mul]
+    simp_rw [add_comm _ f, f.support_add_single hj hn, Finset.prod_cons]
+    apply single_eq'
+
+    · rw [add_comm _ f, f.support_add_single hj hn, Finset.sum_cons]
+      simp only [Finsupp.mem_support_iff, ne_eq, Decidable.not_not] at hj
+      simp only [Finsupp.coe_add, Pi.add_apply, hj, Finsupp.single_eq_same, zero_add, add_smul,
+        add_right_inj]
+      refine Finset.sum_congr rfl ?_
+      intro k hk
+      classical
+      rw [Finsupp.single_apply, if_neg (by
+        rintro rfl
+        simp only [Finsupp.mem_support_iff, ne_eq] at hk
+        exact hk hj), zero_smul, add_zero]
+    simp only [Finsupp.mem_support_iff, ne_eq, Decidable.not_not] at hj
+    simp only [Finsupp.coe_add, Pi.add_apply, hj, Finsupp.single_eq_same, zero_add]
+    congr 1
+    apply Finset.prod_congr rfl
+    intro k hk
+    simp only [Finsupp.mem_support_iff, ne_eq] at hk
+    classical
+    rw [Finsupp.single_apply, if_neg (by
+      rintro rfl
+      exact hk hj), add_zero]
+
 @[simps]
 def degreeZeroIso : A ≃+* (ReesAlgebra.grading F 0) where
   toFun a := ⟨.single F 0 ⟨a, by simp⟩, by simp [grading]⟩
@@ -434,6 +542,14 @@ def degreeZeroIso' : A ≃+* (ReesAlgebra.intGrading F 0) :=
   degreeZeroIso F |>.trans
   (gradingOfInjection₀Iso (ReesAlgebra.grading F) (ρNatToInt ι)).symm
 
+@[simp]
+lemma degreeZeroIso'_apply (a : A) :
+  degreeZeroIso' F a = ⟨.single F 0 ⟨a, by simp⟩, by
+    delta intGrading gradingOfInjection
+    rw [dif_pos ⟨0, by simp⟩]
+    simp_rw [show (0 : ι →₀ ℤ) = ρNatToInt _ 0 by rfl]
+    rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+    exact single_has_degree F 0 _⟩ := rfl
 
 lemma single_has_degree' (v : ι →₀ ℕ) (x) :
     single F v x ∈ intGrading F (ρNatToInt _ v) := by
@@ -442,6 +558,34 @@ lemma single_has_degree' (v : ι →₀ ℕ) (x) :
   erw [Set.rangeSplitting_apply_coe]
   exact single_has_degree F v x
   exact ρNatToInt_inj
+
+lemma eq_single_of_homogeneous' (x : ReesAlgebra F) (hx : SetLike.Homogeneous (intGrading F) x) :
+    ∃ v, x = single F v (x.val v) := by
+  rcases hx with ⟨v, hv⟩
+  simp only [intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply] at hv
+  split_ifs at hv with h
+  · rcases h with ⟨v, rfl⟩
+    rcases hv with ⟨⟨x, hx⟩, rfl⟩
+
+    use v
+    ext w
+    simp only [single_apply_val, SetLike.coe_eq_coe]
+    ext
+    simp only [coe_of_apply]
+    split_ifs with h h'
+    · subst h'
+      rw [coe_of_apply, if_pos h]
+    · refine h' (h ▸ ?_) |>.elim
+      rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+    · refine h ?_ |>.elim
+      rwa [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+    · rfl
+
+  simp only [Submodule.mem_bot] at hv
+  subst hv
+  use 0
+  ext w
+  simp [zero_def]
 
 end ReesAlgebra
 
