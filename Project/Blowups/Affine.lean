@@ -230,7 +230,7 @@ lemma mu_potion_algebraMap_eq (P: Mu L) [DecidableEq P.multicenter.index] :
 open Family
 
 open Multicenter Multicenter.Dilatation
-def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
+def clo_mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
   A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
    Multicenter.desc P.multicenter
     (by
@@ -275,23 +275,92 @@ def Mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
       ring)
     (by
       intro i
+
       refine le_antisymm ?_ ?_
       · rw [Ideal.span_le]
         rintro _ rfl
         apply Ideal.mem_map_of_mem
         exact elem_mem_LargeIdeal P.multicenter i
-      · rw [Ideal.map_le_iff_le_comap, Multicenter.LargeIdeal, Ideal.add_eq_sup, sup_le_iff]
+      · rw [Multicenter.LargeIdeal, Ideal.add_eq_sup, Ideal.map_sup, sup_le_iff, Ideal.map_span]
+        simp only [Set.image_singleton, le_refl, and_true]
+        rw [Ideal.map_le_iff_le_comap]
+        intro x hx
+        simp only [Ideal.mem_comap]
+        have eq : algebraMap A (clo_mu L P).Potion x =
+          algebraMap A (clo_mu L P).Potion (P.multicenter.elem i) *
+          HomogeneousLocalization.mk
+            { deg := Finsupp.single (P.Ψ i) (1 : ℤ),
+              num := ⟨.single _ (Finsupp.single (P.Ψ i) 1) ⟨x, ?num_deg⟩, ?num_deg'⟩
 
-        fconstructor
-        · intro a ha
-          simp only [Ideal.mem_comap]
-
-
-          sorry
-        · rw [Ideal.span_le]
-          rintro _ rfl
-          simp only [Ideal.coe_comap, Set.mem_preimage, SetLike.mem_coe]
-          exact Ideal.subset_span rfl)
+                  /-
+                  by
+                simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range,
+                  ρNatToInt_apply]
+                rw [dif_pos ⟨Finsupp.single (P.Ψ i) 1, by simp⟩]
+                  -/
+              den := ⟨.single _ (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, ?den_deg⟩, ?den_deg'⟩
+              den_mem := ?den_mem } := by
+          ext
+          simp only [HomogeneousLocalization.val_mul, HomogeneousLocalization.val_mk]
+          erw [HomogeneousLocalization.val_mk, HomogeneousLocalization.val_mk]
+          simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+            Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast, cast_eq,
+            SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, one_mul,
+            Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists,
+            HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop]
+          refine ⟨1, one_mem _, ?_⟩
+          simp only [ReesAlgebra.single_mul, one_mul]
+          apply ReesAlgebra.single_eq'
+          · rw [add_comm]
+          · rfl
+        pick_goal 4
+        · simp only [familyPow_single', pow_one]
+          rw [← P.cond, Multicenter.LargeIdeal, Ideal.add_eq_sup]
+          exact le_sup_left (a := P.multicenter.ideal i)
+            (b := Ideal.span {P.multicenter.elem i}) hx
+        · simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range,
+            ρNatToInt_apply]
+          rw [dif_pos ⟨Finsupp.single (P.Ψ i) 1, by simp⟩]
+          refine ⟨⟨x, ?_⟩, ?_⟩
+          · generalize_proofs _ h
+            rw [show Set.rangeSplitting (ρNatToInt ι) ⟨Finsupp.single (P.Ψ i) 1, h⟩ =
+              Finsupp.single (P.Ψ i) 1 from ρNatToInt_inj (by
+                rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+                simp)]
+            simp only [familyPow_single', pow_one]
+            rw [← P.cond]
+            exact le_sup_left (a := P.multicenter.ideal i)
+              (b := Ideal.span {P.multicenter.elem i}) hx
+          · apply ReesAlgebra.single_eq
+            apply ρNatToInt_inj
+            rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+            simp
+        pick_goal 3
+        · simp only [familyPow_single', pow_one]
+          rw [← P.cond]
+          exact elem_mem_LargeIdeal P.multicenter i
+        · simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range,
+            ρNatToInt_apply]
+          rw [dif_pos ⟨Finsupp.single (P.Ψ i) 1, by simp⟩]
+          refine ⟨⟨P.multicenter.elem i, ?_⟩, ?_⟩
+          · generalize_proofs _ h
+            rw [show Set.rangeSplitting (ρNatToInt ι) ⟨Finsupp.single (P.Ψ i) 1, h⟩ =
+              Finsupp.single (P.Ψ i) 1 from ρNatToInt_inj (by
+                rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+                simp)]
+            simp only [familyPow_single', pow_one]
+            rw [← P.cond]
+            exact elem_mem_LargeIdeal P.multicenter i
+          · apply ReesAlgebra.single_eq
+            apply ρNatToInt_inj
+            rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+            simp
+        · apply Submonoid.subset_closure
+          use i
+        rw [eq]
+        apply Ideal.mul_mem_right
+        apply Ideal.subset_span
+        rfl)
 
 def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
