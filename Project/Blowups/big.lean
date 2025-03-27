@@ -239,7 +239,7 @@ structure PreClos where
   ideal:   indnumb → cov.index → ideal A γ
   condiso: for all i γ  Spec(A_γ/L_iγ)isom[Spec(A_{γ})] mor^{-1} (Spec(A_γ))
 
-
+/--/
 def PreClos_on_refinement (Z: PreClos) (cov': refinment of Z.cov) : X.Preclos :=
    indnumb : Z.indnumb
    clotop: indnumb → closed (underlying top of X)
@@ -248,10 +248,8 @@ def PreClos_on_refinement (Z: PreClos) (cov': refinment of Z.cov) : X.Preclos :=
    mor: indnumb → subscheme i →sch X
    cov: cov'
    ideal:   indnumb → cov.index → image ideal A γ
-   condiso: use condiso Z
+   condiso: use condiso Z-/
 
-lemma (C1 C2 : X.affineCover) : ∃ (C3 : X.affineCover) such that C3 is finer than C1 and C2:= by
-   sorry
 
 def rel : X.PreClos → X.PreClos → Prop := fun Z Z' =>
    indnumb Z= indnumb Z'
