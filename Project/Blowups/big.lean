@@ -15,6 +15,7 @@ import Project.Proj.Over
 import Project.Dilatation.Multicenter
 
 
+
 suppress_compilation
 universe u
 variable {A : Type u} [CommRing A]
@@ -236,7 +237,7 @@ structure PreClos where
   mor: indnumb → subscheme i →sch X
   cov: X.affineCover
   ideal:   indnumb → cov.index → ideal A γ
-  condiso: for all i γ  Spec(A_γ/L_iγ)= mor^{-1} (Spec(A_γ))
+  condiso: for all i γ  Spec(A_γ/L_iγ)isom[Spec(A_{γ})] mor^{-1} (Spec(A_γ))
 
 
 def PreClos_on_refinement (Z: PreClos) (cov': refinment of Z.cov) : X.Preclos :=
@@ -253,20 +254,36 @@ lemma (C1 C2 : X.affineCover) : ∃ (C3 : X.affineCover) such that C3 is finer t
    sorry
 
 def rel : X.PreClos → X.PreClos → Prop := fun Z Z' =>
-   exists refinement such that Z = Z' on refinement.
+   indnumb Z= indnumb Z'
+   clotop Z = clotop Z'
+   subscheme Z = subscheme Z'
+   condset Z = condset Z'
+   mor Z = mor Z'
+
+lemma rel_trans
+
+lemma rel_sym
+
+lemma rel_refl
 
 def : Clos = PreClos.quotient
 
-structure Cars extends Clos where exists openaffine covering such that
-  nonz: indnumb → indcov → nonZeroDivisors A γ
-  condcar : ideal i γ = Ideal.span nonz i γ
+structure PrePri extends PreClos where
+  condcar : ideal i γ isPrincipal
 
+
+structure PreCars extends PrePri where
+  condcar : ideal i γ isPrincipalnonZerodiv
+
+structure Pri extends Clos where exist representative in PrePri
+
+structure Cars extends Clos where exists a representative in PreCars
 
 
 variable {Y: Type u} [Clos X]
 
 
-def pull_back_Clos(Z: Clos X) (f: X' → X): Clos X :=
+def pull_back_Clos(Z: PreClos X) (f: X' → X): PreClos X' :=
   indnumb : Z.indnumb
   clotop: indnumb → pullback f oof closed (underlying top of X)
   subscheme: indnumb → pullback f Z.subscheme i
@@ -276,6 +293,14 @@ def pull_back_Clos(Z: Clos X) (f: X' → X): Clos X :=
   ideal:   indnumb → cov.index → image ideal A γ
   condiso: affine routine
 
+lemma pul_back_lem (Z Z': PreClos X) (f: X' → X) (Z rel Z') :  PreClos X' rel PreClos X := by
+   triviall
+   sorry
+
+
+def pull_back_Clos(Z: Clos X) (f: X' → X): Clos X' :=
+    class of PreClos
+
 
 structure conceptual_blowup (Z: Clos X) where
    scheme: scheme over X
@@ -284,7 +309,7 @@ structure conceptual_blowup (Z: Clos X) where
 
 
 
-def loc_to_Clos (L: ι(finite) → ideal A) : Clos Spec(A):=
+def loc_to_PreClos (L: ι(finite) → ideal A) : PreClos Spec(A):=
    indcov: singleton
    indnumb: ι
    clotop: i ↦ underlying Spec(A/ L i)
@@ -295,6 +320,7 @@ def loc_to_Clos (L: ι(finite) → ideal A) : Clos Spec(A):=
    ideal: i ↦ * ↦mapsto L i
    condiso: tauto
 
+def loc_to_Clos (L: ι(finite) → ideal A) : Clos Spec(A):= class of preclos
 
 
 lemma ProjBlowup_UnivProp_unicity_affine :  (f: T → Spec(A))
