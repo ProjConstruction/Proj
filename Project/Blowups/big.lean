@@ -288,8 +288,9 @@ def pull_back_Clos(Z: PreClos X) (f: X' → X): PreClos X' :=
   condset : ok
   mor: pullbackmor
   cov: affine refinement oof pullback X.affineCover
-  ideal:   indnumb → cov.index → image ideal A γ
-  condiso: affine routine
+  ideal:   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
+  condiso: affine routine via pullback and
+             AlgebraicGeometry.AffineScheme.equivCommRingCat
 
 lemma pul_back_lem (Z Z': PreClos X) (f: X' → X) (Z rel Z') :  PreClos X' rel PreClos X := by
    triviall
