@@ -550,19 +550,43 @@ def Pri := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
 def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 
 
-variable {Y : Type u} [Clos X]
+structure PreClos where
+  (indnumb : Type u)
+  [fin_indnumb : Fintype indnumb]
+  (clotop : indnumb → Closeds X)
+  (subscheme: indnumb → Scheme)
+  (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
+  [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
+  cov : Scheme.AffineCover (P := @IsOpenImmersion) X
+  ideal: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
+  condiso : ∀ (i : indnumb) (γ : cov.J),
+    Spec (CommRingCat.of (cov.obj γ ⧸ ideal i γ)) ≅
+    pullback (f := subscheme i ↘ X) (g := cov.map γ)
+  condover : ∀ (i : indnumb) (γ : cov.J),
+    Scheme.Hom.IsOver (condiso i γ).hom
+      (Spec (CommRingCat.of (cov.obj γ)))
 
-
-def pull_back_Clos(Z: PreClos X) (f: X' → X): X'.PreClos  :=
-  indnumb : Z.indnumb
-  clotop: indnumb → pullback f oof closed (underlying top of X)
-  subscheme: indnumb → pullback f Z.subscheme i
-  condset : ok
-  mor: pullbackmor
-  cov: affine refinement oof pullback X.affineCover
-  ideal:   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
-  condiso: affine routine via pullback and
-             AlgebraicGeometry.AffineScheme.equivCommRingCat
+def pull_back_Clos(Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
+  indnumb := Z.indnumb
+  fin_indnumb := by sorry
+  clotop := (i : indnumb) ↦ f.pullback (Z.clotop i)
+  subscheme := i ↦ f.pullback (Z.subscheme i)
+  condset := by sorry
+  over := by sorry
+  cov := disjoint union of affine open cover for each open (not necessarily affine)  of f.pullback Z.cov
+  ---  Z.cov = cup U_γ . pullback Z.cov = cup pullback U_γ.
+  --- for all gamma let C_γ be an affine open  covering of  pullback U_γ
+  ---- consider U C_γ : this is will work!
+  ideal:=   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
+    --- an element in cov.index is a pair (γ, β)
+    -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
+    --- by composition we get a morphism of schemes U_β → U_γ
+    -- since U_β and U_γ are affine, we get morphism of rings Aγ →   Aβ by the antiequivalence
+    -- between the categories Affschemes and CommRings
+    -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
+  condiso:= --affine routine via pullback and
+            -- AlgebraicGeometry.AffineScheme.equivCommRingCat
+  condover := by sorry
 
 lemma pul_back_lem (Z Z': PreClos X) (f: X' → X) (Z rel Z') :  PreClos Z rel PreClos Z' := by
    triviall
