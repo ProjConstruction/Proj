@@ -550,23 +550,8 @@ def Pri := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
 def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 
 
-structure PreClos where
-  (indnumb : Type u)
-  [fin_indnumb : Fintype indnumb]
-  (clotop : indnumb → Closeds X)
-  (subscheme: indnumb → Scheme)
-  (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
-  [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
-  cov : Scheme.AffineCover (P := @IsOpenImmersion) X
-  ideal: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
-  condiso : ∀ (i : indnumb) (γ : cov.J),
-    Spec (CommRingCat.of (cov.obj γ ⧸ ideal i γ)) ≅
-    pullback (f := subscheme i ↘ X) (g := cov.map γ)
-  condover : ∀ (i : indnumb) (γ : cov.J),
-    Scheme.Hom.IsOver (condiso i γ).hom
-      (Spec (CommRingCat.of (cov.obj γ)))
 
-def pull_back_Clos(Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
+def pull_back_PreClos(Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
   fin_indnumb := by sorry
   clotop := (i : indnumb) ↦ f.pullback (Z.clotop i)
@@ -588,18 +573,20 @@ def pull_back_Clos(Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
             -- AlgebraicGeometry.AffineScheme.equivCommRingCat
   condover := by sorry
 
-lemma pul_back_lem (Z Z': PreClos X) (f: X' → X) (Z rel Z') :  PreClos Z rel PreClos Z' := by
-   triviall
-   sorry
+lemma pul_back_lem (Z Z': PreClos X) (T : Scheme) (f: T ⟶ X) (Z rel Z') :
+      (pull_back_PreClos X Z T f) rel (pull_back_PreClos X Z' T f) := by
+        triviall
+        sorry
 
 
-def pull_back_Clos(Z: Clos X) (f: X' → X): Clos X' :=
+def pull_back_Clos(Z: Clos X) (X': Scheme) (f: X' ⟶  X): Clos X' :=
     class of PreClos
 
 
 structure conceptual_blowup (Z: Clos X) where
-   scheme: scheme over X
-   cond1:  pull_back_Clos Z on scheme is Cartier
+   scheme: Scheme
+   over : Scheme.Over scheme X
+   cond1:  (pull_back_Clos X Z scheme over)  belongs to Cars.scheme
    cond2: forr all T → X such that pull_back_Clos is Cartier there exists a unique X-mor T → X
 
 
