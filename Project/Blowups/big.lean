@@ -208,7 +208,7 @@ lemma inter_Po (P P' : Mu L) : ((glueData Proj).map_index P).opensRange ∩
 
 
 
-def (P P': Mu) : A[P]→ₐ[A] A[union_center P  P'] :=
+def (P P': Mu L) : A[P]→ₐ[A] A[union_center P  P'] :=
   desc
   sorry
 
@@ -269,7 +269,6 @@ def : Clos = PreClos.quotient
 structure PrePri extends PreClos where
   condcar : ideal i γ isPrincipal
 
-
 structure PreCars extends PrePri where
   condcar : ideal i γ isPrincipalnonZerodiv
 
@@ -281,7 +280,7 @@ structure Cars extends Clos where exists a representative in PreCars
 variable {Y: Type u} [Clos X]
 
 
-def pull_back_Clos(Z: PreClos X) (f: X' → X): PreClos X' :=
+def pull_back_Clos(Z: PreClos X) (f: X' → X): X'.PreClos  :=
   indnumb : Z.indnumb
   clotop: indnumb → pullback f oof closed (underlying top of X)
   subscheme: indnumb → pullback f Z.subscheme i
@@ -292,7 +291,7 @@ def pull_back_Clos(Z: PreClos X) (f: X' → X): PreClos X' :=
   condiso: affine routine via pullback and
              AlgebraicGeometry.AffineScheme.equivCommRingCat
 
-lemma pul_back_lem (Z Z': PreClos X) (f: X' → X) (Z rel Z') :  PreClos X' rel PreClos X := by
+lemma pul_back_lem (Z Z': PreClos X) (f: X' → X) (Z rel Z') :  PreClos Z rel PreClos Z' := by
    triviall
    sorry
 
