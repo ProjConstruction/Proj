@@ -427,7 +427,7 @@ instance (P P': Mu L) : Algebra A[P'.multicenter] A[(union_Mu L P P').multicente
 lemma dilToDilUnion'_as_algebraMap (P P': Mu L) : algebraMap A[P'.multicenter] A[(union_Mu L P P').multicenter] =
   dilToDilUnion' L P P' := rfl
 
-lemma lemm_dila  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDivisors B) (i : ι)
+lemma lemm_dila_double_union  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDivisors B) (i : ι)
     (g: A[P.multicenter]→ₐ[A] B)
     (g':  A[P'.multicenter]→ₐ[A] B)
     (cond1: Ideal.map (algebraMap A B) (L i) = Ideal.span  {(c i).1})
@@ -549,19 +549,17 @@ def Pri := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
 
 def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 
-
-
-def pull_back_PreClos(Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
+def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
   fin_indnumb := by sorry
-  clotop := (i : indnumb) ↦ f.pullback (Z.clotop i)
-  subscheme := i ↦ f.pullback (Z.subscheme i)
+  clotop := fun (i : Z.indnumb) => IsClosed.preimage f.TopMaP (Z.clotop i)
+  subscheme := fun (i : Z.indnumb) => pullback (Z.subscheme i ↘ X) (f)
   condset := by sorry
   over := by sorry
   cov := disjoint union of affine open cover for each open (not necessarily affine)  of f.pullback Z.cov
   ---  Z.cov = cup U_γ . pullback Z.cov = cup pullback U_γ.
   --- for all gamma let C_γ be an affine open  covering of  pullback U_γ
-  ---- consider U C_γ : this is will work!
+  ---- consider U C_γ : this is the one we want to consider.
   ideal:=   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
     --- an element in cov.index is a pair (γ, β)
     -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
@@ -574,7 +572,7 @@ def pull_back_PreClos(Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  whe
   condover := by sorry
 
 lemma pul_back_lem (Z Z': PreClos X) (T : Scheme) (f: T ⟶ X) (Z rel Z') :
-      (pull_back_PreClos X Z T f) rel (pull_back_PreClos X Z' T f) := by
+      rel (pull_back_PreClos X Z T f)  (pull_back_PreClos X Z' T f) := by
         triviall
         sorry
 
@@ -591,23 +589,27 @@ structure conceptual_blowup (Z: Clos X) where
 
 
 
-def loc_to_PreClos (L: ι(finite) → ideal A) : PreClos Spec(A):=
-   indcov: singleton
-   indnumb: ι
-   clotop: i ↦ underlying Spec(A/ L i)
+def loc_to_PreClos (A: CommRing) (L: ι → ideal A)  [fin : Fintype ι] :
+                                          PreClos (Spec CommRingCat.of A) where
+   indcov:= singleton
+   indnumb:= ι
+   clotop := fun i => underlying (Spec (CommRingCat.of (A ⧸ L i)))
+   ---cf. also PrimeSpectrum.isClosed_iff_zeroLocus_ideal
    subscheme : i ↦ Spec(A/L i)
+   --maybe we need a lemma saying that "V(I) ≅  Spec(A/I)
    condset: tauto
-   mor: i ↦ Spec.hom A → AA/Li
+   mor: i ↦ Spec.hom A → A/Li
    condcov X =x
    ideal: i ↦ * ↦mapsto L i
    condiso: tauto
 
-def loc_to_Clos (L: ι(finite) → ideal A) : Clos Spec(A):= class of preclos
+def loc_to_Clos (A: CommRing) (L: ι → ideal A)
+            [fin : Fintype ι] : Clos Spec CommRingCat.of (A):= class of preclos
 
 
 lemma ProjBlowup_UnivProp_unicity_affine :  (f: T → Spec(A))
-     (cond: pullback on T loc_to_clos L is in Cars T)
-     (φ φ': T →over Spec(A) BlMu L ): φ=φ'  := by
+  (cond: pullback on T loc_to_clos L is in Cars T)
+  (φ φ': T →over Spec(A) BlMu L ): φ=φ'  := by
      Let x ∈ T.
      Reduce to local neighborhood
      put y=φx
@@ -617,7 +619,7 @@ lemma ProjBlowup_UnivProp_unicity_affine :  (f: T → Spec(A))
      Let U=Spec(B) be an affine neighborhood of x in φ^-1 (Po P) ∩ φ'^-1 (Po P').
      consider the restrictions of φ and φ' to U
      Phi factors through Po P, Phi' factors through Po P'
-     apply lemma 2
+     apply lemm_dila_double_union to get a unique morphism
      apply univ prop of dilatations
      sorry
 
