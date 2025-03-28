@@ -291,13 +291,6 @@ def clo_mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
           HomogeneousLocalization.mk
             { deg := Finsupp.single (P.Ψ i) (1 : ℤ),
               num := ⟨.single _ (Finsupp.single (P.Ψ i) 1) ⟨x, ?num_deg⟩, ?num_deg'⟩
-
-                  /-
-                  by
-                simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range,
-                  ρNatToInt_apply]
-                rw [dif_pos ⟨Finsupp.single (P.Ψ i) 1, by simp⟩]
-                  -/
               den := ⟨.single _ (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, ?den_deg⟩, ?den_deg'⟩
               den_mem := ?den_mem } := by
           ext
@@ -361,6 +354,14 @@ def clo_mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
         apply Ideal.mul_mem_right
         apply Ideal.subset_span
         rfl)
+
+lemma clo_mu_mor_surj (P: Mu L) [DecidableEq P.multicenter.index] :
+    Function.Surjective (clo_mu_mor L P) := by
+  intro x
+  induction x using Quotient.inductionOn' with | h x =>
+  have := x.den_mem
+  refine ⟨.mk ⟨?_, ?_, ?_⟩, ?_⟩
+  sorry
 
 def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
