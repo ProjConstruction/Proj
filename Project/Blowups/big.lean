@@ -607,8 +607,9 @@ def loc_to_Clos (A: CommRing) (L: ι → ideal A)
             [fin : Fintype ι] : Clos Spec CommRingCat.of (A):= class of preclos
 
 
-lemma ProjBlowup_UnivProp_unicity_affine :  (f: T → Spec(A))
-  (cond: pullback on T loc_to_clos L is in Cars T)
+lemma ProjBlowup_UnivProp_unicity_affine :  (A: CommRing) (L: ι → ideal A)
+  [fin : Fintype ι] (f: T → Spec(A))
+  (cond: (pull_back_Clos (loc_to_Clos L) (T) (f) ) ∈  Cars T)
   (φ φ': T →over Spec(A) BlMu L ): φ=φ'  := by
      Let x ∈ T.
      Reduce to local neighborhood
@@ -623,17 +624,19 @@ lemma ProjBlowup_UnivProp_unicity_affine :  (f: T → Spec(A))
      apply univ prop of dilatations
      sorry
 
-lemma ProjBlowup_UnivProp_existence_affine (f: T → Spec(A))
-     (cond: pullback on T loc_to_clos L is in Cars T) : ∃  T →over Spec(A) BlMu L := by
+lemma ProjBlowup_UnivProp_existence_affine (A: CommRing) (L: ι → ideal A)
+  [fin : Fintype ι] (f: T → Spec(A))
+  (cond: (pull_back_Clos (loc_to_Clos L) (T) (f) ) ∈  Cars T) : ∃  T →over Spec(A) BlMu L := by
         produce locally some map using dilatation
         glue them using Glue and ProjBlowup_UnivProp_unicity_affine
         sorry
 
-lemma ProjBlowup_UnivProp_affine (f: T → Spec(A))
-     (cond: pullback on T loc_to_clos L is in Cars T) :∃!  T →over Spec(A) BlMu L  by
+lemma ProjBlowup_UnivProp_affine (A: CommRing) (L: ι → ideal A)
+  [fin : Fintype ι] (f: T → Spec(A))
+  (cond: (pull_back_Clos (loc_to_Clos L) (T) (f) ) ∈  Cars T) :∃!  T →over Spec(A) BlMu L  by
        ProjBlowup_UnivProp_unicity_affine + ProjBlowup_UnivProp_existence_affine
        sorry
-
+--skip the following lemma at first
 lemma dilatation_ring_flat_base_change (χ : A →+* B) (F: Multicenter A):
  χ ∈ RingHom.Flat  : ∃! A[F]⊗[A] B ≅ₐ[B] B[image_mult F] := by
    χ flat and nonzerodiv_image implies that  𝐚^ν is a nonzerodivisor in A[F]⊗[A] B
@@ -642,7 +645,7 @@ lemma dilatation_ring_flat_base_change (χ : A →+* B) (F: Multicenter A):
    universal property of tensor product, exists ->
    check that both compositions are identity
   sorry
-
+--skip this one also
 lemma flat_module_localization_at_prime_iff (M: Module.A):
  (M =0) ↔ (∀ q : maxideal.A : localization M A\ q =0 ):=
   → is trivial
@@ -655,7 +658,7 @@ lemma flat_module_localization_at_prime_iff (M: Module.A):
   so 1.x=0
   so M=0
   sorry
-
+--same one, can be skiped at first
 lemma open_implies_flat_ring (χ : A →+* B):
  (B.Spec → A.Spec is open_immerison )→ (χ : A →+* B is flat_ring_map):=
    intro χ
@@ -667,7 +670,7 @@ lemma open_implies_flat_ring (χ : A →+* B):
   sorry
 
 
-
+--the following is really what we need for the experiment in a first time
 lemma base_change_dil_open [Algebra A B]
    (i:Spec(B) → Spec(A) is Open immersion)
    (F: multicenter A) :
@@ -675,6 +678,7 @@ lemma base_change_dil_open [Algebra A B]
      exact open_implies_flat_ring  and dilatation_ring_flat_base_change
       sorry
 
+--the following is also  what we need for the experiment in a first time
 lemma base_change_Bl_open [Algebra A B]
    (i:Spec(B) → Spec(A) is Open immersion)
    (L: ι → ideal A) :
@@ -688,15 +692,19 @@ lemma base_change_Bl_open [Algebra A B]
      sorry
 
 
-def ideal_loc (Z: Clos X) (γ : Z.indcov) : indnumb → ideal A γ :=
+def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.index) : Z.indnumb → ideal A γ :=
    fun i ↦ ideal i γ
 
-def Proj_loc  (Z: Clos X) (γ : Z.indcov) := Bl (ideal_loc Z γ)
+def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.index): Scheme  := BlMu (ideal_loc Z γ)
 
-def open_pair (Z: Clos X) (γ δ : Z.indcov) := Spec(A_γ) ∩ Spec(A_δ)
+def open_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.index) : Scheme := Spec(A_γ) ∩ Spec(A_δ)
 
-def Proj_loc_pair (Z: Clos X) (γ δ : Z.indcov) :=
-    inverse image of open_pair in Bl (ideal_loc Z γ)
+def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.index) : open_pair γ δ  ⟶ X :=
+                                            Spec(A_γ) ∩ Spec(A_δ)
+
+def Proj_loc_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.index) :=
+    pullback (open_pair_map X Z γ δ) (Proj_loc X Z γ → Spec(A_γ))
+    --inverse image of open_pair in Bl (ideal_loc Z γ)
 
 def Proj_loc_pair_open (Z: Clos X) (γ δ : Z.indcov) (U: open affine of open_pair γ δ) :
    ∃! (inverse image of U inn Proj_loc_pair Z γ δ)  →
