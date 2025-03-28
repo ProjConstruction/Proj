@@ -12,16 +12,17 @@ import Mathlib.RingTheory.TensorProduct.Basic
 import Project.HomogeneousSubmonoid.Basic
 import Project.ForMathlib.TensorProduct
 import Project.Proj.Over
+import Project.Proj.OfLE
 import Project.Dilatation.Multicenter
+import Mathlib.Topology.Sets.Closeds
 
 
 
 suppress_compilation
 universe u
-variable {A : Type u} [CommRing A]
-variable {B : Type u} [CommRing B]
-variable {ι : Type u} [Fintype ι] (L : ι → Ideal A)
-[DecidableEq ι]
+variable {A : Type (u+1)} [CommRing A]
+variable {B : Type (u+1)} [CommRing B]
+variable {ι : Type (u+1)} [Fintype ι] (L : ι → Ideal A) [DecidableEq ι]
 variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
 
 
@@ -29,46 +30,73 @@ open GoodPotionIngredient
 def Bl  := Proj (τ := GoodPotionIngredient (ReesAlgebra.intGrading L)) id
 
 
-structure Mu where
-multicenter: Multicenter A
+structure Mu : Type (u + 1) where
+multicenter : Multicenter A
+[fin : Fintype multicenter.index]
 Ψ : multicenter.index → ι
 sec : ι → multicenter.index
 surj : ∀ i, Ψ (sec i) = i
 cond : ∀ i, multicenter.LargeIdeal i = L (Ψ i)
 
+attribute [instance] Mu.fin
 
 
+omit [Fintype ι] [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range ⇑(ρNatToInt ι))] in
+instance Bl.nonempty_index [Nonempty ι] (P : Mu L) : Nonempty P.multicenter.index := by
+  apply Nonempty.map P.sec
+  assumption
+
+omit [Fintype ι] [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range ⇑(ρNatToInt ι))] in
+lemma Bl.isEmpty_index [IsEmpty ι] (P : Mu L) : IsEmpty P.multicenter.index := by
+  by_contra rid
+  simp only [not_isEmpty_iff] at rid
+  have : IsEmpty (P.multicenter.index → ι) := by
+    infer_instance
+  exact this.elim P.Ψ
+
+omit [Fintype ι] [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))] in
+lemma Mu.surjective (P: Mu L) : Function.Surjective P.Ψ := by
+  intro i
+  use P.sec i
+  exact P.surj i
+
+variable {index' : Type u} [Fintype index']
+variable {index}
 @[simps]
-def union_center (F F': Multicenter A): Multicenter A :=
+def union_center (F : Multicenter A) (F' : Multicenter A):
+    Multicenter A :=
   { index := F.index ⊕ F'.index
     ideal := fun i => match i with
       | Sum.inl i => F.ideal i
       | Sum.inr i => F'.ideal i
     elem := fun i => match i with
       | Sum.inl i => F.elem i
-      | Sum.inr i => F'.elem i
-    }
+      | Sum.inr i => F'.elem i }
+
 @[simp]
 lemma union_center_largeIdeal_left (F F' : Multicenter A) (i : F.index) :
  (union_center F F').LargeIdeal (Sum.inl i) = F.LargeIdeal i := rfl
 
 @[simp]
-lemma union_center_largeIdeal_right (F F' : Multicenter A) (i : F'.index) :
+lemma union_center_largeIdeal_right (F : Multicenter A) (F' : Multicenter A) (i : F'.index) :
  (union_center F F').LargeIdeal (Sum.inr i) = F'.LargeIdeal i := rfl
 
-def union_Mu (P P' : Mu L) : Mu L :=
+def union_Mu (P : Mu L) (P' : Mu L) : Mu L :=
   { multicenter := union_center P.multicenter P'.multicenter,
+    fin := instFintypeSum _ _
     Ψ := Sum.rec (P.Ψ) (P'.Ψ),
     sec := Sum.inl ∘ P.sec
     surj := by
       intro i
-      simpa [union_center_index, Function.comp_apply] using P.surj i
+      simpa [Function.comp_apply] using P.surj i
     cond := by
       rintro (i|i)
       · simp [P.cond i]
       · simp [P'.cond i] }
 
-def clo_mu (P: Mu L) [DecidableEq P.multicenter.index] :
+variable [DecidableEq index] [DecidableEq index']
+
+def clo_mu (P: Mu L)  :
     HomogeneousSubmonoid (ReesAlgebra.intGrading L):=
   HomogeneousSubmonoid.closure
       { ReesAlgebra.single L (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, by
@@ -110,9 +138,61 @@ def clo_mu (P: Mu L) [DecidableEq P.multicenter.index] :
     simp [ρNatToInt]
 
 
+omit [Fintype ι] in
+lemma mu_clo_isEmpty [IsEmpty ι] (P: Mu L)  :
+    clo_mu L P = HomogeneousSubmonoid.bot := by
+  ext x
+  simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+    HomogeneousSubmonoid.mem_toSubmonoid_iff, HomogeneousSubmonoid.mem_bot]
+  refine ⟨?_, by rintro rfl; exact one_mem _⟩
+  intro H
+  refine Submonoid.closure_induction (hx := H) ?_ ?_ ?_
+  · rintro _ ⟨i, rfl⟩
+    exact (Bl.isEmpty_index L P).elim i
+  · rfl
+  · rintro x y hx hy rfl rfl
+    simp
+
+open Family
 
 omit [Fintype ι] in
-lemma clo_mu_bar_agrDeg (P: Mu L) [DecidableEq P.multicenter.index] :
+lemma mem_clo_mu (P : Mu L) (x) :
+    x ∈ clo_mu L P ↔
+      ∃ (n : P.multicenter.index →₀ ℕ), x =
+      (fun i ↦ .single L (Finsupp.single (P.Ψ i) 1)
+      ⟨P.multicenter.elem i, by
+        simp only [familyPow_single]
+        rw [← P.cond]
+        exact Multicenter.elem_mem_LargeIdeal P.multicenter i⟩ : P.multicenter.index → ReesAlgebra L) ^ n := by
+  obtain (E|⟨i⟩) := isEmpty_or_nonempty ι
+  · fconstructor
+    · rintro h
+      rw [mu_clo_isEmpty] at h
+      simp only [HomogeneousSubmonoid.mem_bot] at h
+      subst h
+      use 0
+      simp
+    · rintro ⟨n, hn, rfl⟩
+      refine prod_mem fun i hi ↦ ?_
+      exact (Bl.isEmpty_index L P).elim i
+  fconstructor
+  · intro hx
+    refine Submonoid.closure_induction (hx := hx) ?_ ?_ ?_
+    · rintro _ ⟨i, rfl⟩
+      use Finsupp.single i 1
+      simp only [familyPow_single]
+    · use Finsupp.single (Bl.nonempty_index L P).some 0
+      simp
+    · rintro x y hx hy ⟨m, rfl⟩ ⟨n, rfl⟩
+      use m + n
+      rw [familyPow_add]
+
+  · rintro ⟨n, hn, rfl⟩
+    refine prod_mem fun i hi ↦ Submonoid.pow_mem _ (Submonoid.subset_closure ?_) _
+    use i
+
+omit [Fintype ι] in
+lemma clo_mu_bar_agrDeg (P: Mu L) :
     (clo_mu L P).bar.agrDeg = ⊤ := by
   rw [eq_top_iff]
   rintro x -
@@ -146,42 +226,25 @@ lemma clo_mu_bar_agrDeg (P: Mu L) [DecidableEq P.multicenter.index] :
     rw [show L i = L (P.Ψ (P.sec i)) by rw [P.surj], ← P.cond]
     exact Multicenter.elem_mem_LargeIdeal P.multicenter (P.sec i)
 
-lemma clo_mu_rel (P: Mu L) [DecidableEq P.multicenter.index]  : (clo_mu L P).IsRelevant := by
+lemma clo_mu_rel (P: Mu L) : (clo_mu L P).IsRelevant := by
   rw [HomogeneousSubmonoid.isRelevant_iff_finiteIndex_of_FG, clo_mu_bar_agrDeg]
   infer_instance
 
 -- A -> (Rees L)[0] -> (clo_mu L P).Potion
-def mu_potion_algebraMap (P: Mu L) [DecidableEq P.multicenter.index] :
+def mu_potion_algebraMap (P: Mu L)  :
     A →+* ((clo_mu L P).Potion) :=
   RingHom.comp (algebraMap _ _) (ReesAlgebra.degreeZeroIso' L |>.toRingHom)
 
 
-instance (P: Mu L) [DecidableEq P.multicenter.index] : Algebra A ((clo_mu L P).Potion) :=
+instance (P: Mu L) : Algebra A ((clo_mu L P).Potion) :=
   RingHom.toAlgebra (mu_potion_algebraMap L P)
 
 omit [Fintype ι] in
-lemma mu_potion_algebraMap_eq (P: Mu L) [DecidableEq P.multicenter.index] :
+lemma mu_potion_algebraMap_eq (P: Mu L) :
   algebraMap A (clo_mu L P).Potion = mu_potion_algebraMap L P := rfl
 
-open Family
--- lemma mu_potion_algebraMap_eq_sq_over_self (P: Mu L) [DecidableEq P.multicenter.index] (i) :
---   (algebraMap A (clo_mu L P).Potion (P.multicenter.elem i)) =
---   (HomogeneousLocalization.mk
---     { deg := ρNatToInt _ <| Finsupp.single (P.Ψ i) 1,
---       num := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i)^2, by
---         rw [familyPow_single, ← P.cond]
---         apply Ideal.pow_mem_of_mem
---         apply Multicenter.elem_mem_LargeIdeal
---         norm_num⟩, ReesAlgebra.single_has_degree' ..⟩
---       den := ⟨ReesAlgebra.single _ (Finsupp.single (P.Ψ i) 1) ⟨(P.multicenter.elem i), by
---         rw [familyPow_single, ← P.cond]
---         apply Multicenter.elem_mem_LargeIdeal⟩, ReesAlgebra.single_has_degree' ..⟩
---       den_mem := by
---         refine Submonoid.subset_closure ?_
---         use i } : (clo_mu L P).Potion) := sorry
-
 open Multicenter Multicenter.Dilatation
-def clo_mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
+def clo_mu_mor (P: Mu L) :
   A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
    Multicenter.desc P.multicenter
     (by
@@ -306,106 +369,188 @@ def clo_mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
         apply Ideal.subset_span
         rfl)
 
-def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
+def Mu_mor_iso (P: Mu L) :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
-  AlgEquiv.ofBijective _ _
+  AlgEquiv.ofBijective sorry sorry
 -- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
 --   by  in
 
 
-def map_index : fun (P: Mu L)↦ (clo_mu L P : GoodPotionIngredient (ReesAlgebra.intGrading L)) := by
-   Mu_rel
-   sorry
+def map_index (P: Mu L) :
+    GoodPotionIngredient (ReesAlgebra.intGrading L) where
+  toHomogeneousSubmonoid := clo_mu L P
+  relevant := clo_mu_rel L P
+  fg := sorry
 
 
+open AlgebraicGeometry
 
-def BlMu  := Proj (τ := Mu L ) map_index L
-    sorry
+def BlMu : Scheme :=
+  Proj (τ := Mu L) (map_index L)
 
+def BlMuToBl : BlMu L ⟶ Bl L :=
+  projHomOfLE
+    { t :=
+      { toFun := map_index L
+        inj' := sorry }
+      comp := rfl }
 
-lemma Dila_cov_proj : BlMu → Bl isIso := by
-     --in the paper
-    sorry
+-- open CategoryTheory
+-- instance Dila_cov_proj : IsIso (BlMuToBl index L) := by
+--      --in the paper
+--     sorry
 
-
-lemma inter_Po (P P' : Mu L) : ((glueData Proj).map_index P).opensRange ∩
-                              ((glueData Proj).map_index P').opensRange
-                              = ((glueData Proj).map_index union_Mu P P').opensRange  := by
-                  D(S) ∩ D(T) =D(ST)
-                  sorry
-
-
-
-def (P P': Mu L) : A[P]→ₐ[A] A[union_center P  P'] :=
-  desc
+lemma inter_Po (P P' : Mu L) :
+    ((glueData (τ := Mu L) (map_index L)).ι P).opensRange ⊓
+    ((glueData (τ := Mu L) (map_index L)).ι P').opensRange =
+    ((glueData (τ := Mu L) (map_index L)).ι (union_Mu L P P')).opensRange := by
+          -- D(S) ∩ D(T) =D(ST)
   sorry
 
 
-lemma lemm_dila  [Algebra A B] (P P': Mu L) (c: ι→  nonZeroDivisors B) (i : ι)
-(g: A[P]→ₐ[A] B)
-(g':  A[P']→ₐ[A] B)
-(cond1: Ideal.map (algebraMap A B) (L i) = Ideal.span  {(algebraMap A B) ((c i).1)})
-(cond2: (algebraMap A B)= AlgHom.comp g (algebraMap A A[P]) )
-(cond2': (algebraMap A B)= AlgHom.comp (g') (algebraMap A A[P'] ) ) :
-∃! (g'' : A[union_center P P'] →ₐ[A]B),
-   g = AlgHom.comp (g'') (algebraMap A[P] A[union_center P P'])
- ∧  g= AlgHom.comp (g') (algebraMap A[P'] A[union_center P P']) := by
-    desc union_center P P'
-    sorry
+
+def dilToDilUnion (P P': Mu L) : A[P.multicenter] →ₐ[A] A[(union_Mu L P P').multicenter] :=
+  Multicenter.desc _ sorry sorry
+
+instance (P P': Mu L) : Algebra A[P.multicenter] A[(union_Mu L P P').multicenter] :=
+  RingHom.toAlgebra (dilToDilUnion L P P')
+
+lemma dilToDilUnion_as_algebraMap (P P': Mu L) : algebraMap A[P.multicenter] A[(union_Mu L P P').multicenter] =
+  dilToDilUnion L P P' := rfl
+
+def dilToDilUnion' (P P': Mu L) : A[P'.multicenter]→ₐ[A] A[(union_Mu L P P').multicenter] :=
+  Multicenter.desc _ sorry sorry
+
+instance (P P': Mu L) : Algebra A[P'.multicenter] A[(union_Mu L P P').multicenter] :=
+  RingHom.toAlgebra (dilToDilUnion' L P P')
+
+lemma dilToDilUnion'_as_algebraMap (P P': Mu L) : algebraMap A[P'.multicenter] A[(union_Mu L P P').multicenter] =
+  dilToDilUnion' L P P' := rfl
+
+lemma lemm_dila  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDivisors B) (i : ι)
+    (g: A[P.multicenter]→ₐ[A] B)
+    (g':  A[P'.multicenter]→ₐ[A] B)
+    (cond1: Ideal.map (algebraMap A B) (L i) = Ideal.span  {(c i).1})
+    (cond2: (Algebra.ofId A B)= AlgHom.comp g (Algebra.ofId A A[P.multicenter]) )
+    (cond2': (Algebra.ofId A B)= AlgHom.comp g' (Algebra.ofId A A[P'.multicenter])) :
+    ∃! (g'' : A[(union_Mu L P P').multicenter] →ₐ[A] B),
+      g = AlgHom.comp g'' (Algebra.ofId A[P.multicenter] A[(union_Mu L P P').multicenter] |>.restrictScalars _) ∧
+      g' = AlgHom.comp g'' (Algebra.ofId A[P'.multicenter] A[(union_Mu L P P').multicenter] |>.restrictScalars _) := by
+    -- desc union_center P P'
+  sorry
 
 
 
-variable {X : Type u} [Scheme X]
+variable {X : Scheme}
 
+open TopologicalSpace CategoryTheory.Limits
+
+instance (R : Type*) [CommRing R] (I : Ideal R) :
+    Scheme.Over (Spec (CommRingCat.of (R ⧸ I))) (Spec <| CommRingCat.of R)  where
+  hom := Spec.map <| CommRingCat.ofHom <| Ideal.Quotient.mk I
+
+open CategoryTheory
+
+instance (X Y Z : Scheme) (f : X ⟶ Z) (g : Y ⟶ Z) :
+    Scheme.Over (pullback f g) Z where
+  hom := pullback.fst f g ≫ f
+
+instance (X Y Z : Scheme) (f : X ⟶ Z) (g : Y ⟶ Z) :
+    Scheme.Over (pullback f g) X where
+  hom := pullback.fst f g
+
+instance (X Y Z : Scheme) (f : X ⟶ Z) (g : Y ⟶ Z) :
+    Scheme.Over (pullback f g) Y where
+  hom := pullback.snd f g
+
+/-
+
+
+            cov.obj j
+              |
+              v
+subschem i ->  X
+-/
+variable (X) in
 structure PreClos where
-  indnumb : finite set
-  clotop: indnumb → closed (underlying top of X)
-  subscheme: indnumb → AlgebraicGeometry.Scheme
-  condset : clotop i = underlying top (subscheme i)
-  mor: indnumb → subscheme i →sch X
-  cov: X.affineCover
-  ideal:   indnumb → cov.index → ideal A γ
-  condiso: for all i γ  Spec(A_γ/L_iγ)isom[Spec(A_{γ})] mor^{-1} (Spec(A_γ))
+  (indnumb : Type u)
+  [fin_indnumb : Fintype indnumb]
+  (clotop : indnumb → Closeds X)
+  (subscheme: indnumb → Scheme)
+  (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
+  [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
+  cov : Scheme.AffineCover (P := @IsOpenImmersion) X
+  ideal: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
+  condiso : ∀ (i : indnumb) (γ : cov.J),
+    Spec (CommRingCat.of (cov.obj γ ⧸ ideal i γ)) ≅
+    pullback (f := subscheme i ↘ X) (g := cov.map γ)
+  condover : ∀ (i : indnumb) (γ : cov.J),
+    Scheme.Hom.IsOver (condiso i γ).hom
+      (Spec (CommRingCat.of (cov.obj γ)))
 
-/--/
-def PreClos_on_refinement (Z: PreClos) (cov': refinment of Z.cov) : X.Preclos :=
-   indnumb : Z.indnumb
-   clotop: indnumb → closed (underlying top of X)
-   subscheme: indnumb → AlgebraicGeometry.Scheme
-   condset : clotop i = underlying top (subscheme i)
-   mor: indnumb → subscheme i →sch X
-   cov: cov'
-   ideal:   indnumb → cov.index → image ideal A γ
-   condiso: use condiso Z-/
-
-
-def rel : X.PreClos → X.PreClos → Prop := fun Z Z' =>
-   indnumb Z= indnumb Z'
-   clotop Z = clotop Z'
-   subscheme Z = subscheme Z'
-   condset Z = condset Z'
-   mor Z = mor Z'
-
-lemma rel_trans
-
-lemma rel_sym
-
-lemma rel_refl
-
-def : Clos = PreClos.quotient
-
-structure PrePri extends PreClos where
-  condcar : ideal i γ isPrincipal
-
-structure PreCars extends PrePri where
-  condcar : ideal i γ isPrincipalnonZerodiv
-
-structure Pri extends Clos where exist representative in PrePri
-
-structure Cars extends Clos where exists a representative in PreCars
+attribute [instance] PreClos.over
+/- -/
+-- def PreClos_on_refinement (Z: PreClos) (cov': refinment of Z.cov) : X.Preclos :=
+--    indnumb : Z.indnumb
+--    clotop: indnumb → closed (underlying top of X)
+--    subscheme: indnumb → AlgebraicGeometry.Scheme
+--    condset : clotop i = underlying top (subscheme i)
+--    mor: indnumb → subscheme i →sch X
+--    cov: cov'
+--    ideal:   indnumb → cov.index → image ideal A γ
+--    condiso: use condiso Z-/
 
 
-variable {Y: Type u} [Clos X]
+structure relStructure (Z Z' : PreClos X) where -- := fun Z Z' =>
+  indnumb_equiv :  Z.indnumb ≃ Z'.indnumb
+  clotop_homeomorph : ∀ i, Z.clotop i ≃ₜ Z'.clotop (indnumb_equiv i)
+  subscheme_iso : ∀ i, Z.subscheme i ≅ Z'.subscheme (indnumb_equiv i)
+  subscheme_iso_over : ∀ i, Scheme.Hom.IsOver (subscheme_iso i).hom X
+  /-
+  Z.clotop i       ≃ₜ      Z'.clotop (indnumb_equiv i)
+     |                            |
+  Z.subscheme i    ≅      Z'.subscheme (indnumb_equiv i)
+  -/
+  condset_eq : ∀ (i : Z.indnumb) (x : Z.clotop i),
+      Z'.condset (indnumb_equiv i) (clotop_homeomorph i x) =
+      (subscheme_iso i).hom.base (Z.condset i x)
+
+variable (X) in
+def rel : PreClos X → PreClos X → Prop := fun Z Z' => Nonempty (relStructure Z Z')
+
+
+variable (X) in
+def relSetoid : Setoid (PreClos X) where
+  r := rel X
+  iseqv :=
+    { refl := sorry
+      symm := sorry
+      trans := sorry }
+
+-- lemma rel_trans :
+
+-- lemma rel_sym
+
+-- lemma rel_refl
+
+variable (X) in
+def Clos := Quotient (relSetoid X)
+
+variable (X)
+structure PrePri extends PreClos X where
+  [prin : ∀ i γ, ideal i γ |>.IsPrincipal]
+
+attribute [instance] PrePri.prin
+
+structure PreCars extends PrePri X where
+  nonzerodiv : ∀ i γ, Submodule.IsPrincipal.generator (ideal i γ) ∈ nonZeroDivisors (cov.obj γ)
+
+def Pri := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
+
+def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
+
+
+variable {Y : Type u} [Clos X]
 
 
 def pull_back_Clos(Z: PreClos X) (f: X' → X): X'.PreClos  :=
