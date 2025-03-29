@@ -559,7 +559,8 @@ def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  wh
   cov := disjoint union of affine open cover for each open (not necessarily affine)  of f.pullback Z.cov
   ---  Z.cov = cup U_γ . pullback Z.cov = cup pullback U_γ.
   --- for all gamma let C_γ be an affine open  covering of  pullback U_γ
-  ---- consider U C_γ : this is the one we want to consider.
+  ---- consider U C_γ (where each target is X', we need composition with maps of covering u_γ ):
+                        -- this is the one we want to consider.
   ideal:=   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
     --- an element in cov.index is a pair (γ, β)
     -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
@@ -572,39 +573,37 @@ def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  wh
   condover := by sorry
 
 lemma pul_back_lem (Z Z': PreClos X) (T : Scheme) (f: T ⟶ X) (Z rel Z') :
-      rel (pull_back_PreClos X Z T f)  (pull_back_PreClos X Z' T f) := by
+       (r T) (pull_back_PreClos X Z T f)  (pull_back_PreClos X Z' T f) := by
         triviall
         sorry
 
 
-def pull_back_Clos(Z: Clos X) (X': Scheme) (f: X' ⟶  X): Clos X' :=
+def pull_back_Clos (Z: Clos X) (X': Scheme) (f: X' ⟶  X): Clos X' :=
     class of PreClos
 
 
 structure conceptual_blowup (Z: Clos X) where
    scheme: Scheme
    over : Scheme.Over scheme X
-   cond1:  (pull_back_Clos X Z scheme over)  belongs to Cars.scheme
+   cond1: ∀ (i : indnumb) (pull_back_Clos (X) (Z) (scheme) (over))  ∈ Cars scheme
    cond2: forr all T → X such that pull_back_Clos is Cartier there exists a unique X-mor T → X
 
 
 
-def loc_to_PreClos (A: CommRing) (L: ι → ideal A)  [fin : Fintype ι] :
-                                          PreClos (Spec CommRingCat.of A) where
-   indcov:= singleton
+def loc_to_PreClos (A: CommRing)(L: ι → ideal A)[fin : Fintype ι]:PreClos (Spec CommRingCat.of A) where
    indnumb:= ι
    clotop := fun i => underlying (Spec (CommRingCat.of (A ⧸ L i)))
    ---cf. also PrimeSpectrum.isClosed_iff_zeroLocus_ideal
-   subscheme : i ↦ Spec(A/L i)
+   subscheme := fun i => Spec (CommRingCat.of A ⧸ L i)
    --maybe we need a lemma saying that "V(I) ≅  Spec(A/I)
-   condset: tauto
-   mor: i ↦ Spec.hom A → A/Li
-   condcov X =x
-   ideal: i ↦ * ↦mapsto L i
-   condiso: tauto
+   condset:= tauto
+   mor:= fun i =>Spec.hom A → A⧸ L i
+   cov := (Spec CommRingCat.of A) --is itself an affine open covering
+   ideal:=  fun (i : indnumb) =>  L i
+   condiso:= tauto
 
 def loc_to_Clos (A: CommRing) (L: ι → ideal A)
-            [fin : Fintype ι] : Clos Spec CommRingCat.of (A):= class of preclos
+            [fin : Fintype ι] : Clos Spec CommRingCat.of (A):= loc_to_PreClos A L
 
 
 lemma ProjBlowup_UnivProp_unicity_affine :  (A: CommRing) (L: ι → ideal A)
@@ -658,7 +657,7 @@ lemma flat_module_localization_at_prime_iff (M: Module.A):
   so 1.x=0
   so M=0
   sorry
---same one, can be skiped at first
+--same, can be skiped at first
 lemma open_implies_flat_ring (χ : A →+* B):
  (B.Spec → A.Spec is open_immerison )→ (χ : A →+* B is flat_ring_map):=
    intro χ
@@ -692,38 +691,38 @@ lemma base_change_Bl_open [Algebra A B]
      sorry
 
 
-def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.index) : Z.indnumb → ideal A γ :=
+def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.J) : Z.indnumb → ideal A γ :=
    fun i ↦ ideal i γ
 
-def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.index): Scheme  := BlMu (ideal_loc Z γ)
+def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.J): Scheme  := BlMu (ideal_loc Z γ)
 
-def open_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.index) : Scheme := Spec(A_γ) ∩ Spec(A_δ)
+def open_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : Scheme := Spec(A_γ) ∩ Spec(A_δ)
 
-def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.index) : open_pair γ δ  ⟶ X :=
+def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair γ δ  ⟶ X :=
                                             Spec(A_γ) ∩ Spec(A_δ)
 
-def Proj_loc_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.index) :=
+def Proj_loc_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) :=
     pullback (open_pair_map X Z γ δ) (Proj_loc X Z γ → Spec(A_γ))
     --inverse image of open_pair in Bl (ideal_loc Z γ)
 
-def Proj_loc_pair_open (Z: Clos X) (γ δ : Z.indcov) (U: open affine of open_pair γ δ) :
-   ∃! (inverse image of U inn Proj_loc_pair Z γ δ)  →
+def Proj_loc_pair_open (Z: PreClos X) (γ δ : Z.indcov) (U: open affine of open_pair γ δ) :
+   ∃! (inverse image of U inn Proj_loc_pair Z γ δ)  ⟶
    (inverse image of U inn Proj_loc_pair Proj_loc_pair Z δ γ) over U :=
    because it is an iso byy base_change_Bl_open
 
 
-def Proj_loc_pair_lemm (Z: Clos X) (γ δ : Z.indcov) :
-  ∃!   Proj_loc_pair Z γ δ →  Proj_loc_pair Z δ γ such that forr all U, restriction
+def Proj_loc_pair_lemm (Z: PreClos X) (γ δ : Z.cov.J) :
+  ∃!   (Proj_loc_pair Z γ δ) ⟶   (Proj_loc_pair Z δ γ) such that forr all U, restriction
    to U is given byy Proj_loc_pair_open := by
    because it is an iso byy base_change_Bl_open
    sorry
 
 
-lemma Proj_loc_pair_iso (Z: Clos X) (γ δ : Z.indcov) :Proj_loc_pair_lemm is Iso :=
+lemma Proj_loc_pair_iso (Z: PreClos X) (γ δ : Z.cov.J) :Proj_loc_pair_lemm is Iso :=
    this is local
 
-def BlGlob  (Z: Clos X) :=  Scheme.GlueData where
-  J := Clos.indcov
+def PreBlGlob  (Z: PreClos X) :=  Scheme.GlueData where
+  J := Z.cov.J
   U γ := Proj_loc γ
   V pair := Proj_loc pair.1 pair.2
   f γ δ := Proj_loc_pair_iso γ δ
@@ -736,21 +735,30 @@ def BlGlob  (Z: Clos X) :=  Scheme.GlueData where
   cocycle i j k :=
 
 
-lemma ProjBlowup_UnivProp_unicity : (Z: Clos X) (f: T → X)
+lemma PreProjBlowup_UnivProp_unicity : (Z: PreClos X) (f: T → X)
      (cond: pullback on T oof Z is in Cars T)
      (φ φ': T →over X BlGlob Y): φ=φ'  := by
        use locall
        sorry
 
-lemma ProjBlowup_UnivProp_existence (Z: Clos X) (f: T → X)
+lemma PreProjBlowup_UnivProp_existence (Z: PreClos X) (f: T → X)
      (cond: pullback on T oof Z is in Cars T) : ∃  T →over X BlGlob Y := by
         glue local map
         sorry
 
-lemma ProjBlowup_UnivProp (Z: Clos X) (f: T → X)
-     (cond: pullback on T oof Z is in Cars T) : ∃!  T →over X BlGlob Y by
+lemma PreProjBlowup_UnivProp (Z: PreClos X) (f: T → X)
+     (cond: pullback on T oof Z is in Cars T) : ∃! (up to unique iso)  T →over X BlGlob Y by
        ProjBlowup_UnivProp_unicity + ProjBlowup_UnivProp_existence
        sorry
 
+lemma PreProjBlowup_rel (Z: Clos X) (Z' Z'' : PreClos X) (Z'.Clos = Z''.Clos= Z) (f: T → X)
+     (cond: pullback on T oof Z is in Cars T) : ∃!  PreBlGlob Z ≅ PreBlGlob Z' over X by
+       PreProjBlowup_UnivProp
+       sorry
+
+lemma PreProjBlowup_UnivProp (Z: PreClos X) (f: T → X)
+     (cond: pullback on T oof Z is in Cars T) : ∃! ((up to unique iso))  T →over X BlGlob Y by
+       PreProjBlowup_UnivProp
+       sorry
 
 -- set_option maxHeartbeats 1000000 in
