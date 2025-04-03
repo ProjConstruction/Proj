@@ -605,9 +605,9 @@ def loc_to_PreClos (A: CommRing)(L: ι → ideal A)[fin : Fintype ι]:PreClos (S
 def loc_to_Clos (A: CommRing) (L: ι → ideal A)
             [fin : Fintype ι] : Clos Spec CommRingCat.of (A):= loc_to_PreClos A L
 
----the following can be reformulated using structure conceptual blowup
 lemma ProjBlowup_UnivProp_unicity_affine :  (A: CommRing) (L: ι → ideal A)
-  [fin : Fintype ι] (f: T → Spec(A))
+  [fin : Fintype ι]
+  (f: T → Spec(A))
   (cond: (pull_back_Clos (loc_to_Clos L) (T) (f) ) ∈  Cars T)
   (φ φ': T →over Spec(A) BlMu L ): φ=φ'  := by
      Let x ∈ T.
@@ -635,6 +635,11 @@ lemma ProjBlowup_UnivProp_affine (A: CommRing) (L: ι → ideal A)
   (cond: (pull_back_Clos (loc_to_Clos L) (T) (f) ) ∈  Cars T) :∃!  T →over Spec(A) BlMu L  by
        ProjBlowup_UnivProp_unicity_affine + ProjBlowup_UnivProp_existence_affine
        sorry
+
+lemma lemma ProjBlowup_UnivProp_affine (A: CommRing) (L: ι → ideal A)
+  [fin : Fintype ι]: BlMu L is conceptual_blowups := by
+     exact ProjBlowup_UnivProp_affine
+     sorry
 --skip the following lemma at first
 lemma dilatation_ring_flat_base_change (χ : A →+* B) (F: Multicenter A):
  χ ∈ RingHom.Flat  : ∃! A[F]⊗[A] B ≅ₐ[B] B[image_mult F] := by
@@ -692,7 +697,7 @@ lemma base_change_Bl_open [Algebra A B]
 
 
 def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.J) : Z.indnumb → ideal A γ :=
-   fun i ↦ ideal i γ
+   fun (i : Z.indnumb) => Z.ideal i γ
 
 def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.J): Scheme  := BlMu (ideal_loc Z γ)
 
