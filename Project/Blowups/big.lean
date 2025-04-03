@@ -552,7 +552,7 @@ def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
   fin_indnumb := by sorry
-  clotop := fun (i : Z.indnumb) => IsClosed.preimage f.TopMaP (Z.clotop i)
+  clotop := fun (i : Z.indnumb) => IsClosed.preimage f.base. (Z.clotop i)
   subscheme := fun (i : Z.indnumb) => pullback (Z.subscheme i ↘ X) (f)
   condset := by sorry
   over := by sorry
@@ -585,9 +585,9 @@ def pull_back_Clos (Z: Clos X) (X': Scheme) (f: X' ⟶  X): Clos X' :=
 structure conceptual_blowup (Z: Clos X) where
    scheme: Scheme
    over : Scheme.Over scheme X
-   cond1: ∀ (i : indnumb) (pull_back_Clos (X) (Z) (scheme) (over))  ∈ Cars scheme
-   cond2: forr all T → X such that pull_back_Clos is Cartier there exists a unique X-mor T → X
-
+   cond1: pull_back_Clos (X) (Z) (scheme) (over)  ∈ (PreCars scheme)
+   cond2: (∀ t:T ⟶ X) pull_back_Clos (X) (Z) (T) (t)  ∈ (PreCars T),
+           ∃! φ: T⟶ scheme over X
 
 
 def loc_to_PreClos (A: CommRing)(L: ι → ideal A)[fin : Fintype ι]:PreClos (Spec CommRingCat.of A) where
@@ -605,7 +605,7 @@ def loc_to_PreClos (A: CommRing)(L: ι → ideal A)[fin : Fintype ι]:PreClos (S
 def loc_to_Clos (A: CommRing) (L: ι → ideal A)
             [fin : Fintype ι] : Clos Spec CommRingCat.of (A):= loc_to_PreClos A L
 
-
+---the following can be reformulated using structure conceptual blowup
 lemma ProjBlowup_UnivProp_unicity_affine :  (A: CommRing) (L: ι → ideal A)
   [fin : Fintype ι] (f: T → Spec(A))
   (cond: (pull_back_Clos (loc_to_Clos L) (T) (f) ) ∈  Cars T)
