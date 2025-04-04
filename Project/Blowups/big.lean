@@ -568,7 +568,7 @@ def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  wh
     -- since U_β and U_γ are affine, we get morphism of rings Aγ →   Aβ by the antiequivalence
     -- between the categories Affschemes and CommRings
     -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
-  condiso:= --affine routine via pullback and
+  condiso:= by sorry--affine routine via pullback and
             -- AlgebraicGeometry.AffineScheme.equivCommRingCat
   condover := by sorry
 
@@ -636,7 +636,7 @@ lemma ProjBlowup_UnivProp_affine (A: CommRing) (L: ι → ideal A)
        ProjBlowup_UnivProp_unicity_affine + ProjBlowup_UnivProp_existence_affine
        sorry
 
-lemma lemma ProjBlowup_UnivProp_affine (A: CommRing) (L: ι → ideal A)
+lemma  ProjBlowup_is_conceptual_blowups_affine (A: CommRing) (L: ι → ideal A)
   [fin : Fintype ι]: BlMu L is conceptual_blowups := by
      exact ProjBlowup_UnivProp_affine
      sorry
@@ -696,15 +696,23 @@ lemma base_change_Bl_open [Algebra A B]
      sorry
 
 
-def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.J) : Z.indnumb → ideal A γ :=
+def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.J) : Z.indnumb → Ideal (Z.cov.obj γ) :=
    fun (i : Z.indnumb) => Z.ideal i γ
 
-def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.J): Scheme  := BlMu (ideal_loc Z γ)
 
-def open_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : Scheme := Spec(A_γ) ∩ Spec(A_δ)
 
-def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair γ δ  ⟶ X :=
-                                            Spec(A_γ) ∩ Spec(A_δ)
+def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.J): Scheme  :=
+             BlMu  (A:= Z.cov.obj γ) (ideal_loc X Z γ)
+
+def open_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : Scheme :=
+   pullback (Z.cov.map γ) (Z.cov.map δ)
+
+def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair X Z  γ δ  ⟶ X :=
+                                           using formalism of pullback
+
+lemma open_pair_map_is_open (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair_map X Z γ δ
+  is an open immersion := by
+  sorry
 
 def Proj_loc_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) :=
     pullback (open_pair_map X Z γ δ) (Proj_loc X Z γ → Spec(A_γ))
