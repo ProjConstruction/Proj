@@ -707,31 +707,45 @@ def Proj_loc  (X: Scheme) (Z: PreClos X) (γ : Z.cov.J): Scheme  :=
 def open_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : Scheme :=
    pullback (Z.cov.map γ) (Z.cov.map δ)
 
-def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair X Z  γ δ  ⟶ X :=
-                                           using formalism of pullback
 
-lemma open_pair_map_is_open (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair_map X Z γ δ
-  is an open immersion := by
+def open_pair_map (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair X Z  γ δ  ⟶ X :=
+        (Z.cov.map γ)  ∘  (pullback.fst  (Z.cov.map γ) (Z.cov.map δ))
+
+lemma open_pair_map_equal (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair_map X Z  γ δ  =
+        (Z.cov.map δ)  ∘  (pullback.snd  (Z.cov.map γ) (Z.cov.map δ)) := by
+  -- this is a pullback square, in partcular commutative
   sorry
 
-def Proj_loc_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) :=
-    pullback (open_pair_map X Z γ δ) (Proj_loc X Z γ → Spec(A_γ))
+
+lemma open_pair_map_is_open (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_pair_map X Z γ δ
+ is an open immersion := by
+    --pullback.fst is an open immersion because open immersion is stable by base change by
+         --- AlgebraicGeometry.isOpenImmersion_stableUnderBaseChange
+    ---now it is enought ot use that a composition of open immersion is openimmersion
+          ---- AlgebraicGeometry.IsOpenImmersion.comp
+    sorry
+
+def Proj_loc_pair (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : Scheme :=
+    pullback (pullback.fst  (Z.cov.map γ) (Z.cov.map δ)) (Proj_loc X Z γ ⟶ Spec(Z.cov.obj γ))
     --inverse image of open_pair in Bl (ideal_loc Z γ)
 
-def Proj_loc_pair_open (Z: PreClos X) (γ δ : Z.indcov) (U: open affine of open_pair γ δ) :
+def Proj_loc_pair_mor (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) :
+                     Proj_loc_pair X Z γ δ ⟶ open_pair X Z γ δ  :=
+     pullback.fst (pullback.fst  (Z.cov.map γ) (Z.cov.map δ)) (Proj_loc X Z γ ⟶ Spec(Z.cov.obj γ))
+
+def Proj_loc_pair_open (X: Scheme) (Z: PreClos X) (γ δ : Z.indcov) (U: open affine of (open_pair X Z γ δ)) :
    ∃! (inverse image of U inn Proj_loc_pair Z γ δ)  ⟶
    (inverse image of U inn Proj_loc_pair Proj_loc_pair Z δ γ) over U :=
    because it is an iso byy base_change_Bl_open
 
+def Proj_loc_pair_lemm (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) :
+  ∃!   (Proj_loc_pair X Z γ δ) ⟶   (Proj_loc_pair Z δ γ) such that forr all U, restriction
+   to U is given byy Proj_loc_pair_open X Z γ δ U := by
+    because it is an iso byy base_change_Bl_open
+    sorry
 
-def Proj_loc_pair_lemm (Z: PreClos X) (γ δ : Z.cov.J) :
-  ∃!   (Proj_loc_pair Z γ δ) ⟶   (Proj_loc_pair Z δ γ) such that forr all U, restriction
-   to U is given byy Proj_loc_pair_open := by
-   because it is an iso byy base_change_Bl_open
-   sorry
 
-
-lemma Proj_loc_pair_iso (Z: PreClos X) (γ δ : Z.cov.J) :Proj_loc_pair_lemm is Iso :=
+lemma Proj_loc_pair_iso (X:Scheme)  (Z: PreClos X) (γ δ : Z.cov.J) : (Proj_loc_pair_lemm X Z γ δ) is Iso :=
    this is local
 
 def PreBlGlob  (Z: PreClos X) :=  Scheme.GlueData where
