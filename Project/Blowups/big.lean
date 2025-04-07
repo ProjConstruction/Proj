@@ -549,6 +549,29 @@ def Pri := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
 
 def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 
+
+
+
+def pull_loc_cov (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.cov.J ) :=
+        Scheme.AffineCover (P := @IsOpenImmersion)  (pullback f (Z.cov.map γ))
+
+def pull_cov (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
+            AffineCover (P := @IsOpenImmersion) X' :=
+  /-- index set of an affine cover of a scheme `X` -/
+  J := ⊔ (γ : Z.cov.J)  (pull_loc_cov Z X' f γ).cov.J
+  /-- the ring associated to a component of an affine cover -/
+  obj (γ β  : J) : (pull_loc_cov Z X' f γ).cov.obj β
+  /-- the components map to `X` -/
+  map (γ β : J) :  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
+  /-- given a point of `x : X`, `f x` is the index of the component which contains `x`  -/
+  f (x : X) : J
+  /-- the components cover `X` -/
+  covers (x : X) : x ∈ Set.range (map (f x)).base
+  /-- the component maps satisfy `P` -/
+  map_prop (j : J) : P (map j)
+
+
+
 def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
   fin_indnumb := by sorry
@@ -556,11 +579,7 @@ def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  wh
   subscheme := fun (i : Z.indnumb) => pullback (Z.subscheme i ↘ X) (f)
   condset := by sorry
   over := by sorry
-  cov := disjoint union of affine open cover for each open (not necessarily affine)  of f.pullback Z.cov
-  ---  Z.cov = cup U_γ . pullback Z.cov = cup pullback U_γ.
-  --- for all gamma let C_γ be an affine open  covering of  pullback U_γ
-  ---- consider U C_γ (where each target is X', we need composition with maps of covering u_γ ):
-                        -- this is the one we want to consider.
+  cov := pull_cov Z X' f
   ideal:=   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
     --- an element in cov.index is a pair (γ, β)
     -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
