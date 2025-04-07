@@ -556,19 +556,19 @@ def pull_loc_cov (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.cov.J ) :=
         Scheme.AffineCover (P := @IsOpenImmersion)  (pullback f (Z.cov.map γ))
 
 def pull_cov (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
-            AffineCover (P := @IsOpenImmersion) X' :=
-  /-- index set of an affine cover of a scheme `X` -/
-  J := ⊔ (γ : Z.cov.J)  (pull_loc_cov Z X' f γ).cov.J
-  /-- the ring associated to a component of an affine cover -/
-  obj (γ β  : J) : (pull_loc_cov Z X' f γ).cov.obj β
-  /-- the components map to `X` -/
-  map (γ β : J) :  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
-  /-- given a point of `x : X`, `f x` is the index of the component which contains `x`  -/
-  f (x : X) : J
-  /-- the components cover `X` -/
-  covers (x : X) : x ∈ Set.range (map (f x)).base
-  /-- the component maps satisfy `P` -/
-  map_prop (j : J) : P (map j)
+            AffineCover (P := @IsOpenImmersion) X' where
+   {
+   J := ⊔ (γ : Z.cov.J)  (pull_loc_cov Z X' f γ).cov.J
+    /-- the ring associated to a component of an affine cover -/
+    obj (γ β  : J) : (pull_loc_cov Z X' f γ).cov.obj β
+    /-- the components map to `X` -/
+    map (γ β : J) :  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
+    /-- given a point of `x : X`, `f x` is the index of the component which contains `x`  -/
+    f (x : X) : J
+    /-- the components cover `X` -/
+    covers (x : X) : x ∈ Set.range (map (f x)).base
+    /-- the component maps satisfy `P` -/
+    map_prop (j : J) : P (map j) }
 
 
 
