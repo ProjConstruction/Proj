@@ -552,25 +552,32 @@ def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 
 
 
-def pull_loc_cov (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.cov.J ) :=
+def pull_loc_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.cov.J ) :=
         Scheme.AffineCover (P := @IsOpenImmersion)  (pullback f (Z.cov.map γ))
 
-def pull_cov (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
-            AffineCover (P := @IsOpenImmersion) X' where
-   {
-   J := ⊔ (γ : Z.cov.J)  (pull_loc_cov Z X' f γ).cov.J
-    /-- the ring associated to a component of an affine cover -/
-    obj (γ β  : J) : (pull_loc_cov Z X' f γ).cov.obj β
-    /-- the components map to `X` -/
-    map (γ β : J) :  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
-    /-- given a point of `x : X`, `f x` is the index of the component which contains `x`  -/
-    f (x : X) : J
-    /-- the components cover `X` -/
-    covers (x : X) : x ∈ Set.range (map (f x)).base
-    /-- the component maps satisfy `P` -/
-    map_prop (j : J) : P (map j) }
+def  pull_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
+            Scheme.AffineCover (P := @IsOpenImmersion) X' where
+    J := ⊔ (γ : Z.cov.J)  (pull_loc_cov Z X' f γ).cov.J
+    obj (γ β  : J) := (pull_loc_cov Z X' f γ).cov.obj β
+    map (γ β : J) :=  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
+    f (x : X) :=
+    covers (x : X) :=
+    map_prop (j : J) :=
 
+def  pull_mor_ring (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
+                               (γ : Z.cov.J) (β : (pull_cov X Z X' f).J) :
+    CommRingCat.of  (Z.cov.obj γ) →+* CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β ) :=
+     --- an element in cov.index is a pair (γ, β)
+    -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
+    --- by composition we get a morphism of schemes U_β → U_γ
+    -- since U_β and U_γ are affine, we get morphism of rings Aγ →   Aβ by the antiequivalence
+    -- between the categories Affschemes and CommRings
+    -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
 
+def pull_ideal  (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
+                               (γ : Z.cov.J) (β : (pull_cov X Z X' f).cov.J) (i: Z.indnumb) :
+                               Ideal (CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β )) :=
+                               Ideal.map (pull_mor_ring X Z X' f γ β) (Z.ideal i γ)
 
 def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
@@ -579,14 +586,8 @@ def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  wh
   subscheme := fun (i : Z.indnumb) => pullback (Z.subscheme i ↘ X) (f)
   condset := by sorry
   over := by sorry
-  cov := pull_cov Z X' f
-  ideal:=   indnumb → cov.index → pullback ideal A γ (not trivial  but can provide very elementary argument )
-    --- an element in cov.index is a pair (γ, β)
-    -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
-    --- by composition we get a morphism of schemes U_β → U_γ
-    -- since U_β and U_γ are affine, we get morphism of rings Aγ →   Aβ by the antiequivalence
-    -- between the categories Affschemes and CommRings
-    -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
+  cov := pull_cov X Z X' f
+  ideal:=  pull_ideal X Z X' f γ β i
   condiso:= by sorry--affine routine via pullback and
             -- AlgebraicGeometry.AffineScheme.equivCommRingCat
   condover := by sorry
