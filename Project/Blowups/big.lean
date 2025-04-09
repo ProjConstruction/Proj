@@ -642,6 +642,7 @@ def loc_to_PreClos (A: CommRing)(L: ι → ideal A)[fin : Fintype ι]:PreClos (S
    ---cf. also PrimeSpectrum.isClosed_iff_zeroLocus_ideal
    subscheme := fun i => Spec (CommRingCat.of A ⧸ L i)
    --maybe we need a lemma saying that "V(I) ≅  Spec(A/I)
+   -- cf. also  AlgebraicGeometry.IsClosedImmersion.Spec_iff
    condset:= tauto
    mor:= fun i =>Spec.hom A → A⧸ L i
    cov := (Spec CommRingCat.of A) --is itself an affine open covering
