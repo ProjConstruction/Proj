@@ -557,7 +557,7 @@ def pull_loc_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.
 
 def  pull_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
             Scheme.AffineCover (P := @IsOpenImmersion) X' where
-    J := ⊔ (γ : Z.cov.J)  (pull_loc_cov Z X' f γ).cov.J
+    J := ⊔(γ : Z.cov.J),  (pull_loc_cov Z X' f γ).cov.J
     obj (γ β  : J) := (pull_loc_cov Z X' f γ).cov.obj β
     map (γ β : J) :=  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
     f (x : X) :=
@@ -578,6 +578,23 @@ def pull_ideal  (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
                                (γ : Z.cov.J) (β : (pull_cov X Z X' f).cov.J) (i: Z.indnumb) :
                                Ideal (CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β )) :=
                                Ideal.map (pull_mor_ring X Z X' f γ β) (Z.ideal i γ)
+
+---a lemma (similar to TensorProduct.tensorQuotEquivQuotSMul )
+def lemma_map (A B: CommRing) (I: Ideal A) (f:A →+*B) : B →+* (A⧸ I)⊗[A] B :=
+
+
+lemma lemma_surj (A B: CommRing) (I: Ideal A) (f:A →+*B) : lemma_map A B I f
+  is surjective
+
+lemma lemma_kernel (A B: CommRing) (I: Ideal A) (f:A →+*B) :
+                kernel lemma_map A B I f =Ideal.map f I := by
+   sorry
+
+lemma lemma_iso (A B: CommRing) (I: Ideal A) (f:A →+*B) : B⧸ Ideal.map f I ≅ₐ[A]
+  (A⧸ I)⊗[A] B := by
+   sorry
+
+lemma pull_lemm_cond_iso (A B: CommRing) (I: Ideal A) (f:A →+*B)
 
 def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
