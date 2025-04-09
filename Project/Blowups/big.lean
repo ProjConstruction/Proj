@@ -572,13 +572,13 @@ def  pull_mor_ring (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
     --- by composition we get a morphism of schemes U_β → U_γ
     -- since U_β and U_γ are affine, we get morphism of rings Aγ →   Aβ by the antiequivalence
     -- between the categories Affschemes and CommRings
-    -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
+
 
 def pull_ideal  (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
                                (γ : Z.cov.J) (β : (pull_cov X Z X' f).cov.J) (i: Z.indnumb) :
                                Ideal (CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β )) :=
                                Ideal.map (pull_mor_ring X Z X' f γ β) (Z.ideal i γ)
-
+    -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
 
 
 ---a lemma (similar to TensorProduct.tensorQuotEquivQuotSMul )
@@ -767,7 +767,7 @@ lemma open_pair_map_is_open (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) : open_
  is an open immersion := by
     --pullback.fst is an open immersion because open immersion is stable by base change by
          --- AlgebraicGeometry.isOpenImmersion_stableUnderBaseChange
-    ---now it is enought ot use that a composition of open immersion is openimmersion
+    ---now it is enough to use that a composition of open immersion is openimmersion
           ---- AlgebraicGeometry.IsOpenImmersion.comp
     sorry
 
