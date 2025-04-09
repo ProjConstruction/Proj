@@ -579,7 +579,10 @@ def pull_ideal  (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
                                Ideal (CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β )) :=
                                Ideal.map (pull_mor_ring X Z X' f γ β) (Z.ideal i γ)
 
+
+
 ---a lemma (similar to TensorProduct.tensorQuotEquivQuotSMul )
+-- I do not add a lot of details as it is maybe already in Mathlib
 def lemma_map (A B: CommRing) (I: Ideal A) (f:A →+*B) : B →+* (A⧸ I)⊗[A] B :=
 
 
@@ -595,6 +598,10 @@ lemma lemma_iso (A B: CommRing) (I: Ideal A) (f:A →+*B) : B⧸ Ideal.map f I �
    sorry
 
 lemma pull_lemm_cond_iso (A B: CommRing) (I: Ideal A) (f:A →+*B)
+---end lemma
+
+
+
 
 def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
   indnumb := Z.indnumb
@@ -607,6 +614,8 @@ def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  wh
   ideal:=  pull_ideal X Z X' f γ β i
   condiso:= by sorry--affine routine via pullback and
             -- AlgebraicGeometry.AffineScheme.equivCommRingCat
+            --pull_lemm_cond_iso
+            -- hand note
   condover := by sorry
 
 lemma pul_back_lem (Z Z': PreClos X) (T : Scheme) (f: T ⟶ X) (Z rel Z') :
