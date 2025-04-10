@@ -555,6 +555,8 @@ def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 def pull_loc_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.cov.J ) :=
         Scheme.AffineCover (P := @IsOpenImmersion)  (pullback f (Z.cov.map γ))
 
+
+--we need to clarify the definition of J
 def  pull_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
             Scheme.AffineCover (P := @IsOpenImmersion) X' where
     J := ⊔(γ : Z.cov.J),  (pull_loc_cov Z X' f γ).cov.J
@@ -786,7 +788,7 @@ def Proj_loc_pair_open (X: Scheme) (Z: PreClos X) (γ δ : Z.indcov) (U: open af
    because it is an iso byy base_change_Bl_open
 
 def Proj_loc_pair_lemm (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J) :
-  ∃!   (Proj_loc_pair X Z γ δ) ⟶   (Proj_loc_pair Z δ γ) such that forr all U, restriction
+  ∃!  f: (Proj_loc_pair X Z γ δ) ⟶   (Proj_loc_pair Z δ γ) such that ∀ U, restriction of f
    to U is given byy Proj_loc_pair_open X Z γ δ U := by
     because it is an iso byy base_change_Bl_open
     sorry
