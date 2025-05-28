@@ -9,8 +9,9 @@ suppress_compilation
 
 universe u
 variable {τ ι R₀ A B C : Type u}
-variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
-variable [DecidableEq ι] [GradedAlgebra 𝒜]
+variable [AddCommGroup ι] [DecidableEq ι] [CommRing R₀]
+variable [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
+variable [GradedAlgebra 𝒜]
 variable [CommRing B] [Algebra R₀ B] {ℬ : ι → Submodule R₀ B}
 variable [GradedAlgebra ℬ]
 variable [CommRing C] [Algebra R₀ C] {𝒞 : ι → Submodule R₀ C}
@@ -20,7 +21,7 @@ open AlgebraicGeometry CategoryTheory Limits HomogeneousSubmonoid TensorProduct 
 
 namespace GoodPotionIngredient
 
-variable (Φ : 𝒜 →+* ℬ) (ψ : ℬ →+* 𝒞)
+variable (Φ : 𝒜 →+* ℬ) (Ψ : ℬ →+* 𝒞)
 
 set_option maxHeartbeats 1000000 in
 protected def Proj.map (ℱ : τ → GoodPotionIngredient 𝒜) :
@@ -70,9 +71,7 @@ lemma Proj.map_id (ℱ : τ → GoodPotionIngredient 𝒜) :
     GoodPotionIngredient.Proj.map (.id 𝒜) ℱ  =
     projHomOfLE
       { le := { toFun := id, inj' _ _ h := h }
-        comp := by
-          ext i
-          apply GoodPotionIngredient.toHomogeneousSubmonoid_inj
+        comp := funext fun i ↦ toHomogeneousSubmonoid_inj <| by
           ext a
           simp [map, HomogeneousSubmonoid.map] } := by
   apply Multicoequalizer.hom_ext
@@ -80,26 +79,21 @@ lemma Proj.map_id (ℱ : τ → GoodPotionIngredient 𝒜) :
   rfl
 
 lemma Proj.map_comp (ℱ : τ → GoodPotionIngredient 𝒜) :
-  GoodPotionIngredient.Proj.map (ψ.comp Φ) ℱ =
+  GoodPotionIngredient.Proj.map (Ψ.comp Φ) ℱ =
   projHomOfLE
   { le := { toFun := id, inj' _ _ h := h }
-    comp := by
-      ext i
-      apply GoodPotionIngredient.toHomogeneousSubmonoid_inj
+    comp :=  funext fun i ↦ toHomogeneousSubmonoid_inj <| by
       ext a
-      simp only [Function.Embedding.mk_id, Function.comp_apply, Function.Embedding.refl_apply, map,
-        HomogeneousSubmonoid.map, Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
-        Submonoid.mem_map, mem_toSubmonoid_iff, exists_exists_and_eq_and, GradedRingHom.comp_toFun]
-      aesop } ≫ Proj.map ψ _ ≫ Proj.map Φ ℱ := by
+      simp [map, HomogeneousSubmonoid.map] } ≫ Proj.map Ψ _ ≫ Proj.map Φ ℱ := by
   apply Multicoequalizer.hom_ext
-  rintro i;
+  rintro i
   simp only [GlueData.diagram_right, glueData_U, Function.comp_apply, Proj.map, colimit.ι_desc,
     GlueData.diagram_l, glueData_J, GlueData.diagram_r, Multicofork.ofπ_pt, Multicofork.ofπ_ι_app,
     projHomOfLE, id_eq, Function.Embedding.mk_id, Function.Embedding.refl_apply,
-    GradedRingHom.comp_toFun, eq_mpr_eq_cast, colimit.ι_desc_assoc, GlueData.diagram_left,
-    glueData_V, mul_toHomogeneousSubmonoid, mul_toSubmonoid, Category.assoc]
+    GradedRingHom.comp_apply, colimit.ι_desc_assoc, GlueData.diagram_left, glueData_V,
+    mul_toHomogeneousSubmonoid, mul_toSubmonoid, Category.assoc]
   erw [Multicoequalizer.π_desc_assoc, Category.assoc, Multicoequalizer.π_desc]
-  rw [← Spec.map_comp_assoc, ← Spec.map_comp_assoc]
+  erw [← Spec.map_comp_assoc, ← Spec.map_comp_assoc]
   congr 2
   ext x
   induction x using Quotient.inductionOn' with | h x =>
