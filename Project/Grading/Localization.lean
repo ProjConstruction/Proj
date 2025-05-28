@@ -226,7 +226,7 @@ instance : SetLike.GradedMonoid S.LocalizationGrading where
 noncomputable def decomposition :
     Localization S.toSubmonoid →+* ⨁ i : ι, S.LocalizationGrading i :=
   IsLocalization.lift (M := S.toSubmonoid) (S := Localization S.toSubmonoid)
-    (g := (DirectSum.toSemiring (fun i ↦
+    (g := RingHom.comp (DirectSum.toSemiring (fun i ↦
       (DirectSum.of (fun i ↦ S.LocalizationGrading i) i :
         S.LocalizationGrading i →+ ⨁ i, S.LocalizationGrading i).comp
       (⟨⟨fun x ↦ ⟨Localization.mk x.1 1,
@@ -248,7 +248,7 @@ noncomputable def decomposition :
               rw [DirectSum.of_mul_of]
               congr 1
               ext
-              simp [Localization.mk_mul])).comp (DirectSum.decomposeRingEquiv 𝒜).toRingHom)
+              simp [Localization.mk_mul])) (DirectSum.decomposeRingEquiv 𝒜).toRingHom)
   (by
     rintro ⟨x, hx⟩
     obtain ⟨i, hi⟩ := S.homogeneous hx

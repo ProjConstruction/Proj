@@ -488,8 +488,7 @@ lemma rad_dagger [AddGroup.FG ιA] [AddGroup.FG ιB] :
       add_mem' := add_mem
       zero_mem' := zero_mem _ }
     change LinearMap.range _ ≤ M
-    rw [LinearMap.range_eq_map, Submodule.map_le_iff_le_comap]
-
+    rw [LinearMap.range_le_iff_comap, eq_top_iff]
     rintro x -
     simp only [Submodule.mem_comap]
     change _ ∈ Submodule.span _ _

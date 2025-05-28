@@ -177,7 +177,7 @@ lemma elemIsRelevant_of_homogeneous_of_factorisation
   rw [AddSubgroup.closure_le]
   rintro _ ⟨i, rfl⟩
   refine AddSubgroup.subset_closure ?_
-  simp only [deg, bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq, ne_eq]
+  simp only [deg, bar, AddSubmonoid.coe_set_mk, AddSubsemigroup.coe_set_mk, Set.mem_setOf_eq]
   exact ⟨x i, ⟨⟨d i, mem i⟩, ⟨a ^ k, by simp [mem_closure_singleton (ha := ha)], by
     rw [← eq]; apply Finset.dvd_prod_of_mem; aesop⟩⟩, mem i⟩
 

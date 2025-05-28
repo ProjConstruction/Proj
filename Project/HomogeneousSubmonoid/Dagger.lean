@@ -34,47 +34,33 @@ lemma map_relevant {a : A} {hom_a : SetLike.Homogeneous 𝒜 a} (rel_a : ElemIsR
 -- [TODO]: there should be a `HomogeneousIdeal.map`
 lemma map_dagger_le : (𝒜 †).toIdeal.map Ψ ≤ (ℬ †).toIdeal := by
   rw [Ideal.map_le_iff_le_comap]
-  rintro a (ha : a ∈ Ideal.span _)
-  change Ψ a ∈ Ideal.span _
-  induction ha using Submodule.span_induction with
-  | zero => simp
-  | mem x hx =>
-    obtain ⟨hom_x, rel_x⟩ := hx
-    exact Ideal.subset_span ⟨Ψ.map_homogeneous hom_x, Ψ.map_relevant rel_x⟩
-  | add a b ha hb iha ihb =>
-    simpa using Ideal.add_mem _ iha ihb
-  | smul r a ha iha =>
-    simpa using Ideal.mul_mem_left _ _ iha
+  erw [Ideal.span_le]
+  rintro x (hx : x ∈ _)
+  obtain ⟨hom_x, rel_x⟩ := hx
+  exact Ideal.subset_span ⟨Ψ.map_homogeneous hom_x, Ψ.map_relevant rel_x⟩
 
 lemma radical_dagger_eq_of_surjective (surj : Function.Surjective Ψ) :
     ((𝒜 †).toIdeal.map Ψ).radical = (ℬ †).toIdeal.radical := by
   refine le_antisymm (Ideal.radical_mono Ψ.map_dagger_le) ?_
-  suffices ineq : (ℬ †).toIdeal ≤ ((𝒜 †).toIdeal.map Ψ).radical by
-    exact Ideal.radical_le_radical_iff.mpr ineq
-  rintro f (hf : f ∈ Ideal.span _)
-  induction hf using Submodule.span_induction with
-  | zero => simp
-  | mem f hf =>
-    obtain ⟨⟨i, hom_f⟩, rel_f⟩ := hf
-    obtain ⟨f, rfl⟩ := surj f
-    rw [elemIsRelevant_iff] at rel_f
-    obtain ⟨n, x, d, mem, fin, k, eq⟩ := rel_f
-    have H (i : Fin n): ∃ (f' : A), f' ∈ 𝒜 (d i) ∧ Ψ f' = (x i) := by
-      obtain ⟨x', hx'⟩ := surj (x i)
-      obtain ⟨f', hf', hf''⟩ := Ψ.homogeneous_of_apply_homogeneous (a := x') (i := d i)
-        (by rw [hx']; apply mem)
-      refine ⟨f', hf', hx' ▸ hf''⟩
-    choose f' hf' hf'' using H
-    let f_tilde := ∏ i : Fin n, f' i
-    have h_tilde : Ψ f_tilde = (Ψ f)^k := by
-      simp only [f_tilde, map_prod, hf'', eq]
-    refine ⟨k, h_tilde ▸ Ideal.subset_span ⟨f_tilde,
-      Ideal.subset_span ⟨SetLike.Homogeneous.prod' _ _ fun i ↦ ⟨d i, hf' i⟩, ?_⟩, rfl⟩⟩
-    rw [elemIsRelevant_iff]
-    refine ⟨n, f', d, hf', fin, 1, by simp [f_tilde]⟩
-  | add f g hf hg ihf ihg =>
-    simpa using Ideal.add_mem _ ihf ihg
-  | smul r f hf ih =>
-    simpa using Ideal.mul_mem_left _ _ ih
+  erw [Ideal.radical_le_radical_iff, Ideal.span_le]
+  rintro b (hb : b ∈ _)
+  obtain ⟨⟨i, hom_b⟩, rel_b⟩ := hb
+  obtain ⟨a, rfl⟩ := surj b
+  rw [elemIsRelevant_iff] at rel_b
+  obtain ⟨n, x, d, mem, fin, k, eq⟩ := rel_b
+  have H (i : Fin n): ∃ (a' : A), a' ∈ 𝒜 (d i) ∧ Ψ a' = (x i) := by
+    obtain ⟨x', hx'⟩ := surj (x i)
+    obtain ⟨a', ha', ha''⟩ := Ψ.homogeneous_of_apply_homogeneous (a := x') (i := d i)
+      (by rw [hx']; apply mem)
+    refine ⟨a', ha', hx' ▸ ha''⟩
+  choose a' ha' ha'' using H
+  let a_tilde := ∏ i : Fin n, a' i
+  have h_tilde : Ψ a_tilde = (Ψ a)^k := by
+    simp only [a_tilde, map_prod, ha'', eq]
+  refine ⟨k, h_tilde ▸ Ideal.subset_span ⟨a_tilde,
+    Ideal.subset_span ⟨SetLike.Homogeneous.prod' _ _ fun i ↦ ⟨d i, ha' i⟩, ?_⟩, rfl⟩⟩
+  rw [elemIsRelevant_iff]
+  refine ⟨n, a', d, ha', fin, 1, by simp [a_tilde]⟩
+
 
 end GradedRingHom

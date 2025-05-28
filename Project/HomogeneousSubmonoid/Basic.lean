@@ -106,14 +106,9 @@ lemma mem_map_of_mem (Φ : 𝒜 →+* ℬ) {S : HomogeneousSubmonoid 𝒜} {x : 
 
 def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) : HomogeneousSubmonoid 𝒜 where
   __ := Submonoid.closure s
-  homogeneous_gen := by
-    use Submonoid.closure s
-    simp only [Submonoid.closure_eq, SetLike.mem_coe, true_and]
-    intro x hx
-    exact Submonoid.closure_induction hs
-      (SetLike.homogeneous_one 𝒜)
-      (fun _ _ _ _ hx hy => SetLike.homogeneous_mul hx hy) hx
+  homogeneous_gen := ⟨s, rfl, hs⟩
 
+omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
 lemma mem_closure_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)) ↔
     ∃ (n : ℕ), x = a ^ n := by

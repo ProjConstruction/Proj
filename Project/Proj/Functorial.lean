@@ -79,7 +79,7 @@ lemma Proj.map_id (ℱ : τ → GoodPotionIngredient 𝒜) :
   rfl
 
 lemma Proj.map_comp (ℱ : τ → GoodPotionIngredient 𝒜) :
-  GoodPotionIngredient.Proj.map (Ψ.comp Φ) ℱ =
+  Proj.map (Ψ.comp Φ) ℱ =
   projHomOfLE
   { le := { toFun := id, inj' _ _ h := h }
     comp :=  funext fun i ↦ toHomogeneousSubmonoid_inj <| by
