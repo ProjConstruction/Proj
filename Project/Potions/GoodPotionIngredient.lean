@@ -402,16 +402,11 @@ lemma t'_cocycle (R S T : GoodPotionIngredient 𝒜) :
   ext x
   simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, t'Aux₀, t'Aux₁,
     AlgEquiv.toRingEquiv_eq_coe, RingEquiv.coe_trans, AlgEquiv.coe_ringEquiv, Function.comp_apply,
-    RingEquiv.symm_trans_apply, RingEquiv.refl_apply]
-  erw [Equiv.symm_apply_eq]
+    RingEquiv.symm_trans_apply, potionEquiv_symm, RingEquiv.refl_apply]
   erw [Equiv.symm_apply_eq]
   simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe, AlgEquiv.coe_ringEquiv,
     mul_toHomogeneousSubmonoid, mul_toSubmonoid]
-  erw [RingEquiv.apply_symm_apply]
-  erw [RingEquiv.apply_symm_apply]
-  erw [Equiv.symm_apply_eq]
-  erw [Equiv.symm_apply_eq]
-  simp only [RingEquiv.toEquiv_eq_coe, EquivLike.coe_coe]
+  erw [RingEquiv.apply_symm_apply, RingEquiv.apply_symm_apply]
   simp only [potionEquiv_trans_apply, mul_toSubmonoid, potionEquiv_refl, RingEquiv.refl_apply]
 
 lemma t'_fac (R S T : GoodPotionIngredient 𝒜) :

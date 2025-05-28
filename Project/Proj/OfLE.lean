@@ -26,11 +26,11 @@ variable {ℱ : τ → GoodPotionIngredient 𝒜} {ℱ' : τ' → GoodPotionIngr
 
 variable (ℱ ℱ') in
 structure LE_ where
-  (t : τ ↪ τ')
-  (comp : ℱ' ∘ t = ℱ)
+  (le : τ ↪ τ')
+  (comp : ℱ' ∘ le = ℱ)
 
 instance : FunLike (LE_ ℱ ℱ') τ τ' where
-  coe le := le.t
+  coe le := le.le
   coe_injective' := by
     rintro ⟨⟨t, ht⟩, comp⟩ ⟨⟨t', ht'⟩, comp'⟩ rfl
     rfl
@@ -42,27 +42,21 @@ lemma LE_.comp_apply (le : LE_ ℱ ℱ') (i : τ) : ℱ' (le i) = ℱ i := by
   exact this i
 
 def LE_.potionEquivMap (le : LE_ ℱ ℱ') (i : τ) : (ℱ' (le i)).Potion ≃+* (ℱ i).Potion :=
-  RingEquiv.ofHomInv
-    (HomogeneousLocalization.map _ _ (RingHom.id _) (by erw [Submonoid.comap_id]; simp) (by simp) :
-      (ℱ' (le i)).Potion →+* (ℱ i).Potion)
-    (HomogeneousLocalization.map _ _ (RingHom.id _) (by erw [Submonoid.comap_id]; simp) (by simp) :
-      (ℱ i).Potion →+* (ℱ' (le i)).Potion)
-     (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
-     (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
+  potionEquiv (by simp)
 
 lemma LE_.potionEquivMap_comp (le : LE_ ℱ ℱ') (i j : τ) :
-      ((ℱ i).potionToMul (ℱ j).1).comp (le.potionEquivMap i).toRingHom =
-      (HomogeneousLocalization.map _ _ (RingHom.id _) (by erw [Submonoid.comap_id]; simp) (by simp)).comp
-        ((ℱ' (le i)).potionToMul (ℱ' (le j)).1) := by
-    ext x
-    induction x using Quotient.inductionOn' with | h x =>
-    rfl
+    ((ℱ i).potionToMul (ℱ j).1).comp (le.potionEquivMap i).toRingHom =
+    (HomogeneousLocalization.map _ _ (RingHom.id _) (by erw [Submonoid.comap_id]; simp) (by simp)).comp
+      ((ℱ' (le i)).potionToMul (ℱ' (le j)).1) := by
+  ext x
+  induction x using Quotient.inductionOn' with | h x =>
+  rfl
 
 @[reassoc]
 lemma LE_.f_comp_potionEquivMap (le : LE_ ℱ ℱ') (j j' : τ) :
-  (glueData ℱ').f (le j) (le j') ≫ Spec.map (CommRingCat.ofHom (le.potionEquivMap j).symm.toRingHom) =
-  ((Spec.map <| CommRingCat.ofHom (HomogeneousLocalization.map _ _ (RingHom.id _)
-    (by erw [Submonoid.comap_id]; simp) (by simp))) ≫ (glueData ℱ).f j j') := by
+  (glueData ℱ').f (le j) (le j') ≫
+  Spec.map (CommRingCat.ofHom (le.potionEquivMap j).symm.toRingHom) =
+  ((Spec.map <| CommRingCat.ofHom (potionEquiv (by simp)).toRingHom) ≫ (glueData ℱ).f j j') := by
   simp only [glueData_J, glueData_V, mul_toHomogeneousSubmonoid,
     HomogeneousSubmonoid.mul_toSubmonoid, glueData_U, glueData_f, RingEquiv.toRingHom_eq_coe, ←
     Spec.map_comp, ← CommRingCat.ofHom_comp]
@@ -74,10 +68,8 @@ lemma LE_.f_comp_potionEquivMap (le : LE_ ℱ ℱ') (j j' : τ) :
 @[reassoc]
 lemma LE_.t_comp (le : LE_ ℱ ℱ') (j j' : τ) :
   (glueData ℱ').t (le j) (le j') ≫
-    Spec.map (CommRingCat.ofHom (HomogeneousLocalization.map _ _ (RingHom.id _)
-    (by erw [Submonoid.comap_id]; simp) (by simp))) =
-  ((Spec.map <| CommRingCat.ofHom (HomogeneousLocalization.map _ _ (RingHom.id _)
-    (by erw [Submonoid.comap_id]; simp) (by simp))) ≫ (glueData ℱ).t j j') := by
+    Spec.map (CommRingCat.ofHom (potionEquiv (by simp)).toRingHom) =
+  ((Spec.map <| CommRingCat.ofHom (potionEquiv (by simp)).toRingHom) ≫ (glueData ℱ).t j j') := by
   simp only [glueData_J, glueData_V, mul_toHomogeneousSubmonoid,
     HomogeneousSubmonoid.mul_toSubmonoid, glueData_t, RingEquiv.toRingHom_eq_coe, ← Spec.map_comp, ←
     CommRingCat.ofHom_comp]
@@ -217,7 +209,7 @@ lemma projHomOfLE_base_injective (le : LE_ ℱ ℱ') :
   obtain eq|⟨y, h₁, h₂⟩ := h
   · simp only [glueData_J, glueData_U, Sigma.mk.inj_iff, Subtype.mk.injEq] at eq
     rcases eq with ⟨eq₁, eq₂⟩
-    replace eq₁ := le.t.2 eq₁
+    replace eq₁ := le.le.2 eq₁
     subst eq₁
     simp only [heq_eq_eq] at eq₂
     subst eq₂
@@ -324,7 +316,7 @@ abbrev idealify (ℱ : τ → GoodPotionIngredient 𝒜) :
   Sum.rec ℱ (fun p ↦ ℱ p.1 * p.2)
 
 abbrev le_idealify (ℱ : τ → GoodPotionIngredient 𝒜) : LE_ ℱ (idealify ℱ) where
-  t :=
+  le :=
   { toFun := Sum.inl
     inj' := Sum.inl_injective }
   comp := rfl
@@ -420,7 +412,7 @@ variable {ℱ ℱ' : Set <| GoodPotionIngredient 𝒜}
 
 def LE_.of_subset (subset : ℱ ⊆ ℱ') :
     LE_ (𝒜 := 𝒜) (τ := ℱ) (τ' := ℱ') Subtype.val Subtype.val where
-  t := ℱ.embeddingOfSubset ℱ' subset
+  le := ℱ.embeddingOfSubset ℱ' subset
   comp := rfl
 
 def projHomOfSubset (subset : ℱ ⊆ ℱ') : Proj (τ := ℱ) Subtype.val ⟶ Proj (τ := ℱ') Subtype.val :=

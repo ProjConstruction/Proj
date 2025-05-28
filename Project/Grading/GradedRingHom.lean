@@ -2,10 +2,11 @@ import Mathlib.RingTheory.GradedAlgebra.Basic
 
 open DirectSum
 
-variable {ι A B σ τ : Type*}
+variable {ι A B C σ τ γ : Type*}
 variable [AddCommMonoid ι] [DecidableEq ι]
 variable [CommSemiring A] [SetLike σ A] [AddSubmonoidClass σ A] (𝒜 : ι → σ) [GradedRing 𝒜]
 variable [CommSemiring B] [SetLike τ B] [AddSubmonoidClass τ B] (ℬ : ι → τ) [GradedRing ℬ]
+variable [CommSemiring C] [SetLike γ C] [AddSubmonoidClass γ C] (𝒞 : ι → γ) [GradedRing 𝒞]
 
 structure GradedRingHom extends RingHom A B where
   map_mem' : ∀ {i : ι} {x : A}, x ∈ 𝒜 i → toFun x ∈ ℬ i
@@ -123,6 +124,34 @@ lemma homogeneous_of_apply_homogeneous
   · exact ⟨0, zero_mem _, eq1 ▸ map_zero _⟩
   · exact ⟨decompose 𝒜 a i, SetLike.coe_mem _, eq1.symm⟩
 
+def id : 𝒜 →+* 𝒜 where
+  toRingHom := RingHom.id A
+  map_mem' := by aesop
+
+omit [AddCommMonoid ι] [DecidableEq ι] [AddSubmonoidClass σ A] [GradedRing 𝒜] in
+@[simp]
+lemma id_toRingHom : (id 𝒜).toRingHom = RingHom.id A := rfl
+
+omit [AddCommMonoid ι] [DecidableEq ι] [AddSubmonoidClass σ A] [GradedRing 𝒜] in
+@[simp]
+lemma id_apply (x : A) : (id 𝒜) x = x := rfl
+
+variable {𝒜 ℬ 𝒞} in
+def comp (g : ℬ →+* 𝒞) (f : 𝒜 →+* ℬ) : 𝒜 →+* 𝒞 where
+  toRingHom := g.toRingHom.comp f.toRingHom
+  map_mem' hx := g.map_mem' <| f.map_mem hx
+
+omit [AddCommMonoid ι] [DecidableEq ι] [AddSubmonoidClass σ A] [GradedRing 𝒜] [AddSubmonoidClass τ B]
+  [AddSubmonoidClass γ C] in
+@[simp]
+lemma comp_toRingHom (g : ℬ →+* 𝒞) (f : 𝒜 →+* ℬ) :
+    (g.comp f).toRingHom = g.toRingHom.comp f.toRingHom := rfl
+
+omit [AddCommMonoid ι] [DecidableEq ι] [AddSubmonoidClass σ A] [GradedRing 𝒜] [AddSubmonoidClass τ B]
+  [AddSubmonoidClass γ C] in
+@[simp]
+lemma comp_apply (g : ℬ →+* 𝒞) (f : 𝒜 →+* ℬ) (x : A) :
+    (g.comp f) x = g (f x) := rfl
 
 end GradedRingHom
 

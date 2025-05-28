@@ -297,14 +297,14 @@ structure PotionGen where
   (elem : index → A)
   (elem_mem : ∀ t, elem t ∈ T)
   (gen : Submonoid.closure (Set.range elem) = T.toSubmonoid)
-  (n : index → ℕ+)
   (s s' : index → A)
   (s_mem_bar : ∀ t, s t ∈ S.bar)
   (s'_mem_bar : ∀ t, s' t ∈ S.bar)
   (i i' : index → ι)
-  (t_deg : ∀ t : index, (elem t : A)^(n t : ℕ) ∈ 𝒜 (i t - i' t))
   (s_deg : ∀ t, s t ∈ 𝒜 (i t))
   (s'_deg : ∀ t, s' t ∈ 𝒜 (i' t))
+  (n : index → ℕ+)
+  (t_deg : ∀ t : index, (elem t : A)^(n t : ℕ) ∈ 𝒜 (i t - i' t))
 
 variable {S T} in
 def PotionGen.genSubmonoid (T' : PotionGen S T) : Submonoid S.Potion :=
@@ -318,7 +318,8 @@ def PotionGen.genSubmonoid (T' : PotionGen S T) : Submonoid S.Potion :=
           den_mem := T'.s_mem_bar t }) }
 
 variable {S} in
-lemma finite_potionGen_exists_aux₁ (S_rel : IsRelevant S) (t : A) (m : ι) (ht : t ∈ 𝒜 m) : ∃ (n : ℕ+) (s s' : A) (i i' : ι),
+lemma finite_potionGen_exists_aux₁ (S_rel : IsRelevant S) (t : A) (m : ι) (ht : t ∈ 𝒜 m) :
+  ∃ (n : ℕ+) (s s' : A) (i i' : ι),
     t^(n : ℕ) ∈ 𝒜 (i - i') ∧ s ∈ 𝒜 i ∧ s' ∈ 𝒜 i' ∧ s ∈ S.bar ∧ s' ∈ S.bar := by
   obtain ⟨n, n_pos, hm⟩ := S_rel m
   delta agrDeg at hm

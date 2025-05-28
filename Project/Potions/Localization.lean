@@ -421,8 +421,6 @@ variable {S T} in
 def localizationAlgEquivPotion (T' : PotionGen S T) :
     Localization T'.genSubmonoid ≃ₐ[S.Potion] (S * T).Potion :=
   AlgEquiv.ofRingEquiv (f := localizationRingEquivPotion T') fun x ↦ by
-    simp only [localizationRingEquivPotion, ← Localization.mk_one_eq_algebraMap,
-      RingEquiv.coe_ofBijective, mul_potion_algebraMap_eq]
     induction x using Quotient.inductionOn' with | h x =>
     simp [localizationToPotion, Localization.mk_eq_mk', IsLocalization.lift_mk']
 
