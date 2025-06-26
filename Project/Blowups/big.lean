@@ -476,9 +476,9 @@ variable (X) in
 structure PreClos where
   (indnumb : Type u)
   [fin_indnumb : Fintype indnumb]
-  (clotop : indnumb → Closeds X)
+  -- (clotop : indnumb → Closeds X)
   (subscheme: indnumb → Scheme)
-  (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
+  -- (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
   [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
   cov : Scheme.AffineCover.{u, u} (P := @IsOpenImmersion) X
   ideal: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
@@ -504,7 +504,7 @@ attribute [instance] PreClos.over
 
 structure relStructure (Z Z' : PreClos X) where -- := fun Z Z' =>
   indnumb_equiv :  Z.indnumb ≃ Z'.indnumb
-  clotop_homeomorph : ∀ i, Z.clotop i ≃ₜ Z'.clotop (indnumb_equiv i)
+  -- clotop_homeomorph : ∀ i, Z.clotop i ≃ₜ Z'.clotop (indnumb_equiv i)
   subscheme_iso : ∀ i, Z.subscheme i ≅ Z'.subscheme (indnumb_equiv i)
   subscheme_iso_over : ∀ i, Scheme.Hom.IsOver (subscheme_iso i).hom X
   /-
@@ -512,9 +512,9 @@ structure relStructure (Z Z' : PreClos X) where -- := fun Z Z' =>
      |                            |
   Z.subscheme i    ≅      Z'.subscheme (indnumb_equiv i)
   -/
-  condset_eq : ∀ (i : Z.indnumb) (x : Z.clotop i),
-      Z'.condset (indnumb_equiv i) (clotop_homeomorph i x) =
-      (subscheme_iso i).hom.base (Z.condset i x)
+  -- condset_eq : ∀ (i : Z.indnumb) (x : Z.clotop i),
+  --     Z'.condset (indnumb_equiv i) (clotop_homeomorph i x) =
+  --     (subscheme_iso i).hom.base (Z.condset i x)
 
 variable (X) in
 def rel : PreClos X → PreClos X → Prop := fun Z Z' => Nonempty (relStructure Z Z')
@@ -577,10 +577,21 @@ def  pull_cov (X: Scheme.{u}) (Z : PreClos.{u} X) (X' : Scheme.{u}) (g : X' ⟶ 
     map_prop j :=  IsOpenImmersion.comp ((pull_loc_cov X Z X' g j.fst).map j.snd)
           (pullback.fst g (Z.cov.map j.fst))
 
-def  pull_mor_ring (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
-                               (γ : Z.cov.J) (β : (pull_cov X Z X' f).J) :
-    CommRingCat.of  (Z.cov.obj γ) →+* CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β ) :=
-     --- an element in cov.index is a pair (γ, β)
+def  pull_mor_ring (X: Scheme)  (Z : PreClos X) (X' : Scheme) (f: X' ⟶  X)
+      (γβ : (pull_cov X Z X' f).J) :
+    Z.cov.obj γβ.1 ⟶ (pull_loc_cov X Z X' f γβ.1).obj γβ.2 := by
+  let F := (pull_loc_cov X Z X' f γβ.1).map γβ.2 ≫ pullback.snd _ _
+  let A : AffineSchemeᵒᵖ :=
+    Opposite.op ⟨Spec ((pull_loc_cov X Z X' f γβ.fst).obj γβ.snd),
+      ⟨Opposite.op <| (pull_loc_cov X Z X' f γβ.fst).obj γβ.snd, ⟨Iso.refl _⟩⟩⟩
+  let B : AffineSchemeᵒᵖ :=
+    Opposite.op ⟨Spec (Z.cov.obj γβ.fst), ⟨Opposite.op (Z.cov.obj γβ.fst), ⟨Iso.refl _⟩⟩⟩
+  let F' : B ⟶ A := Quiver.Hom.op F
+  exact (Scheme.ΓSpecIso _).inv ≫ (AffineScheme.Γ.map F') ≫ (Scheme.ΓSpecIso _).hom
+
+  -- have := (Scheme.ΓSpecIso (Spec ((pull_loc_cov X Z X' f γβ.fst).obj γβ.snd))).inv
+  -- U_β -> X' ×_{X} U_γ -> U_γ
+    --- an element in cov.index is a pair (γ, β)
     -- We have morphisms of schemes U_β --pullback U_γ -> U_γ
     --- by composition we get a morphism of schemes U_β → U_γ
     -- since U_β and U_γ are affine, we get morphism of rings Aγ →   Aβ by the antiequivalence
@@ -588,65 +599,99 @@ def  pull_mor_ring (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
 
 
 def pull_ideal  (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
-                               (γ : Z.cov.J) (β : (pull_cov X Z X' f).cov.J) (i: Z.indnumb) :
-                               Ideal (CommRingCat.of ((pull_loc_cov X Z X' f γ).cov.obj β )) :=
-                               Ideal.map (pull_mor_ring X Z X' f γ β) (Z.ideal i γ)
+  (γβ : (pull_cov X Z X' f).J) (i: Z.indnumb) :
+  Ideal (CommRingCat.of ((pull_loc_cov X Z X' f γβ.1).obj γβ.2)) :=
+  Ideal.map (pull_mor_ring X Z X' f γβ).hom (Z.ideal i γβ.1)
     -- We define ideal i γ β as the ideal image of ideal i γ under Aγ →   Aβ
 
 
+open TensorProduct
 ---a lemma (similar to TensorProduct.tensorQuotEquivQuotSMul )
 -- I do not add a lot of details as it is maybe already in Mathlib
-def lemma_map (A B: CommRing) (I: Ideal A) (f:A →+*B) : B →+* (A⧸ I)⊗[A] B :=
+def lemma_map (A B : Type*) [CommRing A] [CommRing B] [Algebra A B] (I: Ideal A) :
+    B →ₐ[A] (A ⧸ I) ⊗[A] B :=
+  Algebra.TensorProduct.includeRight
 
 
-lemma lemma_surj (A B: CommRing) (I: Ideal A) (f:A →+*B) : lemma_map A B I f
-  is surjective := by
+lemma lemma_surj (A B : Type*) [CommRing A] [CommRing B] [Algebra A B] (I : Ideal A) :
+    Function.Surjective <| lemma_map A B I := by
+  intro x
+  induction x using TensorProduct.induction_on with
+  | zero => exact ⟨0, by simp⟩
+  | tmul a b =>
+    induction a using Quotient.inductionOn with | h a =>
+    refine ⟨a • b, ?_⟩
+    simp only [lemma_map, map_smul, Algebra.TensorProduct.includeRight_apply, smul_tmul']
+    rw [Algebra.smul_def, mul_one]
+    rfl
+  | add x y hx hy =>
+    obtain ⟨x, rfl⟩ := hx
+    obtain ⟨y, rfl⟩ := hy
+    exact ⟨x + y, by simp⟩
+
+-- TODO: update mathlib and finish this
+lemma lemma_kernel (A B : Type*) [CommRing A] [CommRing B] [Algebra A B] (I : Ideal A) :
+    RingHom.ker (lemma_map A B I) = Ideal.map (algebraMap A B) I := by
+  refine le_antisymm ?_ ?_
+  · intro b hb
+    simp only [lemma_map, RingHom.mem_ker, Algebra.TensorProduct.includeRight_apply] at hb
+    -- have := Algebra.TensorProduct.quotIdealMapEquivTensorQuot
+    sorry
+  · rw [Ideal.map_le_iff_le_comap]
+    intro a ha
+    simp only [Ideal.mem_comap, RingHom.mem_ker, AlgHom.commutes,
+      Algebra.TensorProduct.algebraMap_apply, Ideal.Quotient.algebraMap_eq]
+    rw [show Ideal.Quotient.mk I a = 0 by rwa [Ideal.Quotient.eq_zero_iff_mem], zero_tmul]
+
+def lemma_iso (A B : Type*) [CommRing A] [CommRing B] [Algebra A B] (I : Ideal A) :
+  (B ⧸ Ideal.map (algebraMap A B) I) ≃ₐ[A] ((A ⧸ I)⊗[A] B) := by
+  -- Algebra.TensorProduct.quotIdealMapEquivTensorQuot
   sorry
 
-lemma lemma_kernel (A B: CommRing) (I: Ideal A) (f:A →+*B) :
-                kernel lemma_map A B I f =Ideal.map f I := by
-   sorry
-
-lemma lemma_iso (A B: CommRing) (I: Ideal A) (f:A →+*B) : B⧸ Ideal.map f I ≅ₐ[A]
-  (A⧸ I)⊗[A] B := by
-   sorry
-
-lemma pull_lemm_cond_iso (A B: CommRing) (I: Ideal A) (f:A →+*B)
----end lemma
 
 
-
-
-def pull_back_PreClos (Z: PreClos X) (X': Scheme) (f: X' ⟶  X): PreClos X'  where
+def pullback_PreClos (X': Scheme) (f: X' ⟶  X) (Z: PreClos X)  : PreClos X'  where
   indnumb := Z.indnumb
-  fin_indnumb := by sorry
-  clotop := fun (i : Z.indnumb) => IsClosed.preimage f.base. (Z.clotop i)
-  subscheme := fun (i : Z.indnumb) => pullback (Z.subscheme i ↘ X) (f)
-  condset := by sorry
-  over := by sorry
+  fin_indnumb := Z.fin_indnumb
+  -- clotop i := ⟨f.base ⁻¹' (Z.clotop i), IsClosed.preimage f.base.2 (Z.clotop i).2⟩
+  subscheme i := pullback (Z.subscheme i ↘ X) (f)
+  -- condset i := by
+  --   have := Z.condset i
+  --   sorry
+  over i := ⟨pullback.snd _ _⟩
   cov := pull_cov X Z X' f
-  ideal:=  pull_ideal X Z X' f γ β i
-  condiso:= by sorry--affine routine via pullback and
+  ideal i γβ :=  pull_ideal X Z X' f γβ i
+  condiso i γβ := by
+    dsimp
+    -- AlgebraicGeometry.pullbackSpecIso
+    sorry--affine routine via pullback and
             -- AlgebraicGeometry.AffineScheme.equivCommRingCat
             --pull_lemm_cond_iso
             -- hand note
-  condover := by sorry
-
-lemma pul_back_lem (Z Z': PreClos X) (T : Scheme) (f: T ⟶ X) (Z rel Z') :
-       (r T) (pull_back_PreClos X Z T f)  (pull_back_PreClos X Z' T f) := by
-        triviall
-        sorry
+  condover := by
+    rintro i ⟨γ, β⟩
+    dsimp
 
 
-def pull_back_Clos (Z: Clos X) (X': Scheme) (f: X' ⟶  X): Clos X' :=
-    class of PreClos
+    -- simp?
+    sorry
+
+def pullback_lem (Z Z': PreClos X) (T : Scheme) (f : T ⟶ X) (e : relStructure Z Z') :
+       relStructure (pullback_PreClos X T f Z)  (pullback_PreClos X T f Z') where
+  indnumb_equiv := e.indnumb_equiv
+  subscheme_iso i := sorry
+  subscheme_iso_over i := sorry
+
+
+def pullback_Clos (X': Scheme) (f: X' ⟶  X): Clos X → Clos X' :=
+  Quotient.map (pullback_PreClos X X' f) <| fun Z Z' e => Nonempty.map (pullback_lem X Z Z' X' f) e
 
 
 structure conceptual_blowup (Z: Clos X) where
-   scheme: Scheme
+   scheme : Scheme
    over : Scheme.Over scheme X
    cond1: pull_back_Clos (X) (Z) (scheme) (over)  ∈ (PreCars scheme)
-   cond2: (∀ t:T ⟶ X) pull_back_Clos (X) (Z) (T) (t)  ∈ (PreCars T),
+   cond2: ∀ t:T ⟶ X, pull_back_Clos (X) (Z) (T) (t)  ∈ (PreCars T),
            ∃! φ: T⟶ scheme over X
 
 
