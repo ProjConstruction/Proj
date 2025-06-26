@@ -15,6 +15,7 @@ import Project.Proj.Over
 import Project.Proj.OfLE
 import Project.Dilatation.Multicenter
 import Mathlib.Topology.Sets.Closeds
+import Mathlib.AlgebraicGeometry.PullbackCarrier
 
 
 
@@ -479,7 +480,7 @@ structure PreClos where
   (subscheme: indnumb → Scheme)
   (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
   [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
-  cov : Scheme.AffineCover (P := @IsOpenImmersion) X
+  cov : Scheme.AffineCover.{u, u} (P := @IsOpenImmersion) X
   ideal: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
   condiso : ∀ (i : indnumb) (γ : cov.J),
     Spec (CommRingCat.of (cov.obj γ ⧸ ideal i γ)) ≅
@@ -549,22 +550,32 @@ def Pri := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
 
 def Cars := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
 
+def pull_loc_cov (X: Scheme.{u}) (Z: PreClos.{u} X) (X': Scheme.{u}) (g : X' ⟶  X) (γ : Z.cov.J ) :=
+    Scheme.affineOpenCover (pullback g (Z.cov.map γ))
 
-
-
-def pull_loc_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) (γ : Z.cov.J ) :=
-        Scheme.AffineCover (P := @IsOpenImmersion)  (pullback f (Z.cov.map γ))
-
-
---we need to clarify the definition of J
-def  pull_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (f: X' ⟶  X) :
+def  pull_cov (X: Scheme.{u}) (Z : PreClos.{u} X) (X' : Scheme.{u}) (g : X' ⟶  X) :
             Scheme.AffineCover (P := @IsOpenImmersion) X' where
-    J := Sum γ : Z.cov.J, (pull_loc_cov X Z X' f γ).cov.J
-    obj (γ β  : J) := (pull_loc_cov Z X' f γ).cov.obj β
-    map (γ β : J) :=  (pullback f (Z.cov.map γ)).fst   ∘ (pull_loc_cov Z X' f γ).cov.map β
-    f (x : X) :=
-    covers (x : X) :=
-    map_prop (j : J) :=
+    J := (γ : Z.cov.J) × (pull_loc_cov X Z X' g γ).J
+    obj p := (pull_loc_cov X Z X' g p.1).obj p.2
+    map p := (pull_loc_cov X Z X' g p.1).map p.2 ≫ (pullback.fst g (Z.cov.map p.1))
+    f (x : X') := ⟨Z.cov.f (g.base x), by
+      have h1 : x ∈ g.base ⁻¹' Set.range (Z.cov.map (Z.cov.f <| g.base x)).base :=
+        Z.cov.covers (g.base x)
+      rw [← Scheme.Pullback.range_fst (f := g) (g := Z.cov.map (Z.cov.f <| g.base x))] at h1
+      exact (pull_loc_cov X Z X' g (Z.cov.f <| g.base x)).f <| h1.choose⟩
+    covers (x : X') := by
+      dsimp
+      simp only [eq_mp_eq_cast, Scheme.comp_coeBase, TopCat.coe_comp, Set.mem_range,
+        Function.comp_apply]
+      have h1 : x ∈ g.base ⁻¹' Set.range (Z.cov.map (Z.cov.f <| g.base x)).base :=
+        Z.cov.covers (g.base x)
+      rw [← Scheme.Pullback.range_fst (f := g) (g := Z.cov.map (Z.cov.f <| g.base x))] at h1
+      obtain ⟨y, hy⟩ := (pull_loc_cov X Z X' g (Z.cov.f <| g.base x)).covers h1.choose
+      use y
+      rw [hy]
+      exact h1.choose_spec
+    map_prop j :=  IsOpenImmersion.comp ((pull_loc_cov X Z X' g j.fst).map j.snd)
+          (pullback.fst g (Z.cov.map j.fst))
 
 def  pull_mor_ring (X:Scheme)  (Z: PreClos X) (X': Scheme) (f: X' ⟶  X)
                                (γ : Z.cov.J) (β : (pull_cov X Z X' f).J) :
