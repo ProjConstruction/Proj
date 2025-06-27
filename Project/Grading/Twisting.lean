@@ -11,9 +11,9 @@ open DirectSum
 
 variable {ι A Q σ  τ : Type*}
 variable [AddCommGroup ι] [CommRing A] [AddCommGroup Q]
- [SetLike σ A] [SetLike τ Q]  (𝒜 : ι → σ) (𝒬 : ι → τ) [Module A Q]
- [DecidableEq ι][AddSubgroupClass σ A][AddSubmonoidClass τ Q]
- [GradedRing 𝒜][DirectSum.Decomposition 𝒬][SetLike.GradedSMul 𝒜 𝒬]
+  [SetLike σ A] [SetLike τ Q]  (𝒜 : ι → σ) (𝒬 : ι → τ) [Module A Q]
+  [DecidableEq ι][AddSubgroupClass σ A][AddSubmonoidClass τ Q]
+  [GradedRing 𝒜][DirectSum.Decomposition 𝒬][SetLike.GradedSMul 𝒜 𝒬]
 
 def twisting (c i : ι) : τ := 𝒬 (c + i)
 
@@ -84,16 +84,16 @@ def maptwistingshift (c: ι) :
   (letI := twistingmodulestructure 𝒜 𝒬 c
   ⨁ (i : ι), (𝒬⸨c⸩ i)):=DirectSum.toAddMonoid fun i ↦ ({
     toFun := fun (qi : (𝒬 i)) ↦ DirectSum.of _ (i-c) ⟨qi.1,by
-     simp[twisting]⟩
+      simp[twisting]⟩
     map_zero' := by
-     ext g
-     simp[coe_of_apply]
-     aesop
+      ext g
+      simp[coe_of_apply]
+      aesop
     map_add' := by
-     rintro x y
-     ext g
-     simp[coe_of_apply]
-     aesop
+      rintro x y
+      ext g
+      simp[coe_of_apply]
+      aesop
 
 
   } : 𝒬 i →+  (letI := twistingmodulestructure 𝒜 𝒬 c
@@ -103,7 +103,7 @@ set_option synthInstance.maxHeartbeats 200000 in
 set_option maxHeartbeats 1000000 in
 
 def maptwisting (c : ι)  : Q →+ (⨁ (i: ι),  𝒬⸨c⸩ i ) :=
- AddMonoidHom.comp (maptwistingshift  𝒬 c) (decomposeAddEquiv 𝒬).toAddMonoidHom
+  AddMonoidHom.comp (maptwistingshift  𝒬 c) (decomposeAddEquiv 𝒬).toAddMonoidHom
 
 set_option synthInstance.maxHeartbeats 200000 in
 set_option maxHeartbeats 1000000 in
@@ -111,24 +111,24 @@ set_option maxHeartbeats 1000000 in
 instance (c: ι): DirectSum.Decomposition (𝒬⸨c⸩) where
   decompose' := maptwisting 𝒬 c
   left_inv := by
-   rintro x
-   induction x using DirectSum.Decomposition.inductionOn 𝒬 with
-   |h_zero => simp[coe_of_apply]
-   |@h_homogeneous =>
-    simp[maptwisting]
-    simp[maptwistingshift]
-   |@h_add x y ihx ihy =>
+    rintro x
+    induction x using DirectSum.Decomposition.inductionOn 𝒬 with
+    |zero => simp[coe_of_apply]
+    |@homogeneous =>
+      simp[maptwisting]
+      simp[maptwistingshift]
+    |@add x y ihx ihy =>
     simp [map_add, ihx, ihy]
   right_inv := by
-   rintro x
-   induction x using DirectSum.induction_on with
-      | H_zero => simp[coe_of_apply]
-      | H_basic x =>
-         simp[maptwisting, maptwistingshift, DirectSum.coeAddMonoidHom_of, DirectSum.coe_of_apply]
-         ext
-         simp[DirectSum.coe_of_apply]
-         split_ifs
-         rfl
-         rfl
-      | H_plus  x y ihx ihy =>
+    rintro x
+    induction x using DirectSum.induction_on with
+      | zero => simp[coe_of_apply]
+      | of x =>
+        simp[maptwisting, maptwistingshift, DirectSum.coeAddMonoidHom_of, DirectSum.coe_of_apply]
+        ext
+        simp[DirectSum.coe_of_apply]
+        split_ifs
+        rfl
+        rfl
+      | add  x y ihx ihy =>
           simp [map_add, ihx, ihy]

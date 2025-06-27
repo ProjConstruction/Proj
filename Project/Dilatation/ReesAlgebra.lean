@@ -109,9 +109,9 @@ lemma induction_on (P : ReesAlgebra F → Prop) (H_zero : P 0) (H_basic : ∀ v 
   (H_plus : ∀ x y, P x → P y → P (x + y)) : ∀ x, P x := by
   rintro ⟨x⟩
   induction x using DirectSum.induction_on with
-  |H_zero => exact H_zero
-  |H_basic v x => exact H_basic v x
-  |H_plus x y hx hy => exact H_plus _ _ hx hy
+  |zero => exact H_zero
+  |of v x => exact H_basic v x
+  |add x y hx hy => exact H_plus _ _ hx hy
 
 instance : Semigroup (ReesAlgebra F) where
   mul_assoc := by
@@ -217,7 +217,8 @@ def algebraMap' : A →+* ReesAlgebra F where
   map_mul' a b := by
     ext : 3
     rw [DirectSum.coe_of_apply, mul_of_of, DirectSum.coe_of_apply]
-    simp
+    simp only [add_zero]
+    split_ifs <;> rfl
   map_zero' := by
     ext
     rw [DirectSum.coe_of_apply]
@@ -303,7 +304,7 @@ lemma single_mul (v w : ι →₀ ℕ) (x y) :
   simp only [mul_val, single_def, mul'_of_of]
 
 lemma single_prod {index : Type*} (v : index → (ι →₀ ℕ)) (x : ∀ j : index, F^(v j)) (s : Finset index) :
-    ∏ j ∈ s, single F (v j) (x j) = single F (∑ j in s, v j) ⟨∏ j ∈ s, x j, by
+    ∏ j ∈ s, single F (v j) (x j) = single F (∑ j ∈ s, v j) ⟨∏ j ∈ s, x j, by
       classical
       rw [familyPow_sum]
       apply Ideal.prod_mem_prod
@@ -437,16 +438,16 @@ instance : GradedAlgebra (grading F) where
     |H_plus x y hx hy => simp [hx, hy]
   right_inv x := by
     induction x using DirectSum.induction_on with
-    |H_zero => simp
-    |H_basic v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
-    |H_plus x y hx hy => simp [hx, hy]
+    |zero => simp
+    |of v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
+    |add x y hx hy => simp [hx, hy]
 
 lemma single_has_degree (v : ι →₀ ℕ) (x) :
     single F v x ∈ grading F v := by
   rw [grading, LinearMap.mem_range]
   use x
 
-lemma eq_single_of_homogeneous (x : ReesAlgebra F) (hx : SetLike.Homogeneous (grading F) x) :
+lemma eq_single_of_homogeneous (x : ReesAlgebra F) (hx : SetLike.IsHomogeneousElem (grading F) x) :
     ∃ v, x = single F v (x.val v) := by
   rcases hx with ⟨v, ⟨y, rfl⟩⟩
   use v
@@ -525,6 +526,7 @@ def degreeZeroIso : A ≃+* (ReesAlgebra.grading F 0) where
     simp only [single_apply_val, SetLike.GradeZero.coe_mul, single_mul, SetLike.coe_eq_coe]
     ext
     simp only [coe_of_apply, zero_add]
+    split_ifs <;> rfl
   map_add' x y := by
     ext v
     simp only [single_apply_val, coe_of_apply, AddMemClass.mk_add_mk, add_val, add_apply,
@@ -547,8 +549,7 @@ lemma degreeZeroIso'_apply (a : A) :
   degreeZeroIso' F a = ⟨.single F 0 ⟨a, by simp⟩, by
     delta intGrading gradingOfInjection
     rw [dif_pos ⟨0, by simp⟩]
-    simp_rw [show (0 : ι →₀ ℤ) = ρNatToInt _ 0 by rfl]
-    rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+    rw [Set.rangeSplitting_apply_zero (inj := ρNatToInt_inj) (hf := by simp)]
     exact single_has_degree F 0 _⟩ := rfl
 
 lemma single_has_degree' (v : ι →₀ ℕ) (x) :
@@ -559,7 +560,7 @@ lemma single_has_degree' (v : ι →₀ ℕ) (x) :
   exact single_has_degree F v x
   exact ρNatToInt_inj
 
-lemma eq_single_of_homogeneous' (x : ReesAlgebra F) (hx : SetLike.Homogeneous (intGrading F) x) :
+lemma eq_single_of_homogeneous' (x : ReesAlgebra F) (hx : SetLike.IsHomogeneousElem (intGrading F) x) :
     ∃ v, x = single F v (x.val v) := by
   rcases hx with ⟨v, hv⟩
   simp only [intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply] at hv

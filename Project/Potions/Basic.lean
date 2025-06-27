@@ -213,7 +213,7 @@ lemma toBarPotion_surjective : Function.Surjective (toBarPotion S) := by
   rcases x with ⟨i, ⟨m, hm⟩, ⟨n, hn⟩, hn'⟩
   simp only [mem_toSubmonoid_iff, mem_bar] at hn'
   obtain ⟨hn', y, hy, dvd⟩ := hn'
-  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hn'
+  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 hn'
     (S.homogeneous hy) dvd
   refine ⟨.mk ⟨i + j, ⟨m * z, SetLike.mul_mem_graded hm hz⟩,
     ⟨n * z, SetLike.mul_mem_graded hn hz⟩, hy⟩, ?_⟩
@@ -222,7 +222,7 @@ lemma toBarPotion_surjective : Function.Surjective (toBarPotion S) := by
   simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,
     Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists, mem_toSubmonoid_iff,
     mem_bar, exists_prop]
-  exact ⟨1, ⟨SetLike.homogeneous_one _,
+  exact ⟨1, ⟨SetLike.isHomogeneousElem_one _,
     ⟨1, one_mem _, by rfl⟩⟩, by group⟩
 
 lemma toBarPotion_injective : Function.Injective (toBarPotion S) := by
@@ -278,7 +278,7 @@ lemma toMul_equivBarPotion_symm (x) :
   rcases x with ⟨i, ⟨m, hm⟩, ⟨n, hn⟩, hn'⟩
   simp only [mem_toSubmonoid_iff, mem_bar] at hn'
   obtain ⟨hn', y, hy, dvd⟩ := hn'
-  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hn'
+  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 hn'
     (S.homogeneous hy) dvd
   rw [equivBarPotion_symm_apply (z_mem := hz) (hz := hy), potionToMul_mk]
   simp only
@@ -332,7 +332,7 @@ lemma finite_potionGen_exists_aux₁ (S_rel : IsRelevant S) (t : A) (m : ι) (ht
   simpa
 
 variable {S} in
-lemma finite_potionGen_exists_aux₂ (S_rel : IsRelevant S) (t : A) (ht : SetLike.Homogeneous 𝒜 t) :
+lemma finite_potionGen_exists_aux₂ (S_rel : IsRelevant S) (t : A) (ht : SetLike.IsHomogeneousElem 𝒜 t) :
   ∃ (n : ℕ+) (s s' : A) (i i' : ι),
     t^(n : ℕ) ∈ 𝒜 (i - i') ∧ s ∈ 𝒜 i ∧ s' ∈ 𝒜 i' ∧ s ∈ S.bar ∧ s' ∈ S.bar :=
   finite_potionGen_exists_aux₁ S_rel t ht.choose ht.choose_spec

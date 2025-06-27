@@ -24,4 +24,11 @@ theorem rangeSplitting_apply_coe (f : A → B) (inj : Function.Injective f)  (x 
   apply inj
   rw [Set.apply_rangeSplitting f]
 
+@[simp]
+theorem rangeSplitting_apply_zero [Zero A] [Zero B] (f : A → B) (inj : Function.Injective f) (hf : f 0 = 0)   :
+    Set.rangeSplitting f ⟨0, ⟨0, hf⟩⟩ = 0 := by
+  apply inj
+  simp [Set.apply_rangeSplitting f, hf]
+
+
 end Set
