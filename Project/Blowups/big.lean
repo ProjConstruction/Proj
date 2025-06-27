@@ -691,7 +691,7 @@ structure conceptual_blowup (Z: Clos X) where
    scheme : Scheme
    over : Scheme.Over scheme X
    cond1: pull_back_Clos (X) (Z) (scheme) (over)  ∈ (PreCars scheme)
-   cond2: ∀ t:T ⟶ X, pull_back_Clos (X) (Z) (T) (t)  ∈ (PreCars T),
+   cond2: ∀ t : T ⟶ X, pull_back_Clos (X) (Z) (T) (t)  ∈ (PreCars T),
            ∃! φ: T⟶ scheme over X
 
 
