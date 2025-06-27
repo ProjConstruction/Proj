@@ -11,7 +11,7 @@ namespace NumDenSameDeg
 
 @[simp]
 lemma deg_prod {ι : Type*} (s : Finset ι) (f : ι → NumDenSameDeg 𝒜 x) :
-    NumDenSameDeg.deg (∏ i ∈ s, f i) = ∑ i in s, NumDenSameDeg.deg (f i) := by
+    NumDenSameDeg.deg (∏ i ∈ s, f i) = ∑ i ∈ s, NumDenSameDeg.deg (f i) := by
   classical
   induction s using Finset.induction_on with
   | empty => simp

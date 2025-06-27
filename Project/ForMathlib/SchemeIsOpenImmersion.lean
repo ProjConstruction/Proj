@@ -35,7 +35,7 @@ lemma Hom.ext_iff {X Y : Scheme} (f g : X ⟶ Y) : f = g ↔
   constructor
   · rintro rfl; aesop
   · rintro ⟨h_base, h_app⟩
-    ext : 1 <;> aesop
+    refine Scheme.Hom.ext ?_ ?_ <;> aesop
 
 open Opposite
 lemma Hom.comp_c_app {X Y Z : Scheme} (f : X ⟶ Y) (g : Y ⟶ Z) (U : Opens Z) :

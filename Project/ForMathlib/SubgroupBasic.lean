@@ -45,7 +45,7 @@ lemma exists_finite_generating_set_of_FG (s : Set M) (h : AddSubgroup.closure s 
       ∃ (c : M →₀ ℤ), (c.support : Set M) ⊆ s ∧ ∑ i ∈ c.support, c i • i = m := by
     have mem : m ∈ AddSubgroup.closure s := h ▸ ⟨⟩
     simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-      mem_span_set] at mem
+      Submodule.mem_span_set] at mem
     exact mem
   choose c hc_subset hc_eq using this
   have T_nonempty : T.attach.Nonempty := by simpa using Finset.nonempty_iff_ne_empty.mpr T_empty
@@ -55,7 +55,7 @@ lemma exists_finite_generating_set_of_FG (s : Set M) (h : AddSubgroup.closure s 
   rintro x -
   have mem : x ∈ AddSubgroup.closure T := hT ▸ ⟨⟩
   simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-    mem_span_set] at mem
+    Submodule.mem_span_set] at mem
   obtain ⟨d, hd, (rfl : ∑ _ ∈ _, _ = x)⟩ := mem
   refine sum_mem fun i hi ↦ ?_
   specialize hc_subset i (hd hi)
@@ -82,7 +82,7 @@ lemma exists_finite_generating_set_of_FG' (s : Set M) (h : AddGroup.FG <| AddSub
   have (m : M) (mem : m ∈ AddSubgroup.closure s) :
       ∃ (c : M →₀ ℤ), (c.support : Set M) ⊆ s ∧ ∑ i ∈ c.support, c i • i = m := by
     simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-      mem_span_set] at mem
+      Submodule.mem_span_set] at mem
     exact mem
   choose c hc_subset hc_eq using this
   have T_nonempty : T.attach.Nonempty := by simpa using Finset.nonempty_iff_ne_empty.mpr T_empty
@@ -99,7 +99,7 @@ lemma exists_finite_generating_set_of_FG' (s : Set M) (h : AddGroup.FG <| AddSub
   intro x hx
   have mem : x ∈ AddSubgroup.closure T := hT ▸ hx
   simp only [← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-    mem_span_set] at mem
+    Submodule.mem_span_set] at mem
   obtain ⟨d, hd, (rfl : ∑ _ ∈ _, _ = x)⟩ := mem
   refine sum_mem fun i hi ↦ ?_
   specialize hc_subset i (by

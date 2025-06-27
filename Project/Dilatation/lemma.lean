@@ -18,10 +18,10 @@ lemma prod_span' (f : ι → A) (s : Finset ι) :
 
 lemma prod_map (f : ι → Ideal A) (s : Finset ι) (χ : F) :
     Ideal.map χ (∏ i ∈ s, f i) = ∏ i ∈ s, Ideal.map χ (f i) := by
-  classical
+classical
   induction s using Finset.induction_on with
   | empty => simp [map_top]
   | @insert i s hi ih =>
-    rw [Finset.prod_insert hi, map_mul, Finset.prod_insert hi, ih]
+    rw [Finset.prod_insert hi, Ideal.map_mul, Finset.prod_insert hi, ih]
 
 end Ideal

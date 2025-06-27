@@ -1,4 +1,4 @@
-import Mathlib.RingTheory.GradedAlgebra.HomogeneousIdeal
+import Mathlib.RingTheory.GradedAlgebra.Homogeneous.Ideal
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.NNReal.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Tower
@@ -25,7 +25,7 @@ variable [AddSubgroupClass σ' B] [GradedRing ℬ]
 @[ext]
 structure HomogeneousSubmonoid extends Submonoid A where
   homogeneous_gen : ∃ (s : Set A),
-    toSubmonoid = Submonoid.closure s ∧ ∀ x ∈ s, SetLike.Homogeneous 𝒜 x
+    toSubmonoid = Submonoid.closure s ∧ ∀ x ∈ s, SetLike.IsHomogeneousElem 𝒜 x
 
 open scoped GR
 
@@ -60,14 +60,14 @@ instance : SubmonoidClass (HomogeneousSubmonoid 𝒜) A where
   one_mem S := one_mem S.toSubmonoid
 
 
-lemma homogeneous {x : A} : x ∈ S → SetLike.Homogeneous 𝒜 x := by
+lemma homogeneous {x : A} : x ∈ S → SetLike.IsHomogeneousElem 𝒜 x := by
   rintro hx
   obtain ⟨s, hs, h⟩ := S.homogeneous_gen
   rw [← mem_toSubmonoid_iff, hs] at hx
   obtain ⟨n, hn, rfl⟩ := Submonoid.mem_closure_iff _ _ _ |>.1 hx
-  apply SetLike.Homogeneous.prod'' 𝒜
+  apply SetLike.IsHomogeneousElem.prod'' 𝒜
   intro i hi
-  apply SetLike.Homogeneous.pow
+  apply SetLike.IsHomogeneousElem.pow
   apply h _ (hn _ hi)
 
 open scoped Graded in
@@ -104,17 +104,17 @@ lemma mem_map_of_mem (Φ : 𝒜 →+* ℬ) {S : HomogeneousSubmonoid 𝒜} {x : 
   rw [mem_iff, map_toSubmonoid]
   exact Submonoid.mem_map_of_mem _ hx
 
-def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x) : HomogeneousSubmonoid 𝒜 where
+def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.IsHomogeneousElem 𝒜 x) : HomogeneousSubmonoid 𝒜 where
   __ := Submonoid.closure s
   homogeneous_gen := by
     use Submonoid.closure s
     simp only [Submonoid.closure_eq, SetLike.mem_coe, true_and]
     intro x hx
     exact Submonoid.closure_induction hs
-      (SetLike.homogeneous_one 𝒜)
-      (fun _ _ _ _ hx hy => SetLike.homogeneous_mul hx hy) hx
+      (SetLike.isHomogeneousElem_one 𝒜)
+      (fun _ _ _ _ hx hy => hx.mul hy) hx
 
-lemma mem_closure_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
+lemma mem_closure_singleton (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)) ↔
     ∃ (n : ℕ), x = a ^ n := by
   simp [closure, Submonoid.mem_closure_singleton, eq_comm, mem_iff]
@@ -176,8 +176,8 @@ instance : CommMonoid (HomogeneousSubmonoid 𝒜) where
   one_mul _ := toSubmonoid_injective _ <| one_mul _
   mul_one _ := toSubmonoid_injective _ <| mul_one _
 
-lemma closure_union_eq_mul (s t : Set A) (hs : ∀ x ∈ s, SetLike.Homogeneous 𝒜 x)
-    (ht : ∀ x ∈ t, SetLike.Homogeneous 𝒜 x) :
+lemma closure_union_eq_mul (s t : Set A) (hs : ∀ x ∈ s, SetLike.IsHomogeneousElem 𝒜 x)
+    (ht : ∀ x ∈ t, SetLike.IsHomogeneousElem 𝒜 x) :
     closure (s ∪ t) (by aesop) = closure s hs * closure t ht := by
   apply toSubmonoid_injective
   exact Submonoid.closure_union_eq_mul ..
@@ -187,14 +187,14 @@ protected lemma map_mul (Φ : 𝒜 →+* ℬ) (S T : HomogeneousSubmonoid 𝒜) 
   toSubmonoid_injective ℬ <| Submonoid.map_mul ..
 
 def bar : HomogeneousSubmonoid 𝒜 where
-  carrier := {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
+  carrier := {x | SetLike.IsHomogeneousElem 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
   mul_mem' := by
     rintro x y ⟨hom_x, ⟨ax, ⟨hax, hax'⟩⟩⟩ ⟨hom_y, ⟨ay, ⟨hay, hay'⟩⟩⟩
-    exact ⟨SetLike.homogeneous_mul hom_x hom_y, ⟨ax * ay, ⟨mul_mem hax hay,
+    exact ⟨hom_x.mul hom_y, ⟨ax * ay, ⟨mul_mem hax hay,
       mul_dvd_mul hax' hay'⟩⟩⟩
-  one_mem' := ⟨SetLike.homogeneous_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
+  one_mem' := ⟨SetLike.isHomogeneousElem_one 𝒜, ⟨1, ⟨one_mem _, by rfl⟩⟩⟩
   homogeneous_gen := by
-    use {x | SetLike.Homogeneous 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
+    use {x | SetLike.IsHomogeneousElem 𝒜 x ∧ ∃ y ∈ S, x ∣ y}
     constructor
     · refine le_antisymm Submonoid.subset_closure ?_
       rw [Submonoid.closure_le]
@@ -204,7 +204,7 @@ def bar : HomogeneousSubmonoid 𝒜 where
 @[simp]
 lemma mem_bar (x : A) :
     x ∈ S.bar ↔
-    SetLike.Homogeneous 𝒜 x ∧ ∃ (y : A), y ∈ S ∧ x ∣ y := by rfl
+    SetLike.IsHomogeneousElem 𝒜 x ∧ ∃ (y : A), y ∈ S ∧ x ∣ y := by rfl
 
 instance : PartialOrder (HomogeneousSubmonoid 𝒜) :=
   PartialOrder.lift (fun S ↦ S.toSubmonoid)
@@ -253,7 +253,7 @@ lemma le_bar : S ≤ S.bar := by
 
 lemma mem_bot_bar (x : A) :
     x ∈ HomogeneousSubmonoid.bot.bar (𝒜 := 𝒜) ↔
-    SetLike.Homogeneous 𝒜 x ∧ ∃ (y : A), x * y = 1 := by
+    SetLike.IsHomogeneousElem 𝒜 x ∧ ∃ (y : A), x * y = 1 := by
   simp only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
   fconstructor
   · rintro ⟨hx, y, rfl, ⟨z, hz⟩⟩
@@ -289,7 +289,7 @@ lemma closure_one :
     Set.mem_singleton_iff, closure, Submonoid.mem_closure_singleton, eq_comm,
     HomogeneousSubmonoid.bot]
 
-lemma mem_deg_singleton (a : A) (ha : SetLike.Homogeneous 𝒜 a) (x) :
+lemma mem_deg_singleton (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)).deg ↔
     (∃ n : ℕ, a ^ n ∈ 𝒜 x) := by
   simp only [mem_deg_iff]

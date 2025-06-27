@@ -636,7 +636,7 @@ def desc [Algebra A B]
     intro x y
     induction x using Dilatation.induction_on with |h x =>
     induction y using Dilatation.induction_on with |h y =>
-    simp only [Dilatation.descFun₂_mk_mk, Dilatation.mk_mul_mk]
+    simp only [Dilatation.descFun_mk]
     apply def_unique_elem_unique
     · exact non_zero_divisor
     · exact gen
@@ -768,8 +768,9 @@ lemma dil_representable_functor (F: Multicenter A) :
 
 @[simps]
 def image_mult [Algebra A B] :  Multicenter B :=
-  { ideal  :=(fun i ↦ Ideal.map (algebraMap A B) (F.ideal i))
-    elem := (fun i ↦ (algebraMap A B) (F.elem i))}
+  { index := _
+    ideal i := Ideal.map (algebraMap A B) (F.ideal i)
+    elem i := algebraMap A B (F.elem i)}
 
 
 /-

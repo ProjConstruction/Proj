@@ -686,7 +686,7 @@ def pullback_lem (Z Z': PreClos X) (T : Scheme) (f : T ⟶ X) (e : relStructure 
 def pullback_Clos (X': Scheme) (f: X' ⟶  X): Clos X → Clos X' :=
   Quotient.map (pullback_PreClos X X' f) <| fun Z Z' e => Nonempty.map (pullback_lem X Z Z' X' f) e
 
-
+#exit
 structure conceptual_blowup (Z: Clos X) where
    scheme : Scheme
    over : Scheme.Over scheme X

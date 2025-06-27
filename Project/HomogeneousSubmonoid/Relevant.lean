@@ -90,10 +90,10 @@ lemma isRelevant_iff_finiteIndex_of_FG [AddGroup.FG ι] :
   · intro H
     exact ι[S.bar].finite_quotient_of_finiteIndex
 
-abbrev SetIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.Homogeneous 𝒜 i) : Prop :=
+abbrev SetIsRelevant (s : Set A) (hs : ∀ i ∈ s, SetLike.IsHomogeneousElem 𝒜 i) : Prop :=
   closure s hs |>.IsRelevant
 
-abbrev ElemIsRelevant (a : A) (ha : SetLike.Homogeneous 𝒜 a) : Prop :=
+abbrev ElemIsRelevant (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) : Prop :=
   closure {a} (by simpa) |>.IsRelevant
 
 attribute [to_additive] Subgroup.closure_mul_image_mul_eq_top
@@ -104,7 +104,7 @@ attribute [to_additive] Subgroup.exists_finset_card_le_mul
 attribute [to_additive] Subgroup.fg_of_index_ne_zero
 
 lemma exists_factorisation_of_elemIsRelevant
-    [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a) (a_rel : ElemIsRelevant a ha) :
+    [AddGroup.FG ι] (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) (a_rel : ElemIsRelevant a ha) :
     ∃ (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
       (_ : ∀ (i : Fin n), x i ∈ 𝒜 (d i)),
       (AddSubgroup.closure (Set.range d)).FiniteIndex ∧
@@ -137,10 +137,10 @@ lemma exists_factorisation_of_elemIsRelevant
     apply Finset.prod_dvd_prod_of_dvd
     rintro ⟨i, hi⟩ -
     apply y_dvd
-  obtain ⟨b, hb, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 (by
-    refine SetLike.Homogeneous.prod' 𝒜 x fun j ↦ ?_
+  obtain ⟨b, hb, ⟨j, hj⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 (by
+    refine SetLike.IsHomogeneousElem.prod' 𝒜 x fun j ↦ ?_
     simpa [x] using ⟨_, y_mem _⟩) (by
-    refine SetLike.Homogeneous.pow 𝒜 ?_ _
+    refine SetLike.IsHomogeneousElem.pow 𝒜 ?_ _
     assumption) dvd
   refine ⟨N + 1, Fin.cons b x, Fin.cons j d, ?_, ?_, ⟨K, ?_⟩⟩
   · intro i
@@ -165,7 +165,7 @@ lemma exists_factorisation_of_elemIsRelevant
   · simp [← hb, mul_comm]
 
 lemma elemIsRelevant_of_homogeneous_of_factorisation
-    [AddGroup.FG ι] (a : A) (ha : SetLike.Homogeneous 𝒜 a)
+    [AddGroup.FG ι] (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a)
     (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
     (mem : ∀ (i : Fin n), x i ∈ 𝒜 (d i))
     (finiteIndex : (AddSubgroup.closure (Set.range d)).FiniteIndex)
@@ -182,7 +182,7 @@ lemma elemIsRelevant_of_homogeneous_of_factorisation
     rw [← eq]; apply Finset.dvd_prod_of_mem; aesop⟩⟩, mem i⟩
 
 lemma elemIsRelevant_iff [AddGroup.FG ι]
-    (a : A) (ha : SetLike.Homogeneous 𝒜 a) :
+    (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) :
     ElemIsRelevant a ha ↔
     ∃ (n : ℕ) (x : Fin n → A) (d : Fin n → ι)
       (_ : ∀ (i : Fin n), x i ∈ 𝒜 (d i)),
@@ -195,18 +195,18 @@ lemma elemIsRelevant_iff [AddGroup.FG ι]
     exact elemIsRelevant_of_homogeneous_of_factorisation _ ha n x d mem finiteIndex k eq
 
 lemma ElemIsRelevant.mul {a b : A}
-    {hom_a : SetLike.Homogeneous 𝒜 a} {hom_b : SetLike.Homogeneous 𝒜 b}
+    {hom_a : SetLike.IsHomogeneousElem 𝒜 a} {hom_b : SetLike.IsHomogeneousElem 𝒜 b}
     (rel_a : ElemIsRelevant a hom_a) (rel_b : ElemIsRelevant b hom_b) :
-    ElemIsRelevant (a * b) (SetLike.homogeneous_mul hom_a hom_b) := by
+    ElemIsRelevant (a * b) (hom_a.mul hom_b) := by
   intro i
   obtain ⟨n, hn, hn'⟩ := rel_a i
   obtain ⟨m, hm, hm'⟩ := rel_b i
   refine ⟨n + m, (by positivity), ?_⟩
   rw [agrDeg, ← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-    mem_span_set] at hn'
+    Submodule.mem_span_set] at hn'
   obtain ⟨s, hs, (eq_s : ∑ _ ∈ _, _ • _ = _)⟩ := hn'
   rw [agrDeg, ← Submodule.span_int_eq_addSubgroup_closure, Submodule.mem_toAddSubgroup,
-    mem_span_set] at hm'
+    Submodule.mem_span_set] at hm'
   obtain ⟨t, ht, (eq_t : ∑ _ ∈ _, _ • _ = _)⟩ := hm'
   rw [add_smul, ← eq_s, ← eq_t]
   refine add_mem ?_ ?_
@@ -221,7 +221,7 @@ lemma ElemIsRelevant.mul {a b : A}
     refine ⟨a', ?_, ha'⟩
     simp   only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
     refine ⟨⟨j, ha'⟩, ((a * b) ^ n), ?_, ?_⟩
-    · rw [mem_closure_singleton (ha := SetLike.homogeneous_mul hom_a hom_b)]
+    · rw [mem_closure_singleton (ha := hom_a.mul hom_b)]
       use n
     rw [mul_pow]
     exact Dvd.dvd.mul_right hz (b ^ n)
@@ -236,7 +236,7 @@ lemma ElemIsRelevant.mul {a b : A}
     refine ⟨a', ?_, ha'⟩
     simp   only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq]
     refine ⟨⟨j, ha'⟩, ((a * b) ^ n), ?_, ?_⟩
-    · rw [mem_closure_singleton (ha := SetLike.homogeneous_mul hom_a hom_b)]
+    · rw [mem_closure_singleton (ha := hom_a.mul hom_b)]
       use n
     rw [mul_pow]
     exact Dvd.dvd.mul_left hz (a ^ n)

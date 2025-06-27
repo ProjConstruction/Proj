@@ -88,7 +88,6 @@ def emb : M →* Mᵍʳ where
   toFun x := ↑((x, 1) : M × M)
   map_one' := rfl
   map_mul' x y := by
-    simp only [Con.coe_mk']
     change Con.mk' _ _ = Con.mk' _ _
     simp only [Con.coe_mk', Prod.mk_mul_mk, mul_one]
 
@@ -129,7 +128,7 @@ lemma inv_coe (x y : M) : (↑(x, y) : Mᵍʳ)⁻¹ = ↑(y, x) := rfl
 
 @[to_additive (attr := simp)]
 lemma coe_same (x : M) : (↑(x, x) : Mᵍʳ) = 1 := by
-  rw [show (1 : Mᵍʳ) = ↑((1, 1) : M × M) by simp, Con.eq]
+  rw [show (1 : Mᵍʳ) = ↑((1, 1) : M × M) by rfl, Con.eq]
   use 1
   simp
 

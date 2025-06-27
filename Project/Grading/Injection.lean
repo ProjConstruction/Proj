@@ -85,8 +85,8 @@ instance gradingOfInjection_decomposition :
   right_inv := by
     intro x
     induction x using DirectSum.induction_on with
-    | H_zero => simp
-    | @H_basic i x =>
+    | zero => simp
+    | @of i x =>
       rcases x with ⟨x, hx⟩
       by_cases mem : i ∈ Set.range ρ
       · rcases mem with ⟨i, rfl⟩
@@ -101,7 +101,7 @@ instance gradingOfInjection_decomposition :
         ext
         simp only [zero_apply, ZeroMemClass.coe_zero, coe_of_apply]
         split_ifs <;> rfl
-    | H_plus x y hx hy =>
+    | add x y hx hy =>
       simp only [Function.comp_apply, map_add, decompose_add] at hx hy ⊢
       rw [hx, hy]
 
