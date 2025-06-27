@@ -662,7 +662,6 @@ def pullback_PreClos (X': Scheme) (f: X' ⟶  X) (Z: PreClos X)  : PreClos X'  w
   cov := pull_cov X Z X' f
   ideal i γβ :=  pull_ideal X Z X' f γβ i
   condiso i γβ := by
-    dsimp
     -- AlgebraicGeometry.pullbackSpecIso
     sorry--affine routine via pullback and
             -- AlgebraicGeometry.AffineScheme.equivCommRingCat
@@ -670,7 +669,6 @@ def pullback_PreClos (X': Scheme) (f: X' ⟶  X) (Z: PreClos X)  : PreClos X'  w
             -- hand note
   condover := by
     rintro i ⟨γ, β⟩
-    dsimp
 
 
     -- simp?

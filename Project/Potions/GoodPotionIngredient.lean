@@ -216,7 +216,7 @@ lemma mixing_left (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) (
     have := T'.s'_mem_bar (i _ hx)
     simp only [mem_bar] at this
     obtain ⟨hom, y, hy, dvd⟩ := this
-    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜  ⟨_, T'.s'_deg (i _ hx)⟩
+    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜  ⟨_, T'.s'_deg (i _ hx)⟩
       (S.1.homogeneous hy) dvd
     rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
       rw [mul_assoc]
@@ -328,7 +328,7 @@ lemma mixing_right (R S T : GoodPotionIngredient 𝒜) (R' : PotionGen S.1 R.1) 
     have := R'.s'_mem_bar (i _ hx)
     simp only [mem_bar] at this
     obtain ⟨hom, y, hy, dvd⟩ := this
-    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜  ⟨_, R'.s'_deg (i _ hx)⟩
+    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜  ⟨_, R'.s'_deg (i _ hx)⟩
       (S.1.homogeneous hy) dvd
     rw [equivBarPotion_symm_apply (z_mem := hj) (hz := by
       rw [mul_assoc]

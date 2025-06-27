@@ -453,7 +453,7 @@ noncomputable def decomposition :
   LocalizedModule.lift _ (decompositionAux3 𝓠 S) <| by
     rintro ⟨x, hx⟩
     obtain ⟨i, hi⟩ := S.homogeneous hx
-    rw [Module.End_isUnit_iff, Function.bijective_iff_has_inverse]
+    rw [Module.End.isUnit_iff, Function.bijective_iff_has_inverse]
     use linv 𝓠 S x hx i hi
     constructor
     · intro q
@@ -539,7 +539,7 @@ lemma decomposition_homogeneous_mk
   rw [toAddMonoid_of]
   simp only [AddMonoidHom.coe_mk, ZeroHom.coe_mk]
 
-  rw [Module.End_algebraMap_isUnit_inv_apply_eq_iff]
+  rw [Module.End.algebraMap_isUnit_inv_apply_eq_iff]
   rw [smul_directSum_def, localization_smul_directSum_def]
   rw [decompose_of_mem (i := j) (hx := by
     refine ⟨AddCon.mk' _ ⟨b, 1, j, 0, hb, SetLike.GradedOne.one_mem, by simp⟩, by
@@ -599,7 +599,7 @@ lemma decomposition_right_inv (x) :
       AddCon.liftOn_coe, PreLocalizedModuleGrading.val_apply]
     rw [lift_mk]
 
-    rw [Module.End_algebraMap_isUnit_inv_apply_eq_iff]
+    rw [Module.End.algebraMap_isUnit_inv_apply_eq_iff]
     rw [smul_directSum_def, localization_smul_directSum_def]
     rw [decompose_of_mem (i := n) (hx := by
       refine ⟨AddCon.mk' _ ⟨b, 1, n, 0, hn, SetLike.GradedOne.one_mem, by simp⟩, by

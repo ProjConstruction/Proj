@@ -163,7 +163,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
         simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,
           Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists, mem_toSubmonoid_iff,
           mem_bar, exists_prop]
-        refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, ?_⟩
+        refine ⟨1, ⟨SetLike.isHomogeneousElem_one _, 1, one_mem _, by rfl⟩, ?_⟩
         simp only [one_mul, hi]
         ring⟩, ?_⟩
   change _ * HomogeneousLocalization.mk _ = 0
@@ -193,7 +193,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
     exact ⟨𝔰, ⟨S.homogeneous ‹_›, 𝔰, ‹_›, by rfl⟩, eq1⟩
 
 
-  refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, ?_⟩
+  refine ⟨1, ⟨SetLike.isHomogeneousElem_one _, 1, one_mem _, by rfl⟩, ?_⟩
   simp only [one_mul]
   simp_rw [mul_pow, Finset.prod_mul_distrib]
   rw [Finset.prod_pow_eq_pow_sum]
