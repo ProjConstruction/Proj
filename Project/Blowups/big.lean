@@ -803,6 +803,17 @@ def loc_to_PreClos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] : Pr
 def loc_to_Clos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] :
     Clos (Spec A) := Quotient.mk' <| loc_to_PreClos A L
 
+
+
+EQUALITY of morphisms of schemes IS LOCAL AT SOURCE
+lemma  := by
+    AlgebraicGeometry.sourceAffineLocally_isLocal theorem
+    sorry
+
+
+
+
+
 lemma ProjBlowup_UnivProp_unicity_affine
   (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
   {T : Scheme} [T.Over (Spec A)]
@@ -826,11 +837,19 @@ lemma ProjBlowup_UnivProp_unicity_affine
     --  apply lemm_dila_double_union to get a unique morphism
     --  apply univ prop of dilatations
 
+
 lemma ProjBlowup_UnivProp_existence_affine
   (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
   {T : Scheme} [T.Over (Spec A)]
   (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T) :
-  ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := sorry
+  ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
+      --chose a representative of pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) in Cars T
+     -- Let x be an element in T as a set
+     -- Chose an (affine) chart of the covering of the representative such that x is in the chart
+     -- We get a morphism of rings satisfying the conditions of the universal property of dilatations
+    --  Apply the univ prop of dilatations to get a unique morphism Ph_i _x
+     -- Glue all the morphisms Ph_i _x to get a morphism φ : T ⟶ BlMu L (use the unicity result)
+      sorry
 
 lemma ProjBlowup_UnivProp_affine
   (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
