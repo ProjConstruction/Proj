@@ -807,7 +807,7 @@ def loc_to_Clos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] :
 
 EQUALITY of morphisms of schemes IS LOCAL AT SOURCE
 lemma  := by
-    AlgebraicGeometry.sourceAffineLocally_isLocal theorem
+   -- AlgebraicGeometry.sourceAffineLocally_isLocal theorem
     sorry
 
 
@@ -826,16 +826,17 @@ lemma ProjBlowup_UnivProp_unicity_affine
   -- refine TopCat.Sheaf.hom_ext T.presheaf (BlMu L).sheaf
   sorry
     --  Let x ∈ T.
-    --  Reduce to local neighborhood
     --  put y=φx
     --  put y'=φ'x
     --  obtain P ∈ Mu L such that y ∈ Mu P
     --  obtain p' ∈ Mu L such that y ∈ Mu P'
-    --  Let U=Spec(B) be an affine neighborhood of x in φ^-1 (Po P) ∩ φ'^-1 (Po P').
+    --  observe that  x in φ^-1 (Po P) ∩ φ'^-1 (Po P').
+    --  Let U=Spec(B) be an affine neighborhood of x in the open φ^-1 (Po P) ∩ φ'^-1 (Po P').
     --  consider the restrictions of φ and φ' to U
     --  Phi factors through Po P, Phi' factors through Po P'
     --  apply lemm_dila_double_union to get a unique morphism
-    --  apply univ prop of dilatations
+    --  apply univ prop of dilatations to get equality locally
+    --  deduce equality  globaly
 
 
 lemma ProjBlowup_UnivProp_existence_affine
