@@ -1,10 +1,8 @@
-import Project.ForMathlib.SchemeIsOpenImmersion
 import Project.Proj.Construction
 
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
 
-import Project.Proj.Delab
 
 suppress_compilation
 

@@ -1,6 +1,3 @@
-import Mathlib.RingTheory.Ideal.Maps
-import Mathlib.Algebra.DirectSum.Basic
-import Project.Dilatation.lemma
 import Mathlib.RingTheory.Ideal.Operations
 
 section

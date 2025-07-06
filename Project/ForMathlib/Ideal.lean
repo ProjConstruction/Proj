@@ -1,5 +1,6 @@
-import Mathlib.Algebra.Group.Subsemigroup.Operations
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
+import Mathlib.Algebra.Group.Subsemigroup.Defs
+import Mathlib.Data.Set.Lattice.Image
 
 variable (A : Type*) [CommSemigroup A]
 

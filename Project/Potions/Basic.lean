@@ -1,11 +1,6 @@
-import Project.HomogeneousSubmonoid.IsoBar
 import Project.HomogeneousSubmonoid.Relevant
-import Project.ForMathlib.HomogeneousLocalization
-import Project.ForMathlib.LocalizationAway
 
-import Mathlib.AlgebraicGeometry.Gluing
-import Mathlib.AlgebraicGeometry.GammaSpecAdjunction
-import Mathlib.AlgebraicGeometry.Pullbacks
+import Mathlib.RingTheory.GradedAlgebra.HomogeneousLocalization
 
 suppress_compilation
 

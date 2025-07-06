@@ -1,4 +1,6 @@
 import Project.Potions.Basic
+import Project.ForMathlib.HomogeneousLocalization
+import Project.ForMathlib.LocalizationAway
 
 suppress_compilation
 

@@ -11,10 +11,8 @@ import Project.Dilatation.Family
 import Mathlib.RingTheory.GradedAlgebra.Basic
 import Mathlib.RingTheory.TensorProduct.Basic
 import Project.HomogeneousSubmonoid.Basic
-import Project.ForMathlib.TensorProduct
 import Project.Proj.Over
 import Project.Proj.OfLE
-import Project.Dilatation.Multicenter
 import Mathlib.Topology.Sets.Closeds
 import Mathlib.AlgebraicGeometry.PullbackCarrier
 

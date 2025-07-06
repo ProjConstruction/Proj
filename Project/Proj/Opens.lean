@@ -1,5 +1,4 @@
 import Project.Proj.Construction
-import Project.Proj.Delab
 
 suppress_compilation
 

@@ -1,10 +1,4 @@
-import Mathlib.RingTheory.GradedAlgebra.Homogeneous.Ideal
-import Mathlib.Data.Real.Basic
-import Mathlib.Data.NNReal.Basic
 import Mathlib.LinearAlgebra.TensorProduct.Tower
-import Mathlib.GroupTheory.Torsion
-import Mathlib.GroupTheory.FiniteAbelian.Basic
-import Mathlib.GroupTheory.Schreier
 import Mathlib.Algebra.Group.Submonoid.Pointwise
 
 import Project.ForMathlib.SubgroupBasic
@@ -14,7 +8,6 @@ import Project.GR.Basic
 import Project.Grading.GradedRingHom
 
 open DirectSum TensorProduct
-open scoped NNReal
 
 variable {ι A B σ σ' : Type*}
 variable [AddCommGroup ι] [CommRing A] [SetLike σ A]  (𝒜 : ι → σ)

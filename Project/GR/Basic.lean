@@ -1,8 +1,8 @@
 import Mathlib.Algebra.Group.Subgroup.Lattice
 import Mathlib.Algebra.Group.Subgroup.Ker
-import Mathlib.GroupTheory.Congruence.Basic
 import Mathlib.Tactic.Group
 import Mathlib.Tactic.ApplyFun
+import Mathlib.GroupTheory.Congruence.Hom
 
 universe u v
 
