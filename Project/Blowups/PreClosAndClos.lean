@@ -93,6 +93,18 @@ def relStructure.symm {X : Scheme} {Z Z' : PreClos X} (R : relStructure Z Z') : 
     apply PreClos.index_eq_triangle
     simp
 
+@[trans]
+def relStructure.trans {X : Scheme} {Z Z' Z'' : PreClos X}
+    (R : relStructure Z Z') (R' : relStructure Z' Z'') : relStructure Z Z'' where
+  indnumb_equiv := R.indnumb_equiv.trans R'.indnumb_equiv
+  subscheme_iso i := R.subscheme_iso _ ≪≫ R'.subscheme_iso _
+  subscheme_iso_over i := by
+    have o1 := R.subscheme_iso_over i
+    have o2 := R'.subscheme_iso_over (R.indnumb_equiv i)
+    simp only [Scheme.Hom.isOver_iff] at o1 o2 ⊢
+    rw [← o1, ← o2]
+    simp
+
 
 variable (X) in
 def rel : PreClos X → PreClos X → Prop := fun Z Z' => Nonempty (relStructure Z Z')
@@ -102,15 +114,11 @@ variable (X) in
 instance relSetoid : Setoid (PreClos X) where
   r := rel X
   iseqv :=
-    { refl := sorry
-      symm := sorry
-      trans := sorry }
-
--- lemma rel_trans :
-
--- lemma rel_sym
-
--- lemma rel_refl
+    { refl x := ⟨.refl _⟩
+      symm := Nonempty.map .symm
+      trans := by
+        rintro _ _ _ ⟨R⟩ ⟨R'⟩
+        exact ⟨R.trans R'⟩ }
 
 variable (X)
 def Clos := Quotient (relSetoid X)
