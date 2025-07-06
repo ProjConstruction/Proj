@@ -1,0 +1,400 @@
+
+
+
+
+----NEW SECTION ON MULTICENTERED DILATATIONS FOR DEFORMATIONS
+
+variable (X) in
+structure PreDilCent where
+  (indnumb : Type u)
+  -- (clotop : indnumb → Closeds X)
+  (subschemeclo: indnumb → Scheme)
+  (subschemepri: indnumb → Scheme)
+  -- (condset : ∀ i : indnumb, clotop i ≃ₜ (subscheme i)) -- maybe unnecessary?
+  [over : ∀ (i : indnumb), Scheme.Over (subschemeclo i) X]
+  [over : ∀ (i : indnumb), Scheme.Over (subschemepri i) X]
+  -- eq_cond (i j : indnumb) (eq : i = j) :
+  --   Scheme.Hom.IsOver (eqToHom (by rw [eq]) : subscheme i ⟶ subscheme j) X
+  cov : Scheme.AffineCover.{u, u} (P := @IsOpenImmersion) X
+  idealclo: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
+  idealpri: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
+  -- the following is a condition saying that the ideal is principal
+  idealpricond : ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ) is principal
+  condisoclo : ∀ (i : indnumb) (γ : cov.J),
+    Spec (CommRingCat.of (cov.obj γ ⧸ idealclo i γ)) ≅
+    pullback (f := subschemeclo i ↘ X) (g := cov.map γ)
+  condisopri : ∀ (i : indnumb) (γ : cov.J),
+    Spec (CommRingCat.of (cov.obj γ ⧸ idealpri i γ)) ≅
+    pullback (f := subschemepri i ↘ X) (g := cov.map γ)
+  condoverclo : ∀ (i : indnumb) (γ : cov.J),
+    Scheme.Hom.IsOver (condisoclo i γ).hom
+      (Spec (CommRingCat.of (cov.obj γ)))
+  condoverpri : ∀ (i : indnumb) (γ : cov.J),
+    Scheme.Hom.IsOver (condisopri i γ).hom
+      (Spec (CommRingCat.of (cov.obj γ)))
+
+
+
+lemma PreClos.index_eq_triangle {X : Scheme} (F: PreDilCent X) (i j : F.indnumb) (eq : i = j) :
+    Scheme.Hom.IsOver (eqToHom (by rw [eq]) : F.subschemeclo i ⟶ F.subschemeclo j) X := by
+  subst eq
+  simp
+
+lemma PreClos.index_eq_triangle {X : Scheme} (F: PreDilCent X) (i j : F.indnumb) (eq : i = j) :
+    Scheme.Hom.IsOver (eqToHom (by rw [eq]) : F.subschemepri i ⟶ F.subschemepri j) X := by
+  subst eq
+  simp
+
+
+
+structure relStructure (F F' : PreDilCent X) where -- := fun Z Z' =>
+  indnumb_equiv :  F.indnumb ≃ F'.indnumb
+  -- clotop_homeomorph : ∀ i, Z.clotop i ≃ₜ Z'.clotop (indnumb_equiv i)
+  subscheme_iso : ∀ i, F.subschemeclo i ≅ F'.subschemeclo (indnumb_equiv i)
+  subscheme_iso_over : ∀ i, Scheme.Hom.IsOver (subschemeclo_iso i).hom X
+   subscheme_iso : ∀ i, F.subschemepri i ≅ F'.subschemepri (indnumb_equiv i)
+  subscheme_iso_over : ∀ i, Scheme.Hom.IsOver (subschemepri_iso i).hom X
+
+
+--RECYCLE CLOS AND PULLBACK CLOS  CODE ALLOWING INFINITE CENTERS
+--HAVE MAPS PREDILCENT TO CLOS AnD PREDILCENT TO PRI
+
+
+@[refl]
+def relStructure.refl {X : Scheme} (Z : PreDilCent X) : relStructure Z Z where
+  indnumb_equiv := Equiv.refl _
+  subscheme_iso _ := Iso.refl _
+  subscheme_iso_over _ := by simp [Equiv.refl_apply, Scheme.Hom.isOver_iff]
+
+
+@[symm]
+def relStructure.symm {X : Scheme} {F F' : PreDilCent X} (R : relStructure F F') : relStructure F' F where
+ -- indnumb_equiv := R.indnumb_equiv.symm
+ -- subscheme_iso i := eqToIso (by simp) ≪≫ (R.subscheme_iso (R.indnumb_equiv.symm i)).symm
+ -- subscheme_iso_over i := by
+  --  have := R.subscheme_iso_over (R.indnumb_equiv.symm i)
+  --  simp only [Scheme.Hom.isOver_iff] at this
+  --  simp only [Iso.trans_hom, eqToIso.hom, Iso.symm_hom, Scheme.Hom.isOver_iff, Category.assoc]
+--    rw [← this]
+  --  simp only [Iso.inv_hom_id_assoc]
+  --  rw [← Scheme.Hom.isOver_iff]
+   -- apply PreClos.index_eq_triangle
+ --   simp
+
+
+variable (X) in
+def rel : PreDilCent X → PreDilCent X → Prop := fun F F' => Nonempty (relStructure F F')
+
+
+variable (X) in
+instance relSetoid : Setoid (PreDilCent X) where
+  r := rel X
+  iseqv :=
+    { refl := sorry
+      symm := sorry
+      trans := sorry }
+
+-- lemma rel_trans :
+
+-- lemma rel_sym
+
+-- lemma rel_refl
+
+variable (X) in
+def DilCent := Quotient (relSetoid X)
+
+-- DEFINE THE INTERSECTION IN CLOS
+
+structure conceptual_Dilatation (F : DilCent X) where
+  scheme : Scheme
+  over : Scheme.Over scheme X
+--ADD CONDITION USING ABOVE DEFINITIONS (CENT TO CLOS ETC)
+--  in_cars : pullback_Clos (scheme ↘ X) F.Clos ∈ CarsAsSubsetOfClos scheme
+ --  Equality: pullback_Close (scheme ↘ X) F.Clos ∩ F.Pri  = pullback_Clos (scheme ↘ X) F.Pri
+-- + ADAPT THE FOLLOIWNG
+-- φ (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+--     T ⟶ scheme
+--   φ_over (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+--   Scheme.Hom.IsOver (φ T in_preCars) X
+--  φ_uniq (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+--    ∀ φ' : T ⟶ scheme, Scheme.Hom.IsOver φ' X → φ' = φ T in_preCars
+
+---INTRODUCE THE RING-THEORETIC MULTI CENTER ASSO TO GAMMA AND F
+
+def Dil_loc  (X: Scheme) (F: PreDilCent X) (γ : F.cov.J)
+  --  [DecidableEq Z.indnumb]
+  --  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]
+                                         : Scheme :=
+  Spec ( A[F.multicenter  γ ])
+
+instance (X : Scheme) (F: PreDilCent X) (γ : F.cov.J)
+   -- [DecidableEq Z.indnumb]
+   -- [(i : F.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt F.indnumb))]  :
+    Scheme.Over (Dil_loc X F γ) (Spec (Z.cov.obj γ)) :=
+
+
+instance (X : Scheme) (F: PreDilCent X) (γ : F.cov.J)
+  --  [DecidableEq Z.indnumb]
+   -- [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]  :
+    Scheme.Over (Dil_loc X F γ) X where
+  hom := (Dil_loc X Z γ) ↘ (Spec (Z.cov.obj γ)) ≫
+    Z.cov.map γ
+
+def open_pair (X: Scheme) (F: PreDilCent X) (γ δ : F.cov.J) : Scheme :=
+  pullback (F.cov.map γ) (F.cov.map δ)
+
+def open_pair_map (X: Scheme) (F: PreDilCent X) (γ δ : F.cov.J) : open_pair X Z  γ δ  ⟶ X :=
+  (pullback.fst  (Z.cov.map γ) (Z.cov.map δ)) ≫ (Z.cov.map γ)
+
+lemma open_pair_map_equal (X: Scheme) (F: PreDilCent X) (γ δ : F.cov.J) :
+    open_pair_map X Z  γ δ  =
+    (pullback.snd  (Z.cov.map γ) (Z.cov.map δ)) ≫ (Z.cov.map δ)  := by
+  -- this is a pullback square, in partcular commutative
+  sorry
+
+
+lemma open_pair_map_is_open (X: Scheme) (F: PreDilCent X) (γ δ : F.cov.J) :
+  IsOpenImmersion <| open_pair_map X F γ δ := by
+    --pullback.fst is an open immersion because open immersion is stable by base change by
+    --- AlgebraicGeometry.isOpenImmersion_stableUnderBaseChange
+    ---now it is enough to use that a composition of open immersion is openimmersion
+          ---- AlgebraicGeometry.IsOpenImmersion.comp
+    sorry
+
+/-
+      Z_β
+      |
+Z_γ -> X
+-/
+def Dil_loc_pair (X: Scheme) (F: PreDilCent X) (γ δ : F.cov.J)
+ -- [DecidableEq Z.indnumb]
+  ---[(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]  : Scheme :=
+  --  pullback (pullback.fst (Z.cov.map γ) (Z.cov.map δ))
+     -- (Proj_loc X Z γ ↘ Spec (Z.cov.obj γ))
+    --inverse image of open_pair in Bl (ideal_loc Z γ)
+
+
+/-
+     X
+     |
+U -> S
+-/
+abbrev restrictToOpen {X X' U S : Scheme} [X.Over S] [X'.Over S] (f : X ⟶ X') [Scheme.Hom.IsOver f S]
+  (i : U ⟶ S) : (pullback (X ↘ S) i) ⟶ (pullback (X' ↘ S) i) :=
+  pullback.map _ _ _ _ f (𝟙 _) (𝟙 _) (by simp) (by simp)
+
+instance (X X' U S : Scheme) [X.Over S] [X'.Over S] (f : X ⟶ X') [Scheme.Hom.IsOver f S]
+    (i : U ⟶ S) :
+    Scheme.Hom.IsOver (restrictToOpen f i) U := by
+  simp only [Scheme.Hom.isOver_iff]
+  delta restrictToOpen
+  change _ ≫ (pullback.snd _ _) = pullback.snd _ _
+  simp
+
+def Proj_loc_pair_mor (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+    [DecidableEq Z.indnumb]
+    [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]:
+  Proj_loc_pair X Z γ δ ⟶ open_pair X Z γ δ  :=
+    pullback.fst (pullback.fst (Z.cov.map γ) (Z.cov.map δ))
+      (Proj_loc X Z γ ↘ Spec (Z.cov.obj γ))
+
+
+instance (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+  (Proj_loc_pair X Z γ δ).Over (open_pair X Z γ δ) where
+  hom := Proj_loc_pair_mor _ _ _ _
+
+instance (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+  (Proj_loc_pair X Z δ γ).Over (open_pair X Z γ δ) where
+  hom := Proj_loc_pair_mor _ _ _ _ ≫ (pullbackSymmetry _ _).hom
+
+
+/-
+U ×_X U'  U
+          | open immersion
+          v
+X' ------> X
+-/
+lemma Proj_loc_pair_open (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i]
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+  ∃! (φ : pullback i (Proj_loc_pair_mor X Z γ δ) ⟶
+      pullback i (Proj_loc_pair_mor X Z δ γ ≫ (pullbackSymmetry _ _).hom)),
+      Scheme.Hom.IsOver φ (Spec C) := by sorry
+  --  because it is an iso byy base_change_Bl_open
+
+def Proj_loc_pair_open_φ (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i]
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+    pullback i (Proj_loc_pair_mor X Z γ δ) ⟶
+      pullback i (Proj_loc_pair_mor X Z δ γ ≫ (pullbackSymmetry _ _).hom) :=
+  Classical.choose (Proj_loc_pair_open X Z γ δ C i)
+
+lemma Proj_loc_pair_open_φ_isOver (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i]
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+    Scheme.Hom.IsOver (Proj_loc_pair_open_φ X Z γ δ C i) (Spec C) :=
+  Classical.choose_spec (Proj_loc_pair_open X Z γ δ C i) |>.1
+
+lemma Proj_loc_pair_open_φ_uniq (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i]
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+    ∀ φ' : pullback i (Proj_loc_pair_mor X Z γ δ) ⟶
+      pullback i (Proj_loc_pair_mor X Z δ γ ≫ (pullbackSymmetry _ _).hom),
+      Scheme.Hom.IsOver φ' (Spec C) → φ' = Proj_loc_pair_open_φ X Z γ δ C i :=
+  Classical.choose_spec (Proj_loc_pair_open X Z γ δ C i) |>.2
+
+
+def Proj_loc_pair_lemm (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]:
+  ∃! (f : (Proj_loc_pair X Z γ δ) ⟶  (Proj_loc_pair X Z δ γ)),
+
+  (∃ (pf : Scheme.Hom.IsOver f (open_pair X Z γ δ)),
+    ∀ (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i],
+      restrictToOpen f i =
+      (pullbackSymmetry _ _).hom ≫ Proj_loc_pair_open_φ X Z γ δ C i ≫
+      (pullbackSymmetry _ _).hom) := sorry
+  --   restriction of f
+  --  to U is given byy Proj_loc_pair_open X Z γ δ U := by
+  --   because it is an iso byy base_change_Bl_open
+    -- sorry
+
+def Proj_loc_pair_swap (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+    (Proj_loc_pair X Z γ δ) ⟶  (Proj_loc_pair X Z δ γ) :=
+  Classical.choose (Proj_loc_pair_lemm X Z γ δ)
+
+instance Proj_loc_pair_swap_isOver (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+    Scheme.Hom.IsOver (Proj_loc_pair_swap X Z γ δ) (open_pair X Z γ δ) :=
+  Classical.choose_spec (Proj_loc_pair_lemm X Z γ δ) |>.1.1
+
+lemma Proj_loc_pair_swap_restrict (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]
+  (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i] :
+    restrictToOpen (Proj_loc_pair_swap X Z γ δ) i =
+    (pullbackSymmetry _ _).hom ≫ Proj_loc_pair_open_φ X Z γ δ C i ≫
+    (pullbackSymmetry _ _).hom :=
+  Classical.choose_spec (Proj_loc_pair_lemm X Z γ δ) |>.1.2 C i
+
+lemma Proj_loc_pair_swap_uniq (X: Scheme) (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]
+  (f : Proj_loc_pair X Z γ δ ⟶ Proj_loc_pair X Z δ γ)
+  (is_over : Scheme.Hom.IsOver f (open_pair X Z γ δ))
+  (affine : ∀ (C : CommRingCat) (i : Spec C ⟶ open_pair X Z γ δ) [IsOpenImmersion i],
+    restrictToOpen f i =
+    (pullbackSymmetry _ _).hom ≫ Proj_loc_pair_open_φ X Z γ δ C i ≫
+    (pullbackSymmetry _ _).hom) :
+    f = Proj_loc_pair_swap X Z γ δ :=
+  Classical.choose_spec (Proj_loc_pair_lemm X Z γ δ) |>.2 f ⟨is_over, affine⟩
+
+lemma Proj_loc_pair_iso (X:Scheme)  (Z: PreClos X) (γ δ : Z.cov.J)
+  [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+  IsIso (Proj_loc_pair_swap X Z γ δ) := by sorry
+  --  this is local
+
+def PreBlGlob  (Z: PreClos X) [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] : Scheme.GlueData where
+  J := Z.cov.J
+  U γ := Proj_loc X Z γ
+  V pair := Proj_loc_pair X Z pair.1 pair.2
+  f γ δ := pullback.snd _ _
+  f_mono γ δ := inferInstance
+  f_hasPullback := inferInstance
+  f_id i := by infer_instance
+  t γ δ := Proj_loc_pair_swap X Z γ δ
+  t_id i := by
+    dsimp
+    symm
+    apply Proj_loc_pair_swap_uniq
+    · sorry
+    · sorry
+  t' i j k := sorry
+  t_fac := sorry
+  cocycle := sorry
+  f_open := inferInstance
+
+abbrev BlGlob (Z: PreClos X) [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] : Scheme :=
+  Scheme.GlueData.glued (PreBlGlob Z)
+
+instance (Z: PreClos X) [DecidableEq Z.indnumb]
+  [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))] :
+  Scheme.Over (BlGlob Z) X where
+  hom := Multicoequalizer.desc _ _
+    (fun γ : Z.cov.J => Proj_loc X Z γ ↘ X) <| by
+    rintro ⟨γ, δ⟩
+    simp only [MultispanShape.prod_L, GlueData.diagram_left, MultispanShape.prod_fst,
+      GlueData.diagram_right,
+      MultispanShape.prod_snd] at γ ⊢
+    change pullback.snd _ _ ≫ _ = (Proj_loc_pair_swap X Z γ δ ≫ pullback.snd _ _) ≫ _
+    simp only [Category.assoc]
+    sorry
+
+
+
+/-
+{T : Scheme} [T.Over (Spec A)]
+  (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T) :
+    ∃! φ :  T ⟶ BlMu L,  Scheme.Hom.IsOver φ (Spec A) := by
+-/
+lemma PreProjBlowup_UnivProp_unicity (Z: PreClos X)
+    [DecidableEq Z.indnumb]
+    [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]
+    {T : Scheme} [T.Over X]
+    (cond:  IsPreCars _ <| pullback_PreClos _ _ (T ↘ X) Z)
+    (φ φ' : T ⟶ BlGlob Z)
+    (φ_over : Scheme.Hom.IsOver φ X)
+    (φ'_over : Scheme.Hom.IsOver φ' X)
+    : φ = φ'  := by sorry
+      --  use locall
+      --  sorry
+
+lemma PreProjBlowup_UnivProp_existence
+    (Z: PreClos X)
+    [DecidableEq Z.indnumb]
+    [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]
+    {T : Scheme} [T.Over X]
+    (cond:  IsPreCars _ <| pullback_PreClos _ _ (T ↘ X) Z) :
+    ∃  φ : T ⟶ BlGlob Z, Scheme.Hom.IsOver φ X := by
+        -- glue local map
+        sorry
+
+lemma PreProjBlowup_UnivProp
+    (Z: PreClos X)
+    [DecidableEq Z.indnumb]
+    [(i : Z.indnumb →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt Z.indnumb))]
+    {T : Scheme} [T.Over X]
+    (cond:  IsPreCars _ <| pullback_PreClos _ _ (T ↘ X) Z) :
+    ∃! φ : T ⟶ BlGlob Z, Scheme.Hom.IsOver φ X := by
+  obtain ⟨φ, hφ⟩ := PreProjBlowup_UnivProp_existence Z cond
+  refine ⟨φ, hφ, ?_⟩
+  intro φ' hφ'
+  exact PreProjBlowup_UnivProp_unicity Z cond φ φ' hφ hφ' |>.symm
+
+lemma PreProjBlowup_rel (Z' Z'' : PreClos X) (eq: Quotient.mk' Z' = Quotient.mk' Z'')
+    {T : Scheme} [T.Over X]
+    [DecidableEq Z'.indnumb]
+    [DecidableEq Z''.indnumb]
+    [(i : Z'.indnumb →₀ ℤ) → Decidable (i ∈ Set.range ⇑(ρNatToInt Z'.indnumb))]
+    [(i : Z''.indnumb →₀ ℤ) → Decidable (i ∈ Set.range ⇑(ρNatToInt Z''.indnumb))]
+    (cond:  IsPreCars _ <| pullback_PreClos _ _ (T ↘ X) Z') :
+  ∃! (e : BlGlob Z' ≅ BlGlob Z''), Scheme.Hom.IsOver e.hom X := by
+      --  PreProjBlowup_UnivProp
+      sorry
+
+
+abbrev GlobalBlowup (Z: Clos X) : Scheme := by classical exact BlGlob Z.out
