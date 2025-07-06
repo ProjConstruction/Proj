@@ -18,6 +18,29 @@ noncomputable def pullback.squash₃ (f : A ⟶ B) (g : B ⟶ C) (h : D ⟶ C):
   -- A ×[C] D
   pullback (f ≫ g) h := pullbackRightPullbackFstIso g h f
 
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃_hom_fst (f : A ⟶ B) (g : B ⟶ C) (h : D ⟶ C) :
+    (pullback.squash₃ f g h).hom ≫ pullback.fst _ _ = pullback.fst _ _ := by
+  simp [squash₃]
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃_inv_fst (f : A ⟶ B) (g : B ⟶ C) (h : D ⟶ C) :
+    (pullback.squash₃ f g h).inv ≫ pullback.fst _ _ = pullback.fst _ _ := by
+  simp [squash₃]
+
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃_hom_snd (f : A ⟶ B) (g : B ⟶ C) (h : D ⟶ C) :
+    (pullback.squash₃ f g h).hom ≫ pullback.snd _ _ = pullback.snd _ _ ≫ pullback.snd _ _ := by
+  simp [squash₃]
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃_inv_snd (f : A ⟶ B) (g : B ⟶ C) (h : D ⟶ C) :
+    (pullback.squash₃ f g h).inv ≫ pullback.snd _ _ ≫ pullback.snd _ _ = pullback.snd _ _ := by
+  simp [squash₃]
+
+@[simps! hom inv]
 noncomputable def pullback.squash₃' (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C):
   -- (A ×[B] C) ×[C] D
   pullback (pullback.snd f g) h
@@ -25,6 +48,26 @@ noncomputable def pullback.squash₃' (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C):
   -- D ×[B] A
   pullback (h ≫ g) f :=
   (pullbackLeftPullbackSndIso f g h) ≪≫ pullbackSymmetry _ _
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃'_hom_fst (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C) :
+    (pullback.squash₃' f g h).hom ≫ pullback.fst _ _ = pullback.snd _ _ := by
+  simp [squash₃']
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃'_inv_fst (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C) :
+    (pullback.squash₃' f g h).inv ≫ pullback.fst _ _ ≫ pullback.fst _ _ = pullback.snd _ _  := by
+  simp [squash₃']
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃'_hom_snd (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C) :
+    (pullback.squash₃' f g h).hom ≫ pullback.snd _ _ = pullback.fst _ _ ≫ pullback.fst _ _ := by
+  simp [squash₃']
+
+@[reassoc (attr := simp)]
+lemma pullback.squash₃'_inv_snd (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C) :
+    (pullback.squash₃' f g h).inv ≫ pullback.snd _ _ = pullback.fst _ _ := by
+  simp [squash₃']
 
 @[simps]
 noncomputable def pullback.squash₄ :
