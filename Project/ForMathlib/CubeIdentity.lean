@@ -11,8 +11,23 @@ variable [HasPullbacks 𝒞]
 variable {A B C D : 𝒞} (fB : B ⟶ A) (fC : C ⟶ A) (fD : D ⟶ A)
 
 
+noncomputable def pullback.squash₃ (f : A ⟶ B) (g : B ⟶ C) (h : D ⟶ C):
+  -- A ×[B] (B ×[C] D)
+  pullback f (pullback.fst g h)
+  ≅
+  -- A ×[C] D
+  pullback (f ≫ g) h := pullbackRightPullbackFstIso g h f
+
+noncomputable def pullback.squash₃' (f : A ⟶ B) (g : C ⟶ B) (h : D ⟶ C):
+  -- (A ×[B] C) ×[C] D
+  pullback (pullback.snd f g) h
+  ≅
+  -- D ×[B] A
+  pullback (h ≫ g) f :=
+  (pullbackLeftPullbackSndIso f g h) ≪≫ pullbackSymmetry _ _
+
 @[simps]
-noncomputable def pullback.squash :
+noncomputable def pullback.squash₄ :
   -- (B ×[A] C) ×[C] (D ×[A] C)
   pullback
     (pullback.snd fB fC) -- B ×[A] C ⟶ C
@@ -113,9 +128,9 @@ noncomputable def pullback.cube₀ :
       (pullback.snd fB fC) -- B ×[A] C ⟶ C
       (pullback.snd fD fC) -- D ×[A] C ⟶ C
     :=
-  pullback.squash _ _ _ ≪≫
+  pullback.squash₄ _ _ _ ≪≫
   (pullback.klotski₀ _ _ _) ≪≫
-  (pullback.squash _ _ _).symm
+  (pullback.squash₄ _ _ _).symm
 
 noncomputable def pullback.cube₁ :
   -- (B ×[A] C) ×[C] (D ×[A] C)
@@ -128,6 +143,6 @@ noncomputable def pullback.cube₁ :
     (pullback.snd fC fB) -- C ×[A] B ⟶ B
     (pullback.snd fD fB) -- D ×[A] B
     :=
-  pullback.squash _ _ _ ≪≫
+  pullback.squash₄ _ _ _ ≪≫
   (pullback.klotski₁ _ _ _) ≪≫
-  (pullback.squash _ _ _).symm
+  (pullback.squash₄ _ _ _).symm

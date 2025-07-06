@@ -3,13 +3,15 @@ import Mathlib.AlgebraicGeometry.PullbackCarrier
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.RingTheory.TensorProduct.Quotient
 
+import Project.ForMathlib.CubeIdentity
+
 suppress_compilation
 
 universe u
 
 open AlgebraicGeometry CategoryTheory Limits TopologicalSpace TensorProduct
 
-variable {X : Scheme}
+variable {X : Scheme.{u}}
 
 section over_instances
 
@@ -202,45 +204,129 @@ def lemma_iso (A B : Type*) [CommRing A] [CommRing B] [Algebra A B] (I : Ideal A
   (Algebra.TensorProduct.quotIdealMapEquivTensorQuot B I |>.restrictScalars A).trans <|
     Algebra.TensorProduct.comm _ _ _
 
-
+-- @[simps]
 def pullback_PreClos (X': Scheme) (f: X' ⟶  X) (Z: PreClos X)  : PreClos X'  where
   indnumb := Z.indnumb
   fin_indnumb := Z.fin_indnumb
-  -- clotop i := ⟨f.base ⁻¹' (Z.clotop i), IsClosed.preimage f.base.2 (Z.clotop i).2⟩
   subscheme i := pullback (Z.subscheme i ↘ X) f
-  -- condset i := by
-  --   have := Z.condset i
-  --   sorry
   over i := ⟨pullback.snd _ _⟩
   cov := pull_cov X Z X' f
   ideal i γβ :=  pull_ideal X Z X' f γβ i
   condiso i γβ := show _ ≅ pullback (pullback.snd (Z.subscheme i ↘ X) f)
     ((pull_loc_cov X Z X' f γβ.1).map γβ.2 ≫ pullback.fst f (Z.cov.map γβ.1)) by
-    have eq1 :
-      pullback.snd (Z.subscheme i ↘ X) (Z.cov.map γβ.fst) =
-      (Z.condiso i γβ.fst).inv ≫
-      Spec.map (CommRingCat.ofHom (Ideal.Quotient.mk (Z.ideal i γβ.fst))) := by
-      rw [eq_comm, Iso.inv_comp_eq, eq_comm]
-      simpa only [Scheme.Hom.isOver_iff] using Z.condover i γβ.1
-    /-
-          X'
-          |
-    Zᵢ -> X
+    let A_γβ := pull_cov X Z X' f |>.obj γβ
+    let U_γβ : Scheme := Spec A_γβ
+    let A_γ := Z.cov.obj γβ.1
+    let U_γ : Scheme := Spec A_γ
+    let J_γ := Z.ideal i γβ.1
+    let J_γβ := pull_ideal X Z X' f γβ i
+    let fA : A_γ ⟶ A_γβ := pull_mor_ring X Z X' f γβ
+    let fQuot : A_γ ⟶ (CommRingCat.of (A_γ ⧸ J_γ)) := CommRingCat.ofHom (Ideal.Quotient.mk _)
+    letI : Algebra A_γ A_γβ := RingHom.toAlgebra fA.hom
+    letI : Algebra A_γ (A_γβ ⧸ J_γβ) := RingHom.toAlgebra <| RingHom.comp (Ideal.Quotient.mk _) fA.hom
 
-    -/
-    -- have := ((pull_loc_cov X Z X' f γ)).map β
-    -- have := AlgebraicGeometry.pullbackSpecIso
-    sorry
-    --affine routine via pullback and
-    -- AlgebraicGeometry.AffineScheme.equivCommRingCat
-            -- pull_lemm_cond_iso
-            -- hand note
+    let g : U_γβ ⟶ U_γ := Spec.map fA
+    -- have : Scheme.Over U_γ X :=
+    let o_γ : U_γ ⟶ X := Z.cov.map γβ.1
+
+    let e0 : (A_γβ ⧸ J_γβ) ≃ₐ[A_γ] (A_γβ ⊗[A_γ] (A_γ ⧸ J_γ)) :=
+      AlgEquiv.trans (lemma_iso A_γ A_γβ J_γ) <| Algebra.TensorProduct.comm _ _ _
+    let e1 : Spec (CommRingCat.of (A_γβ ⧸ J_γβ)) ≅
+      Spec (CommRingCat.of (A_γβ ⊗[A_γ] (A_γ ⧸ J_γ))) :=
+      { hom := Spec.map <| CommRingCat.ofHom <| e0.symm.toRingHom
+        inv := Spec.map <| CommRingCat.ofHom <| e0.toRingHom
+        hom_inv_id := by
+          rw [← Spec.map_comp]
+          convert Spec.map_id (CommRingCat.of <| A_γβ ⧸ J_γβ) using 2
+          simp only [AlgEquiv.toRingEquiv_eq_coe, RingEquiv.toRingHom_eq_coe,
+            AlgEquiv.toRingEquiv_toRingHom, AlgEquiv.symm_toRingEquiv]
+          rw [← CommRingCat.ofHom_comp]
+          convert CommRingCat.ofHom_id
+          ext x
+          exact e0.symm_apply_apply x
+        inv_hom_id := by
+          rw [← Spec.map_comp]
+          convert Spec.map_id (CommRingCat.of <| A_γβ ⊗[A_γ] (A_γ ⧸ J_γ)) using 2
+          simp only [AlgEquiv.toRingEquiv_eq_coe, RingEquiv.toRingHom_eq_coe,
+            AlgEquiv.toRingEquiv_toRingHom, AlgEquiv.symm_toRingEquiv]
+          rw [← CommRingCat.ofHom_comp]
+          convert CommRingCat.ofHom_id
+          ext x
+          exact e0.apply_symm_apply x }
+    let e3 :
+      -- Spec A_γβ ×[Spec A_γ] Spec (A_γ ⧸ J_γ)
+      pullback (Spec.map fA) (Spec.map fQuot) ≅
+      -- U_γβ ×[U_γ] (U_γ ×[X] Z)
+      pullback g (pullback.fst o_γ (Z.subscheme i ↘ X)) :=
+    { hom := pullback.map _ _ _ _ (𝟙 _)
+        ((Z.condiso i γβ.1).hom ≫ (pullbackSymmetry _ _).hom)
+        (𝟙 _) (by simp [g]) (by
+          simp only [Category.comp_id, Category.assoc, U_γ, g, U_γβ]
+          rw [pullbackSymmetry_hom_comp_fst]
+          have := Z.condover i γβ.1
+          rw [Scheme.Hom.isOver_iff] at this
+          exact this.symm)
+      inv := pullback.map _ _ _ _ (𝟙 _)
+        ((pullbackSymmetry _ _).hom ≫ (Z.condiso i γβ.1).inv)
+        (𝟙 _) (by simp [g]) (by
+          simp only [Category.comp_id, Category.assoc, A_γ, o_γ, U_γ, g, U_γβ, J_γ]
+          rw [← Iso.inv_comp_eq, pullbackSymmetry_inv_comp_fst, eq_comm, Iso.inv_comp_eq]
+          have := Z.condover i γβ.1
+          rw [Scheme.Hom.isOver_iff] at this
+          exact this.symm)
+      hom_inv_id := by
+        ext <;> try simp
+        have eq : (pullbackSymmetry o_γ (Z.subscheme i ↘ X)).hom =
+          (pullbackSymmetry (Z.subscheme i ↘ X) (Z.cov.map γβ.fst)).inv := by
+            ext
+            · simp only [pullbackSymmetry_hom_comp_fst, A_γ, o_γ, U_γ, g, U_γβ, J_γ]
+              rw [pullbackSymmetry_inv_comp_fst]
+            · simp only [pullbackSymmetry_hom_comp_snd, A_γ, o_γ, U_γ, g, U_γβ, J_γ]
+              rw [pullbackSymmetry_inv_comp_snd]
+        rw [reassoc_of% eq, Iso.hom_inv_id_assoc, Iso.hom_inv_id, Category.comp_id]
+      inv_hom_id := by
+        have eq : (pullbackSymmetry o_γ (Z.subscheme i ↘ X)).hom =
+          (pullbackSymmetry (Z.subscheme i ↘ X) (Z.cov.map γβ.fst)).inv := by
+            ext
+            · simp only [pullbackSymmetry_hom_comp_fst, A_γ, o_γ, U_γ, g, U_γβ, J_γ]
+              rw [pullbackSymmetry_inv_comp_fst]
+            · simp only [pullbackSymmetry_hom_comp_snd, A_γ, o_γ, U_γ, g, U_γβ, J_γ]
+              rw [pullbackSymmetry_inv_comp_snd]
+        ext
+        · simp only [Category.assoc, limit.lift_π, PullbackCone.mk_pt, PullbackCone.mk_π_app,
+          Category.comp_id, Category.id_comp, A_γ, o_γ, U_γ, g, U_γβ, J_γ]
+        · simp only [Category.assoc, limit.lift_π, PullbackCone.mk_pt, PullbackCone.mk_π_app,
+          limit.lift_π_assoc, cospan_right, Iso.inv_hom_id_assoc, pullbackSymmetry_hom_comp_fst,
+          pullbackSymmetry_hom_comp_snd, Category.id_comp, U_γβ, U_γ, A_γ, o_γ, g, J_γ]
+        · simp only [Category.assoc, limit.lift_π, PullbackCone.mk_pt, PullbackCone.mk_π_app,
+          limit.lift_π_assoc, cospan_right, Iso.inv_hom_id_assoc, Category.id_comp, A_γ, o_γ, U_γ,
+          g, U_γβ, J_γ]
+          rw [reassoc_of% eq, Iso.inv_hom_id_assoc] }
+
+
+    refine e1 ≪≫ (pullbackSpecIso _ _ _).symm ≪≫ e3 ≪≫ pullback.squash₃ _ _ _ ≪≫ pullback.congrHom (by
+      simp only [pull_cov_obj, pull_mor_ring, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc,
+        U_γβ, U_γ, A_γ, g, fA, o_γ, J_γ, A_γβ]
+      rw [pullback.condition]
+      simp only [← Category.assoc, fA, A_γ, o_γ, U_γ, A_γβ, g, U_γβ, J_γ]
+      congr 1
+      change (ΓSpec.adjunction.unit.app _ ≫ (Scheme.Γ.rightOp ⋙ Scheme.Spec).map _) ≫ _ = _
+      rw [← ΓSpec.adjunction.unit.naturality]
+      simp only [Functor.id_obj, AffineScheme.forgetToScheme_obj, Functor.comp_obj,
+        Functor.rightOp_obj, Scheme.Γ_obj, Scheme.Spec_obj, Quiver.Hom.unop_op,
+        AffineScheme.forgetToScheme_map, Functor.id_map, ΓSpec.adjunction_unit_app, Category.assoc,
+        fA, A_γ, o_γ, U_γ, A_γβ, g, U_γβ, J_γ]
+      rw [← Category.assoc]
+      convert Category.comp_id _
+      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+      simp) rfl ≪≫ (pullback.squash₃' _ _ _).symm
   condover := by
     rintro i ⟨γ, β⟩
+    rw [Scheme.Hom.isOver_iff]
     -- simp?
     sorry
 
-def pullback_lem (Z Z': PreClos X) (T : Scheme) (f : T ⟶ X) (e : relStructure Z Z') :
+def pullback_lem (Z Z': PreClos.{u} X) (T : Scheme.{u}) (f : T ⟶ X) (e : relStructure.{u} Z Z') :
       relStructure (pullback_PreClos X T f Z)  (pullback_PreClos X T f Z') where
   indnumb_equiv := e.indnumb_equiv
   subscheme_iso i := by sorry
