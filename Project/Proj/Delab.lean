@@ -1,7 +1,7 @@
-import Project.Proj.Construction
 import Mathlib.Lean.Expr.ExtraRecognizers
 
 import Project.Proj.PP_Proj
+import Project.Proj.Construction
 
 
 open Lean PrettyPrinter.Delaborator SubExpr

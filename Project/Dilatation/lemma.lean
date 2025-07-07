@@ -1,4 +1,3 @@
-import Mathlib.RingTheory.Ideal.BigOperators
 import Mathlib.RingTheory.Ideal.Span
 import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.RingTheory.Ideal.Operations

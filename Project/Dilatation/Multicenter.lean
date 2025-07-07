@@ -2,9 +2,9 @@ import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
 import Project.Dilatation.lemma
 import Mathlib.RingTheory.Ideal.Operations
-import Mathlib.RingTheory.Localization.Basic
 
 import Project.Dilatation.Family
+import Mathlib.Algebra.Algebra.Tower
 
 suppress_compilation
 

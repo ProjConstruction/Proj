@@ -1,4 +1,5 @@
 import Project.HomogeneousSubmonoid.Basic
+import Mathlib.Data.NNReal.Defs
 open DirectSum TensorProduct
 open scoped NNReal
 

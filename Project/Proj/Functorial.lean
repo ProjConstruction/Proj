@@ -1,7 +1,6 @@
 import Project.Proj.Construction
 import Project.Grading.GradedRingHom
 
-import Project.Proj.Delab
 
 suppress_compilation
 

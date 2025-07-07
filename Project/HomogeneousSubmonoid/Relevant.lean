@@ -1,4 +1,7 @@
 import Project.HomogeneousSubmonoid.Basic
+import Mathlib.GroupTheory.Complement
+import Mathlib.GroupTheory.Schreier
+import Mathlib.GroupTheory.FiniteAbelian.Basic
 
 open DirectSum
 

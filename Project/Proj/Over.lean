@@ -1,11 +1,7 @@
-import Project.Proj.Opens
-import Project.Proj.Stalk
-import Project.ForMathlib.SchemeIsOpenImmersion
 
-import Project.Proj.Delab
 
 import Mathlib.AlgebraicGeometry.Over
-import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
+import Project.Proj.Construction
 
 suppress_compilation
 
