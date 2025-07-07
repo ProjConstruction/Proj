@@ -2,7 +2,60 @@
 
 
 
-----NEW SECTION ON MULTICENTERED DILATATIONS FOR DEFORMATIONS
+open AlgebraicGeometry
+open Multicenter
+
+variable (A : Type (u+1)) [CommSemiring A](F : Multicenter A)
+
+def AffDil: Scheme :=
+  Spec(A[F])
+
+open CategoryTheory
+
+instance AffDiloverSpec : Scheme.Over Spec(A[F]) (Spec <| CommRingCat.of A) where
+
+
+instance BlMuOverSpec' (A : CommRingCat) (F : Multicenter  A) :
+    Scheme.Over (Spec(A[F]) (Spec A) :=
+
+
+lemma AffDil_over_Spec :
+    (Spec(A[F]) ↘ (Spec (CommRingCat.of A)) =
+   -- (GoodPotionIngredient.over (ℱ := map_index L)) ≫
+  --  Spec.map (CommRingCat.ofHom <| ReesAlgebra.degreeZeroIso' L) := rfl
+
+lemma AffDil_over_Spec' (A : CommRingCat) (L : ι → Ideal A) :
+   (Spec(A[F]) ↘ (Spec A) =
+  --  (GoodPotionIngredient.over (ℱ := map_index L)) ≫
+  --  Spec.map (CommRingCat.ofHom <| ReesAlgebra.degreeZeroIso' L) := rfl
+
+
+
+
+structure conceptual_blowup (Z : Clos X) where
+  scheme : Scheme
+  over : Scheme.Over scheme X
+  in_cars : pullback_Clos (scheme ↘ X) Z ∈ CarsAsSubsetOfClos scheme
+  φ (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+    T ⟶ scheme
+  φ_over (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+    Scheme.Hom.IsOver (φ T in_preCars) X
+  φ_uniq (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+    ∀ φ' : T ⟶ scheme, Scheme.Hom.IsOver φ' X → φ' = φ T in_preCars
+
+
+
+
+--the following is really what we need for the experiment in a first time
+lemma base_change_dil_open (A B : CommRingCat) [Algebra A B]
+    [IsOpenImmersion (Spec B ↘ Spec A)]
+  --  (i:Spec(B) → Spec(A) is Open immersion)
+    (F: Multicenter A) :
+  ∃! (e : pullback ((Spec <| CommRingCat.of A[F]) ↘ Spec A) (Spec B ↘ Spec A) ≅ Spec B),
+    Scheme.Hom.IsOver e.hom (Spec B) := by
+    --  exact open_implies_flat_ring  and dilatation_ring_flat_base_change
+      sorry
+
 
 variable (X) in
 structure PreDilCent where
@@ -35,12 +88,12 @@ structure PreDilCent where
 
 
 
-lemma PreClos.index_eq_triangle {X : Scheme} (F: PreDilCent X) (i j : F.indnumb) (eq : i = j) :
+lemma PreDilCent.index_eq_triangle {X : Scheme} (F: PreDilCent X) (i j : F.indnumb) (eq : i = j) :
     Scheme.Hom.IsOver (eqToHom (by rw [eq]) : F.subschemeclo i ⟶ F.subschemeclo j) X := by
   subst eq
   simp
 
-lemma PreClos.index_eq_triangle {X : Scheme} (F: PreDilCent X) (i j : F.indnumb) (eq : i = j) :
+lemma PreDiletCent.index_eq_triangle {X : Scheme} (F: PreDilCent X) (i j : F.indnumb) (eq : i = j) :
     Scheme.Hom.IsOver (eqToHom (by rw [eq]) : F.subschemepri i ⟶ F.subschemepri j) X := by
   subst eq
   simp
@@ -56,9 +109,13 @@ structure relStructure (F F' : PreDilCent X) where -- := fun Z Z' =>
   subscheme_iso_over : ∀ i, Scheme.Hom.IsOver (subschemepri_iso i).hom X
 
 
---RECYCLE CLOS AND PULLBACK CLOS  CODE ALLOWING INFINITE CENTERS
---HAVE MAPS PREDILCENT TO CLOS AnD PREDILCENT TO PRI
+def Cent_Clos (X : Scheme) (F : PreDilCent X) : PreClos X :=
+   -- Attach the closed subchemes subschemeclo
+   -- use same covering
 
+def Cent_Pri (X : Scheme) (F : PreDilCent X) : PreClos X :=
+   -- Attach the (locally principal) closed subchemes subschemepri
+   --use the same covering
 
 @[refl]
 def relStructure.refl {X : Scheme} (Z : PreDilCent X) : relStructure Z Z where
@@ -103,23 +160,43 @@ instance relSetoid : Setoid (PreDilCent X) where
 variable (X) in
 def DilCent := Quotient (relSetoid X)
 
--- DEFINE THE INTERSECTION IN CLOS
+INTERSECTION Scheme
+
+def Int_Clos (X : Scheme) (F : PreDilCent X) : PreClos X :=
+     Same covering
+     For each i we want  E_i = Z_i \cap D_i
+     For this we want the scheme subschemeclo \times X subschemepri
+     The ideal will be the sum of idealclo and idealpri
+     The iso is elementary
+
+
 
 structure conceptual_Dilatation (F : DilCent X) where
   scheme : Scheme
   over : Scheme.Over scheme X
---ADD CONDITION USING ABOVE DEFINITIONS (CENT TO CLOS ETC)
+-- --equality: pullback_Clos (scheme ↘ X) F.Int_Clos  = pullback_Clos (scheme ↘ X) F.Pri
 --  in_cars : pullback_Clos (scheme ↘ X) F.Clos ∈ CarsAsSubsetOfClos scheme
- --  Equality: pullback_Close (scheme ↘ X) F.Clos ∩ F.Pri  = pullback_Clos (scheme ↘ X) F.Pri
--- + ADAPT THE FOLLOIWNG
--- φ (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+-- + ADAPT THE FOLLOWING (add condition equality for T )
+-- φ (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T))
+  (equality: pullback_Clos (T ↘ X) F.Int_Clos  = pullback_Clos (T↘ X) F.Pri):
 --     T ⟶ scheme
---   φ_over (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+--   φ_over (T : Scheme)
+ --- [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
 --   Scheme.Hom.IsOver (φ T in_preCars) X
---  φ_uniq (T : Scheme) [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
+--  φ_uniq (T : Scheme)
+  -- [T.Over X] (in_preCars : pullback_Clos (T ↘ X) Z  ∈ (CarsAsSubsetOfClos T)) :
 --    ∀ φ' : T ⟶ scheme, Scheme.Hom.IsOver φ' X → φ' = φ T in_preCars
 
----INTRODUCE THE RING-THEORETIC MULTI CENTER ASSO TO GAMMA AND F
+
+ADD A LEMMA SAYING THAT IN DILATATIONS OF RINGS THE DILATATION DEPENDS
+  ONLY ON THE PRINCIPAL IDEAL, NOT GENERATOR
+
+def (F : DilCent X) (\gamma : F.covJ) : multicenter A\gamma :
+   ideal
+   principal ideal
+
+
+
 
 def Dil_loc  (X: Scheme) (F: PreDilCent X) (γ : F.cov.J)
   --  [DecidableEq Z.indnumb]
