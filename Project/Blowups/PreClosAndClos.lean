@@ -50,7 +50,6 @@ end over_instances
 variable (X) in
 structure PreClos where
   (indnumb : Type u)
-  [fin_indnumb : Fintype indnumb]
   (subscheme: indnumb → Scheme)
   [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
   cov : Scheme.AffineCover.{u, u} (P := @IsOpenImmersion) X
@@ -63,7 +62,7 @@ structure PreClos where
       (Spec (CommRingCat.of (cov.obj γ)))
 
 attribute [instance] PreClos.over
-attribute [instance] PreClos.fin_indnumb
+-- attribute [instance] PreClos.fin_indnumb
 
 lemma PreClos.index_eq_triangle {X : Scheme} (Z : PreClos X) (i j : Z.indnumb) (eq : i = j) :
     Scheme.Hom.IsOver (eqToHom (by rw [eq]) : Z.subscheme i ⟶ Z.subscheme j) X := by
@@ -374,7 +373,6 @@ def pullback_PreClos_condover {X' : Scheme} {f : X' ⟶  X} {Z: PreClos X}
 
 def pullback_PreClos (X' : Scheme) (f: X' ⟶  X) (Z: PreClos X)  : PreClos X'  where
   indnumb := Z.indnumb
-  fin_indnumb := Z.fin_indnumb
   subscheme i := pullback (Z.subscheme i ↘ X) f
   over i := ⟨pullback.snd _ _⟩
   cov := pull_cov X Z X' f
