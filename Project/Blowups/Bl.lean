@@ -238,8 +238,6 @@ def clo_mu_mor (P: Mu L) : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
       induction x using Quotient.inductionOn' with | h x =>
       change HomogeneousLocalization.mk x = 0
       change HomogeneousLocalization.mk x * HomogeneousLocalization.mk _ = 0 at hx
-
-
       simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
         HomogeneousLocalization.ext_iff_val, HomogeneousLocalization.val_mul,
         HomogeneousLocalization.val_mk, Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast,
@@ -354,11 +352,129 @@ def clo_mu_mor (P: Mu L) : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
         apply Ideal.subset_span
         rfl)
 
+lemma clo_mu_mor_inj (P : Mu L) : Function.Injective (clo_mu_mor L P) := by
+  rw [RingHom.injective_iff_ker_eq_bot, eq_bot_iff]
+  rintro x (hx : _ = _)
+  show _ = Dilatation.mk _
+  induction x using Dilatation.induction_on with | h x =>
+  rcases x with ⟨v, l, h⟩
+  simp only [clo_mu_mor, desc, AlgHom.coe_mk, RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk,
+    descFun_mk] at hx
+  rw [Dilatation.mk_eq_mk]
+
+  have := congr((algebraMap A (clo_mu L P).Potion) (P.multicenter.elem ^ v) * $hx)
+  simp only [P.multicenter.def_unique_elem_spec, mul_zero] at this
+  rw [HomogeneousLocalization.ext_iff_val] at this
+  simp only [HomogeneousLocalization.val_zero] at this
+  erw [HomogeneousLocalization.val_mk] at this
+  simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+    SetLike.GradeZero.coe_one] at this
+  erw [← Localization.mk_zero 1, Localization.mk_eq_mk_iff, Localization.r_iff_exists] at this
+  simp only [OneMemClass.coe_one, one_mul, mul_zero, Subtype.exists,
+    HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop] at this
+  obtain ⟨β, hβ, hβl⟩ := this
+  obtain ⟨r, t, ht, hr, hβ⟩ := Submonoid.mem_closure_iff_exists_finset_subset |>.1 hβ
+  choose i hi using ht
+
+  use v + ∑ x in t.attach, Finsupp.single (i x.2) (r x.1)
+  simp only [add_zero, familyPow_add, familyPow_sum, familyPow_single', pow_one, zero_mul]
+  have hβ' := calc β
+    _ = ∏ a ∈ t.attach, a.1 ^ r a.1 := by simp [hβ]
+    _ = ∏ a ∈ t.attach, (ReesAlgebra.single L (Finsupp.single (P.Ψ (i a.2)) 1))
+      ⟨P.multicenter.elem (i a.2), _⟩ ^ r a.1 := by
+        refine Finset.prod_congr rfl fun a ha ↦ ?_
+        rw [hi]
+  simp only [ReesAlgebra.single_npow, ReesAlgebra.single_prod] at hβ'
+  simp only [hβ', ReesAlgebra.single_mul, ReesAlgebra.single_eq_zero, Submodule.mk_eq_zero] at hβl
+  simp only [mul_comm l]
+  rw [mul_assoc, hβl, mul_zero]
+
+omit [Fintype ι] in
+lemma clo_mu_mor_surj (P : Mu L) : Function.Surjective (clo_mu_mor L P) := by
+  intro x
+  induction x using Quotient.inductionOn' with | h x =>
+  rcases x with ⟨v, ⟨l, l_deg⟩, ⟨β, β_deg⟩, β_mem⟩
+
+  obtain ⟨r, t, ht, hr, hβ⟩ := Submonoid.mem_closure_iff_exists_finset_subset |>.1 β_mem
+  choose i hi using ht
+  have hβ' := calc β
+    _ = ∏ a ∈ t.attach, a.1 ^ r a.1 := by simp [hβ]
+    _ = ∏ a ∈ t.attach, (ReesAlgebra.single L (Finsupp.single (P.Ψ (i a.2)) 1))
+      ⟨P.multicenter.elem (i a.2), _⟩ ^ r a.1 := by
+        refine Finset.prod_congr rfl fun a ha ↦ ?_
+        rw [hi]
+  simp only [ReesAlgebra.single_npow, ReesAlgebra.single_prod] at hβ'
+
+  have : β ∈ ReesAlgebra.grading _ (∑ j ∈ t.attach, r j.1 • Finsupp.single (P.Ψ (i j.2)) 1) := by
+    rw [hβ']
+    apply ReesAlgebra.single_has_degree
+  simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply] at β_deg
+  by_cases β_eq_zero : β = 0
+  · subst β_eq_zero
+    simp only [HomogeneousSubmonoid.mem_toSubmonoid_iff] at β_mem
+
+    use 0
+    simp only [map_zero]
+    ext
+    simp only [HomogeneousLocalization.val_zero, HomogeneousLocalization.val_mk]
+    rw [← Localization.mk_zero 1]
+    rw [Localization.mk_eq_mk_iff, Localization.r_iff_exists]
+    use ⟨0, β_mem⟩
+    simp
+  split_ifs at β_deg with hv
+  · rcases hv with ⟨v, rfl⟩
+    simp only [HomogeneousSubmonoid.mem_toSubmonoid_iff] at β_mem
+    rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)] at β_deg
+    have v_eq := DirectSum.degree_eq_of_mem_mem _ β_deg this β_eq_zero
+
+    rw [ReesAlgebra.intGrading, gradingOfInjection, dif_pos ⟨v, rfl⟩, Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj),
+      ReesAlgebra.grading, LinearMap.mem_range] at l_deg
+    obtain ⟨⟨l, hl⟩, rfl⟩ := l_deg
+    refine ⟨Dilatation.mk ⟨∑ j ∈ t.attach, r j.1 • Finsupp.single (i j.2) 1, l, ?_⟩, ?_⟩
+    -- obtain ⟨x, hx⟩ := l_deg
+    · simp only [Finsupp.smul_single, smul_eq_mul, mul_one, familyPow_sum, familyPow_single',
+      P.cond]
+      rw [v_eq] at hl
+      simpa [familyPow_sum] using hl
+    · delta clo_mu_mor Multicenter.desc
+      simp only [Finsupp.smul_single, smul_eq_mul, mul_one, AlgHom.coe_mk, RingHom.coe_mk,
+        MonoidHom.coe_mk, OneHom.coe_mk, descFun_mk, ρNatToInt_apply]
+      apply def_unique_elem_unique
+      ext
+      simp only [HomogeneousLocalization.val_mul, HomogeneousLocalization.val_mk]
+      change Localization.mk _ _ * Localization.mk _ _ = Localization.mk _ _
+      simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+        SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, one_mul,
+        Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists,
+        HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop]
+      refine ⟨1, one_mem _, ?_⟩
+      simp only [one_mul]
+      rw [hβ', ReesAlgebra.single_mul, ReesAlgebra.single_mul]
+      simp only
+      ext : 1
+      simp only [ReesAlgebra.single_apply_val]
+      ext w
+      rw [DirectSum.coe_of_apply, DirectSum.coe_of_apply]
+      simp only [v_eq, Finsupp.smul_single, smul_eq_mul, mul_one, zero_add, add_zero]
+      split_ifs
+      · simp [familyPow_sum]
+      · rfl
+  · simp only [Submodule.mem_bot] at β_deg
+    subst β_deg
+    simp only [HomogeneousSubmonoid.mem_toSubmonoid_iff] at β_mem
+
+    use 0
+    simp only [map_zero]
+    ext
+    simp only [HomogeneousLocalization.val_zero, HomogeneousLocalization.val_mk]
+    rw [← Localization.mk_zero 1]
+    rw [Localization.mk_eq_mk_iff, Localization.r_iff_exists]
+    use ⟨0, β_mem⟩
+    simp
+
 def Mu_mor_iso (P: Mu L) :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
-  AlgEquiv.ofBijective sorry sorry
--- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
---   by  in
+  AlgEquiv.ofBijective (clo_mu_mor ..) <| ⟨clo_mu_mor_inj L P, clo_mu_mor_surj L P⟩
 
 
 def map_index (P: Mu L) :

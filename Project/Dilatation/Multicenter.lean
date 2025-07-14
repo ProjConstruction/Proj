@@ -566,7 +566,7 @@ lemma  lemma_exists_in_image [Algebra A B]
 def def_unique_elem [Algebra A B] (v : F.index →₀ ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)): B :=
-     (lemma_exists_in_image  F  non_zero_divisor gen v m).choose
+  (lemma_exists_in_image  F  non_zero_divisor gen v m).choose
 
 lemma def_unique_elem_spec [Algebra A B] (v : F.index →₀ ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
@@ -586,7 +586,7 @@ lemma def_unique_elem_unique  [Algebra A B] (v : F.index →₀ ℕ) (m : F.Larg
 def desc [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)) :
-     A[F] →ₐ[A] B where
+    A[F] →ₐ[A] B where
   toFun := Dilatation.descFun (fun x ↦ def_unique_elem F  x.pow ⟨ x.num, x.num_mem⟩  non_zero_divisor gen )
                             ( by
                               intro x y h
@@ -1075,11 +1075,12 @@ instance : Algebra A F.ReesAlgebra :=
  sorry
 
 def placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) :
-   F.ReesAlgebra  := .of _ v ⟨x, by simp⟩   sorry
+  F.ReesAlgebra  := .of _ v ⟨x, by simp⟩   sorry
 
+---- From this point, we don't have
 lemma potion_Rees_dilatation_iso (F : Multicenter A) :
   Potion a_i  placed in degree i for all i F.ReesAlgebra  ≅ A[F] := by
-   sorry
+  sorry
 
 def union_center (F F': Multicenter A): Multicenter A :=
   { index := F.index ⊔ F'.index

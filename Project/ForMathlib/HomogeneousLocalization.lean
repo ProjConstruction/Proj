@@ -63,4 +63,13 @@ lemma prod_mk {ι : Type*} (s : Finset ι) (f : ι → NumDenSameDeg 𝒜 x) :
   | @insert i s hi ih =>
     rw [Finset.prod_insert hi, ih, ← HomogeneousLocalization.mk_mul, Finset.prod_insert hi]
 
+lemma prod_val {ι : Type*} (s : Finset ι) (f : ι → HomogeneousLocalization 𝒜 x) :
+    ∏ i ∈ s, HomogeneousLocalization.val (f i) =
+    HomogeneousLocalization.val (∏ i ∈ s, f i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert i s hi ih =>
+    rw [Finset.prod_insert hi, ih, ← HomogeneousLocalization.val_mul, Finset.prod_insert hi]
+
 end HomogeneousLocalization
