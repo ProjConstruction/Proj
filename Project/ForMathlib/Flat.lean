@@ -2,7 +2,7 @@ import Mathlib.RingTheory.RingHom.Flat
 
 #check RingHom.Flat
 
-lemma RingHom.Flat.preserves_nonzeroDivisors {R S F : Type*} [CommRing R] [CommRing S] {f : R →+* S}
+lemma RingHom.Flat.preserves_nonzeroDivisors {R S : Type*} [CommRing R] [CommRing S] {f : R →+* S}
     (flat : RingHom.Flat f) {r : R} (hr : r ∈ nonZeroDivisors R) :
     f r ∈ nonZeroDivisors S := by
   algebraize [f]
