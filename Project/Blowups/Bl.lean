@@ -515,7 +515,11 @@ def BlMuToBl : BlMu L ⟶ Bl L :=
   projHomOfLE
     { t :=
       { toFun := map_index L
-        inj' := sorry }
+        inj' := by
+          intro P P' h
+          rw [GoodPotionIngredient.ext_iff] at h
+          change HomogeneousSubmonoid.closure _ = HomogeneousSubmonoid _ at h
+          sorry }
       comp := rfl }
 
 -- open CategoryTheory
