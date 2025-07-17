@@ -517,8 +517,8 @@ def BlMuToBl : BlMu L ⟶ Bl L :=
       { toFun := map_index L
         inj' := by
           intro P P' h
-          rw [GoodPotionIngredient.ext_iff] at h
-          change HomogeneousSubmonoid.closure _ = HomogeneousSubmonoid _ at h
+          -- rw [GoodPotionIngredient.ext_iff] at h
+          -- change HomogeneousSubmonoid.closure _ = HomogeneousSubmonoid _ at h
           sorry }
       comp := rfl }
 
@@ -564,4 +564,22 @@ lemma lemm_dila_double_union  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDiv
       g = AlgHom.comp g'' (Algebra.ofId A[P.multicenter] A[(union_Mu L P P').multicenter] |>.restrictScalars _) ∧
       g' = AlgHom.comp g'' (Algebra.ofId A[P'.multicenter] A[(union_Mu L P P').multicenter] |>.restrictScalars _) := by
     -- desc union_center P P'
+  sorry
+
+#exit
+lemma blowups_Cars (A : CommRingCat) (L : ι → Ideal A) :
+            pullback_Clos BlMu L (BlMu L ↘ (Spec (CommRingCat.of A))) (loctoClos L)
+            is Cars BlMuL := by
+              --  covering index : Mu L
+              --  Covering by Potion
+              --  Then its just properties of dilatations : LA[L/c]=cA[L/c]
+    sorry
+
+
+lemma base_change_Bl_open [Fintype ι] (A B : CommRingCat) [Algebra A B]
+  [IsOpenImmersion (Spec B ↘ Spec A)] (L: ι → Ideal A) :
+  ∃! (e : pullback (BlMu L ↘ Spec A) (Spec B ↘ Spec A) ≅
+    BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))),
+  Scheme.Hom.IsOver e.hom (Spec B) := by
+
   sorry

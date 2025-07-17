@@ -740,30 +740,19 @@ lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
           rw[←eqB, eqA]
 
 
+open Multicenter Dilatation
+
+-- def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
+--  Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
+--  sorry
 
 
+-- lemma dil_representable_functor (F: Multicenter A) :
+--     A[F] represents the functor cat_dil_test_reg A F → Set,
+--     f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
+--              emptyset else := by
+--      sorry
 
-
-open Multicenter
-open Dilatation
-
-open Multicenter
-open Dilatation
-
-
-
-/-
-def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
- Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
- sorry
-
-
-lemma dil_representable_functor (F: Multicenter A) :
-    A[F] represents the functor cat_dil_test_reg A F → Set,
-    f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
-             emptyset else := by
-     sorry
--/
 
 
 @[simps]
@@ -773,7 +762,7 @@ def image_mult [Algebra A B] :  Multicenter B :=
     elem i := algebraMap A B (F.elem i)}
 
 
-/-
+
 lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
   (image_mult (B:=B) F ).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
    simp [LargeIdeal]
@@ -786,42 +775,37 @@ instance [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
 
 
 def functo_dila_alg [Algebra A B]: A[F] →ₐ[A]  B[image_mult (B := B) F]  :=
-  desc F
+  desc F (by
+    classical
+    intro i
+    have h := nonzerodiv_image (F := image_mult (B := B) F ) (Finsupp.single i 1)
+    simp at h
+    exact h)
     (by
-     classical
-     intro i
-     have h := nonzerodiv_image (F := image_mult (B := B) F ) (Finsupp.single i 1)
-     simp at h
-     exact h
-     )
-    (by
-     classical
-     intro i
-     let v : F^ℕ := Finsupp.single i 1
-     have h := image_elem_LargeIdeal_equal (F := image_mult (B := B[image_mult (B := B) F]) (image_mult (B := B) F) ) v
-     simp only at h
-     have eq2: 𝐚^v = F.elem i := by
-            rw [prodElemPower]
-            rw [Finsupp.prod_single_index]
-            ring
-            ring
-     have eq3 : 𝐋^v = F.LargeIdeal i := by
-              rw[prodLargeIdealPower]
-              rw [Finsupp.prod_single_index]
-              ring
-              ring
+    -- classical
+    -- intro i
+    -- let v : F^ℕ := Finsupp.single i 1
+    -- have h := image_elem_LargeIdeal_equal (F := image_mult (B := B[image_mult (B := B) F]) (image_mult (B := B) F) ) v
+    -- simp only at h
+    -- have eq2: 𝐚^v = F.elem i := by
+    --       rw [prodElemPower]
+    --       rw [Finsupp.prod_single_index]
+    --       ring
+    --       ring
+    -- have eq3 : 𝐋^v = F.LargeIdeal i := by
+    --         rw[prodLargeIdealPower]
+    --         rw [Finsupp.prod_single_index]
+    --         ring
+    --         ring
 
 
-     sorry
-      )
+  sorry)
 
 lemma unique_functorial_morphism_dilatation [Algebra A B]
- (other:A[F]→ₐ[A] B[image_mult (B := B) F]) :
-   other= desc F (algebraMap A B[image_mult (B := B) F])  :=by
+    (other:A[F]→ₐ[A] B[image_mult (B := B) F]) : true := sorry
+  -- other= desc F (algebraMap A B[image_mult (B := B) F])  :=by
 
-      sorry
-
-
+/-
 open Multicenter
 open Dilatation
 scoped notation: max A"["F".loc]" =>

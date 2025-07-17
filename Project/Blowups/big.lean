@@ -18,6 +18,9 @@ import Project.Dilatation.Multicenter
 import Mathlib.Topology.Sets.Closeds
 import Mathlib.AlgebraicGeometry.PullbackCarrier
 
+import Project.ForMathlib.Flat
+import Mathlib.AlgebraicGeometry.Morphisms.Flat
+
 
 import Mathlib.RingTheory.RingHom.Flat
 
@@ -189,6 +192,11 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     let specBToSpecRx : Spec B ⟶ Spec Rx :=
       ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecRx P P' x
 
+    haveI oi1 : IsOpenImmersion specBToSpecRx := by
+      apply IsOpenImmersion.comp
+
+    haveI flat1 : Flat specBToSpecRx := inferInstance
+
     let PToB : CommRingCat.of (map_index L P).Potion ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecP.app _ ≫ (Scheme.ΓSpecIso _).hom
 
@@ -203,17 +211,22 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     · rw [Scheme.Hom.isOver_iff, Category.assoc]
       sorry -- this is easy
     · sorry -- this is easy
-    · have (i : ι) := cond.nonzerodiv i γ
-      have (i : ι) := cond.prin i γ
+    · have nonzerodiv (i : ι) := cond.nonzerodiv i γ
+      have prin (i : ι) := cond.prin i γ
 
 
       have := lemm_dila_double_union L P P' (B := B)
         (fun i => ⟨RxToB.hom <| Submodule.IsPrincipal.generator
           ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ),
             by
-              -- open immersion is flat
-              -- RxToB is flat so maps nonzerodivisors to nonzerodivisors
-              sorry⟩)
+              apply RingHom.Flat.preserves_nonzeroDivisors
+              · have flat2 := flat1.flat_of_affine_subset ⟨⊤, sorry⟩ ⟨⊤, sorry⟩ (by intro x hx; simp)
+                simp only at flat2
+                simp only [Opens.map_top, CommRingCat.hom_comp, RxToB, Rx]
+                refine RingHom.Flat.comp ?_ (RingHom.Flat.comp flat2 ?_) <;>
+                · apply RingHom.Flat.of_bijective
+                  exact ConcreteCategory.bijective_of_isIso _
+              · apply nonzerodiv⟩)
         (g := by
           -- We have: Potion(P) -> B
           -- Claim: Potion(P) ≅ Dil(P)
@@ -261,13 +274,24 @@ lemma ProjBlowup_UnivProp_existence_affine
   {T : Scheme} [T.Over (Spec A)]
   (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T) :
   ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
-      --chose a representative of pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) in Cars T
-     -- Let x be an element in T as a set
-     -- Chose an (affine) chart of the covering of the representative such that x is in the chart
-     -- We get a morphism of rings satisfying the conditions of the universal property of dilatations
-    --  Apply the univ prop of dilatations to get a unique morphism Ph_i _x
-     -- Glue all the morphisms Ph_i _x to get a morphism φ : T ⟶ BlMu L (use the unicity result)
+    --    chose a representative of pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) in Cars T
+    --    For all x element in T (as a set)
+    --        Chose an (affine) chart of the covering of the representative such that x is in the chart
+    --        Let B be the ring of this chart
+    --        By definitions (of pullback and of Cars),
+    --             pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) restricted to Spec(B)
+    --            is given by the ideal image of L in B, and there exists a nonzero divisor c in B
+    --            such that Idealimage(L)=(c)
+    --       Since c belongs to Idealimage(L), there exists elements l_j in L and b_j in B such that
+    --            c= ∑ f(l_j) b_j where f:A → B
+    --   We get PotionSch (c) = PotionSch (∑ f(l_j) b_j)
+    --     (apply new trick)           ⊆ Union PotionSch ( f(l_j) b_j) ⊆ Union PotionSch ( f(l_j) )
+    --  We apply functoriality of Proj (the gradedrings are Rees B f(L), Rees A L) to get a morphism
+    --               Union PotionSch ( f(l_j) )→ Union PotionSch (l_j) over Spec(A)
+    --  This gives a morphism  φx : Spec(B) ⟶ BlMu L over Spec(A) because Potion(c)is  isomorphic to Spec(B)
+    --  We glue all the φx to get a morphism φ : T ⟶ BlMu L (use unicity) over Spec(A)
       sorry
+
 
 lemma ProjBlowup_UnivProp_affine
   (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
@@ -311,11 +335,21 @@ open Multicenter
 --skip the following lemma at first
 lemma dilatation_ring_flat_base_change (A B : Type (u + 1)) [CommRing A] [CommRing B] [Algebra A B] (F: Multicenter A)
     (flat : RingHom.Flat (algebraMap A B)) : Subsingleton ((B ⊗[A] A[F]) ≃ₐ[B] B[image_mult F]) := by
+
   --  χ flat and nonzerodiv_image implies that  𝐚^ν is a nonzerodivisor in A[F]⊗[A] B
+
+          -- (because A[F] → A[F]⊗[A] B is flat by base change
+
+              --- and because a^v is nonzerodiv in A[F] by dilatation (then use the new lemma saying flat preserv nonzerodivs))
+
   --  cond on ideals is ok
+
   --  apply univ property to get a unique B- morphism  <-
+
   --  universal property of tensor product, exists ->
+
   --  check that both compositions are identity
+
   sorry
 
 --skip this one also

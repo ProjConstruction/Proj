@@ -412,3 +412,25 @@ def pullback_lem (Z Z': PreClos.{u} X) (T : Scheme.{u}) (f : T ⟶ X) (e : relSt
 variable {X}
 def pullback_Clos {X': Scheme} (f: X' ⟶  X): Clos X → Clos X' :=
   Quotient.map (pullback_PreClos X X' f) <| fun Z Z' e => Nonempty.map (pullback_lem X Z Z' X' f) e
+
+#exit
+lemma pullback_PrePri (X' : Scheme) (f: X' ⟶  X) (Z: PreClos X)  :
+    pullback_PreClos X' f Z
+  is PrePri X' := by
+
+  sorry
+
+lemma pullback_Pri (X' : Scheme) (f: X' ⟶  X) (Z: Clos X)  : pullback_Clos X' f Z
+  is Pri X' := by
+
+  sorry
+
+lemma pullback_PreCars (X' : Scheme) (f: X' ⟶  X FLAT) (Z: PreClos X)  : pullback_PreClos X' f Z
+  is PreCars X' := by exact for affine
+
+  sorry
+
+lemma pullback_Cars (X' : Scheme) (f: X' ⟶  X FLAT) (Z: Clos X)  : pullback_Clos X' f Z
+  is Cars X' := by
+
+  sorry
