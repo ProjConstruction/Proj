@@ -138,6 +138,14 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
         -- exact hy
         )
 
+  letI isOver₀ (P P' : Mu L) (x : T) :
+      (Spec (CommRingCat.of (map_index L P).Potion)).Over (Spec A) :=
+    { hom := (glueData (τ := Mu L) (map_index L)).ι P ≫ (BlMu L) ↘ Spec A  }
+
+
+  have isOverA₀ (P P' : Mu L) (x : T) :
+    @Scheme.Hom.IsOver _ _ (SToSpecP P P' x) (Spec A) inferInstance (isOver₀ P P' x) := by sorry
+
 
   let SToSpecP' (P P' : Mu L) (x) : S P P' x ⟶ Spec (CommRingCat.of <| (map_index L P').Potion) :=
     IsOpenImmersion.lift ((glueData (map_index L)).ι P') (T.ofRestrict .. ≫ φ')
@@ -174,7 +182,10 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
 
     let γ := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
     let Rx : CommRingCat := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
-    -- take intersection of Spec B ∩ Spec
+    let SpecRxOverT : Scheme.Over (Spec Rx) T :=
+      { hom := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map γ }
+    let SpecRxOverSpecA : Scheme.Over (Spec Rx) (Spec A) :=
+      { hom := Spec Rx ↘ T ≫ T ↘ Spec A}
 
     let x' : S P P' x := ⟨x, x_in_inter⟩
     obtain ⟨U, B, ⟨isoB : _⟩⟩ := (S P P' x).local_affine ⟨x, x_in_inter⟩
@@ -200,11 +211,27 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     let PToB : CommRingCat.of (map_index L P).Potion ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecP.app _ ≫ (Scheme.ΓSpecIso _).hom
 
+    let RxToB : Rx ⟶ B :=
+      (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
+
+    letI alg2 : Algebra A (map_index L P).Potion :=
+      instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
+
+    letI alg2' : Algebra A (map_index L P').Potion :=
+      instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
+
+    -- Spec B -> Spec Rx => Rx -> B
+    -- A -> B
+    letI alg3 : Algebra Rx B :=
+      RingHom.toAlgebra <| RxToB.hom
+
     let P'ToB : CommRingCat.of (map_index L P').Potion ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecP'.app _ ≫ (Scheme.ΓSpecIso _).hom
 
     let RxToB : Rx ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
+    let AToRx : A ⟶ Rx :=
+      (Scheme.ΓSpecIso _).inv ≫ (_ ↘ Spec A).app _ ≫ (Scheme.ΓSpecIso _).hom
 
     refine ⟨P, P', B, inferInstance, (⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict ..), inferInstance, ?_,
       ?_, ?_⟩
@@ -215,7 +242,7 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
       have prin (i : ι) := cond.prin i γ
 
 
-      have := lemm_dila_double_union L P P' (B := B)
+      obtain ⟨g'', g''_comp_eq, g''_uniq⟩ := lemm_dila_double_union L P P' (B := B)
         (fun i => ⟨RxToB.hom <| Submodule.IsPrincipal.generator
           ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ),
             by
@@ -227,10 +254,33 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
                 · apply RingHom.Flat.of_bijective
                   exact ConcreteCategory.bijective_of_isIso _
               · apply nonzerodiv⟩)
-        (g := by
-          -- We have: Potion(P) -> B
-          -- Claim: Potion(P) ≅ Dil(P)
-          sorry)
+        (g := AlgHom.comp
+            { toRingHom := PToB.hom
+              commutes' := sorry }
+            (Mu_mor_iso L P).toAlgHom)
+        (g' := AlgHom.comp
+            { toRingHom := P'ToB.hom
+              commutes' := sorry }
+            (Mu_mor_iso L P').toAlgHom)
+        (cond1 := by
+          intro i
+          dsimp
+          have eq0 : Ideal.map AToRx.hom (L i) =
+            (Ideal.span
+              {Submodule.IsPrincipal.generator
+                ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ)}) := by
+            simp only [Ideal.span_singleton_generator, Rx, RxToB]
+            sorry
+          rw [show algebraMap A B = RingHom.comp RxToB.hom AToRx.hom by sorry]
+          rw [← Ideal.map_map, eq0, Ideal.map_span, Set.image_singleton])
+        (cond2 := by simp)
+        (cond2' := by simp)
+      have := g''.comp <| (Mu_mor_iso L (union_Mu L P P')).symm.toAlgHom
+      let φ'' : Spec B ⟶ Spec _ := Spec.map <| CommRingCat.ofHom
+        (g''.comp <| (Mu_mor_iso L (union_Mu L P P')).symm.toAlgHom).toRingHom
+
+      -- φ |_ Spec B = φ'' ≫ _
+
       sorry
   -- check for every x i(x) ∘ φ = i(x) ∘ φ'
   -- => φ = φ'

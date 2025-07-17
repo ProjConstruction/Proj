@@ -765,10 +765,10 @@ def image_mult [Algebra A B] :  Multicenter B :=
 
 lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
   (image_mult (B:=B) F ).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
-   simp [LargeIdeal]
-   rw[Ideal.map_sup]
-   rw[Ideal.map_span]
-   simp
+  simp [LargeIdeal]
+  rw[Ideal.map_sup]
+  rw[Ideal.map_span]
+  simp
 
 instance [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
   RingHom.toAlgebra (RingHom.comp (algebraMap B B[G]) (algebraMap A B))

@@ -554,10 +554,10 @@ instance (P P': Mu L) : Algebra A[P'.multicenter] A[(union_Mu L P P').multicente
 lemma dilToDilUnion'_as_algebraMap (P P': Mu L) : algebraMap A[P'.multicenter] A[(union_Mu L P P').multicenter] =
   dilToDilUnion' L P P' := rfl
 
-lemma lemm_dila_double_union  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDivisors B) (i : ι)
+lemma lemm_dila_double_union  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDivisors B)
     (g: A[P.multicenter]→ₐ[A] B)
     (g':  A[P'.multicenter]→ₐ[A] B)
-    (cond1: Ideal.map (algebraMap A B) (L i) = Ideal.span  {(c i).1})
+    (cond1: ∀ i, Ideal.map (algebraMap A B) (L i) = Ideal.span  {(c i).1})
     (cond2: (Algebra.ofId A B)= AlgHom.comp g (Algebra.ofId A A[P.multicenter]) )
     (cond2': (Algebra.ofId A B)= AlgHom.comp g' (Algebra.ofId A A[P'.multicenter])) :
     ∃! (g'' : A[(union_Mu L P P').multicenter] →ₐ[A] B),
