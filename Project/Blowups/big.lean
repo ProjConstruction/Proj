@@ -130,13 +130,13 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
   let SToSpecP (P P' : Mu L) (x : T) : S P P' x ⟶
     Spec (CommRingCat.of <| (map_index L P).Potion) :=
     IsOpenImmersion.lift ((glueData (map_index L)).ι P) (T.ofRestrict .. ≫ φ)
-      (by sorry
-        -- rintro _ ⟨⟨z, ⟨⟨y, hy⟩, -⟩⟩, rfl⟩
-        -- simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
-        --   ContinuousMap.comp_apply, Set.mem_range]
-        -- use y
-        -- exact hy
-        )
+      (by
+        rintro _ ⟨⟨z, ⟨⟨⟨y, hy1⟩, mem2⟩, mem3⟩⟩, rfl⟩
+        simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
+          ContinuousMap.comp_apply, Set.mem_range]
+        use y
+        erw [hy1]
+        rfl)
 
   letI isOver₀ (P P' : Mu L) (x : T) :
       (Spec (CommRingCat.of (map_index L P).Potion)).Over (Spec A) :=
@@ -149,13 +149,13 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
 
   let SToSpecP' (P P' : Mu L) (x) : S P P' x ⟶ Spec (CommRingCat.of <| (map_index L P').Potion) :=
     IsOpenImmersion.lift ((glueData (map_index L)).ι P') (T.ofRestrict .. ≫ φ')
-      (by sorry
-        -- rintro _ ⟨⟨z, ⟨-, ⟨y, hy⟩⟩⟩, rfl⟩
-        -- simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
-        --   ContinuousMap.comp_apply, Set.mem_range]
-        -- use y
-        -- exact hy
-        )
+      (by
+        rintro _ ⟨⟨z, ⟨⟨mem1, ⟨y, hy1⟩⟩, mem3⟩⟩, rfl⟩
+        simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
+          ContinuousMap.comp_apply, Set.mem_range]
+        use y
+        erw [hy1]
+        rfl)
 
   let SToSpecRx (P P' : Mu L) (x) :
       S P P' x ⟶
@@ -163,7 +163,13 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
         (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x) :=
     IsOpenImmersion.lift ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map _)
       (T.ofRestrict ..)
-      (by sorry)
+      (by
+        rintro _ ⟨⟨z, ⟨⟨mem1, mem2⟩, ⟨y, hy1⟩⟩⟩, rfl⟩
+        simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
+          ContinuousMap.comp_apply, Set.mem_range]
+        use y
+        erw [hy1]
+        rfl)
 
   have (x : T) :
     ∃ (P P' : Mu L) (B : CommRingCat) (_ : Algebra A B)
@@ -178,7 +184,8 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     have  ⟨(P : Mu L), (Y : Spec <| _), hY⟩ := (glueData <| map_index L).ι_jointly_surjective y
     have  ⟨(P' : Mu L), (Y' : Spec <| _), hY'⟩ := (glueData <| map_index L).ι_jointly_surjective y'
 
-    have x_in_inter : x ∈ O P P' x := ⟨⟨⟨Y, hY⟩, ⟨Y', hY'⟩⟩, sorry⟩
+    have x_in_inter : x ∈ O P P' x := ⟨⟨⟨Y, hY⟩, ⟨Y', hY'⟩⟩,
+      (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.covers x⟩
 
     let γ := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
     let Rx : CommRingCat := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
@@ -194,6 +201,16 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     let f : A ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ F.app _ ≫ (Scheme.ΓSpecIso _).hom
     let alg : Algebra A B := RingHom.toAlgebra f.hom
+
+    have specB_over_specA_eq : Spec B ↘ Spec A = F := by
+      change Spec.map (_ ≫ _ ≫ _) = _ ≫ _
+      simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc,
+        Spec.toLocallyRingedSpace_obj]
+      rw [← Scheme.toSpecΓ_naturality_assoc]
+      convert Category.comp_id _
+      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+      simp only [Iso.inv_hom_id, Spec.map_id]
+
     let specBToSpecP : Spec B ⟶ Spec (CommRingCat.of <| (map_index L P).Potion) :=
       ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecP P P' x
 
@@ -220,8 +237,6 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     letI alg2' : Algebra A (map_index L P').Potion :=
       instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
 
-    -- Spec B -> Spec Rx => Rx -> B
-    -- A -> B
     letI alg3 : Algebra Rx B :=
       RingHom.toAlgebra <| RxToB.hom
 
@@ -235,9 +250,19 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
 
     refine ⟨P, P', B, inferInstance, (⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict ..), inferInstance, ?_,
       ?_, ?_⟩
-    · rw [Scheme.Hom.isOver_iff, Category.assoc]
-      sorry -- this is easy
-    · sorry -- this is easy
+    · rw [Scheme.Hom.isOver_iff, Category.assoc, specB_over_specA_eq]
+      rfl
+    · simp only [Spec.toLocallyRingedSpace_obj, Category.assoc, Scheme.comp_coeBase,
+      Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp, ContinuousMap.comp_assoc,
+      ContinuousMap.coe_comp, Set.mem_range, Function.comp_apply]
+      -- obtain ⟨⟨mem1, mem2⟩, mem3⟩ := x_in_inter
+      refine ⟨isoB.hom.base ⟨⟨x, x_in_inter⟩, U.2⟩, ?_⟩
+      erw [← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
+        ← ConcreteCategory.comp_apply]
+      rw [← Category.assoc]
+      change ((isoB.hom ≫ isoB.inv).base ≫ _) _ = x
+      rw [Iso.hom_inv_id]
+      rfl
     · have nonzerodiv (i : ι) := cond.nonzerodiv i γ
       have prin (i : ι) := cond.prin i γ
 
@@ -256,7 +281,8 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
               · apply nonzerodiv⟩)
         (g := AlgHom.comp
             { toRingHom := PToB.hom
-              commutes' := sorry }
+              commutes' :=
+                sorry }
             (Mu_mor_iso L P).toAlgHom)
         (g' := AlgHom.comp
             { toRingHom := P'ToB.hom

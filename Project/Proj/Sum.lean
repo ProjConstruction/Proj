@@ -1,5 +1,7 @@
 import Project.Proj.Over
 
+import Mathlib.AlgebraicGeometry.Restrict
+
 suppress_compilation
 
 universe u
@@ -54,20 +56,46 @@ lemma sum_lemma_open {n : ℕ} {d : ι} (a : Fin n → A)
     Spec (CommRingCat.of (Localization.Away (s_elem a deg rel i))) ⟶ unionSpec a deg rel),
       IsOpenImmersion f ∧ Scheme.Hom.IsOver f (SpecBase 𝒜) := by sorry
 
+open CategoryTheory
+
+def Spec.restrictBasicOpen (R : CommRingCat) (x : R) :
+  (Spec R).restrict (PrimeSpectrum.basicOpen x |>.isOpenEmbedding) ≅
+  Spec (CommRingCat.of (Localization.Away x)) :=
+  _ ≪≫ AlgebraicGeometry.basicOpenIsoSpecAway
+
 lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩) :
   ∃ (f : Spec (CommRingCat.of <| sum_potion a deg rel) ⟶ unionSpec a deg rel),
     IsOpenImmersion f ∧ Scheme.Hom.IsOver f (SpecBase 𝒜) := by
   have eq : ∑ i : Fin n, s_elem a deg rel i = 1 := by sorry
-  have := PrimeSpectrum.iSup_basicOpen_eq_top_iff (f := fun i : Fin n => s_elem a deg rel i) |>.2 sorry
+  have := PrimeSpectrum.iSup_basicOpen_eq_top_iff (f := fun i : Fin n => s_elem a deg rel i) |>.2 (by
+    sorry)
+
+  let U : Scheme.OpenCover (Spec (CommRingCat.of <| sum_potion a deg rel)) :=
+    Scheme.openCoverOfISupEqTop _ (fun i : Fin n => PrimeSpectrum.basicOpen (s_elem a deg rel i))
+      this
   -- Spec (CommRingCat.of <| sum_potion a deg rel)
   -- ≅
   -- gluing Spec (CommRingCat.of (Localization.Away (s_elem a deg rel i)))
   -- If I have a cover U_i for X
   -- and U_i -> Y
   -- how do I get X -> Y
-  have := AlgebraicGeometry.Scheme.Cover.glueMorphisms
+  -- refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms ?_, ?_⟩
+  refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms U
+    (fun i : Fin n => by
+      refine Scheme.Opens.ι (X := Spec (CommRingCat.of <| sum_potion a deg rel)) _ ≫
+        Spec.map (CommRingCat.ofHom ?_) ≫
+        (sum_lemma_open a deg rel i).choose
+
+      simp only [Scheme.openCoverOfISupEqTop_obj, U]
+      have h : IsAffineOpen
+        (X := Spec (CommRingCat.of <| sum_potion a deg rel))
+        (PrimeSpectrum.basicOpen (s_elem a deg rel i)) := by sorry
+      have := h.fromSpec
+      exact h.fromSpec.base
+
+      sorry) ?_, ?_⟩
   have (i : Fin n) : true := by
     obtain ⟨f, oi_f, o_spec_f⟩ := sum_lemma_open a deg rel i
     --
