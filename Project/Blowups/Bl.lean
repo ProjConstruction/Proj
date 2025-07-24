@@ -234,6 +234,8 @@ def clo_mu_mor (P: Mu L) : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
   Multicenter.desc P.multicenter
     (by
       intro i
+      simp only [nonZeroDivisors, Submonoid.mem_inf, mem_nonZeroDivisorsLeft_iff, mul_comm,
+        mem_nonZeroDivisorsRight_iff, and_self]
       intro x hx
       induction x using Quotient.inductionOn' with | h x =>
       change HomogeneousLocalization.mk x = 0

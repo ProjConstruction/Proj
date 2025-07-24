@@ -403,8 +403,9 @@ lemma smul_frac (a : A) (v : F.index →₀ ℕ) (m : F.LargeIdeal^v) : a • (m
   use 0
   simp
 
-lemma nonzerodiv_image (v : F.index →₀ ℕ) :
-   algebraMap A A[F] (F.elem^v) ∈ nonZeroDivisors A[F] := by
+lemma nonzerodiv_image (v : F.index →₀ ℕ) : algebraMap A A[F] (F.elem^v) ∈ nonZeroDivisors A[F] := by
+    simp only [nonZeroDivisors, Submonoid.mem_inf, mem_nonZeroDivisorsLeft_iff, mul_comm,
+      mem_nonZeroDivisorsRight_iff, and_self]
     intro x h
     induction x using induction_on with |h x =>
     simp only [algebraMap_apply, mk_mul_mk, zero_def, mk_eq_mk] at h

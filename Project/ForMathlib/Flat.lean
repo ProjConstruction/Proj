@@ -9,7 +9,10 @@ lemma RingHom.Flat.preserves_nonzeroDivisors {R S : Type*} [CommRing R] [CommRin
     rw [← LinearMap.ker_eq_bot, eq_bot_iff]
     intro x hx
     simp only [LinearMap.mem_ker, Algebra.lsmul_coe, smul_eq_mul, Ideal.mem_bot, mr] at hx ⊢
-    exact hr x (by rwa [mul_comm])
+    exact hr.1 x hx
+
+  simp only [nonZeroDivisors, Submonoid.mem_inf, mem_nonZeroDivisorsLeft_iff, mul_comm,
+    mem_nonZeroDivisorsRight_iff, and_self]
 
   intro s hs
   have hs' : r • s = 0 := by
