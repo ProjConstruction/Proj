@@ -20,6 +20,9 @@ lemma potion_nonzero_divisor {i : ι} (s s' : A)
     (mem : s ∈ S) (mem' : s' ∈ S) :
     HomogeneousLocalization.mk
       ⟨i, ⟨s, deg⟩, ⟨s', deg'⟩, mem'⟩ ∈ nonZeroDivisors S.Potion := by
+  rw [mem_nonZeroDivisors_iff]
+  simp_rw [mul_comm]
+  simp only [and_self]
   intro x hx
   induction x using Quotient.inductionOn' with | h x =>
   change Quotient.mk'' _ = Quotient.mk'' 0 at hx

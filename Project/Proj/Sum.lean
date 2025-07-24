@@ -61,14 +61,21 @@ open CategoryTheory
 def Spec.restrictBasicOpen (R : CommRingCat) (x : R) :
   (Spec R).restrict (PrimeSpectrum.basicOpen x |>.isOpenEmbedding) ≅
   Spec (CommRingCat.of (Localization.Away x)) :=
-  _ ≪≫ AlgebraicGeometry.basicOpenIsoSpecAway
+  AlgebraicGeometry.basicOpenIsoSpecAway _
 
 lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩) :
   ∃ (f : Spec (CommRingCat.of <| sum_potion a deg rel) ⟶ unionSpec a deg rel),
     IsOpenImmersion f ∧ Scheme.Hom.IsOver f (SpecBase 𝒜) := by
-  have eq : ∑ i : Fin n, s_elem a deg rel i = 1 := by sorry
+  have eq : ∑ i : Fin n, s_elem a deg rel i = 1 := by
+    delta s_elem
+    ext
+    simp only [HomogeneousLocalization.val_one]
+    rw [← HomogeneousLocalization.sum_val]
+    simp only [HomogeneousLocalization.val_mk]
+    erw [← Localization.mk_sum (M := Submonoid.closure {∑ i, a i}) a (Finset.univ) ⟨∑ i, a i, Submonoid.subset_closure (by simp)⟩]
+    simp only [Localization.mk_self_mk]
   have := PrimeSpectrum.iSup_basicOpen_eq_top_iff (f := fun i : Fin n => s_elem a deg rel i) |>.2 (by
     sorry)
 
@@ -82,24 +89,15 @@ lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
   -- and U_i -> Y
   -- how do I get X -> Y
   -- refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms ?_, ?_⟩
+  have := Scheme.Cover.fromGlued (X := Spec (CommRingCat.of <| sum_potion a deg rel)) U.ulift
   refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms U
-    (fun i : Fin n => by
-      refine Scheme.Opens.ι (X := Spec (CommRingCat.of <| sum_potion a deg rel)) _ ≫
-        Spec.map (CommRingCat.ofHom ?_) ≫
-        (sum_lemma_open a deg rel i).choose
-
-      simp only [Scheme.openCoverOfISupEqTop_obj, U]
-      have h : IsAffineOpen
-        (X := Spec (CommRingCat.of <| sum_potion a deg rel))
-        (PrimeSpectrum.basicOpen (s_elem a deg rel i)) := by sorry
-      have := h.fromSpec
-      exact h.fromSpec.base
-
-      sorry) ?_, ?_⟩
-  have (i : Fin n) : true := by
-    obtain ⟨f, oi_f, o_spec_f⟩ := sum_lemma_open a deg rel i
-    --
+    (fun i : Fin n => (AlgebraicGeometry.basicOpenIsoSpecAway _).hom ≫
+        (sum_lemma_open a deg rel i).choose)
+    ?_, ?_, ?_⟩
+  · sorry
+  · apply (config := {allowSynthFailures := true}) IsOpenImmersion.comp
     sorry
+  · sorry
 
 
 --  Put D(a_k'):= Spec ((Localization sum_potion (a_1...a_n) s_elem k ) )
@@ -123,7 +121,7 @@ lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
 --                  -- by Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
 
 --                    --BigUnion k=1...n D(a_k') = Spec(sum_potion)
-  sorry
+
 
 #exit
 

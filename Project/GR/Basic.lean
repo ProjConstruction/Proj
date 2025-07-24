@@ -174,7 +174,8 @@ lemma lift_emb_apply {G : Type v} [Group G] (f : M →* G) (x) : (lift f) (emb M
 lemma lift_uniq {G : Type v} [Group G] (f : M →* G) (f' : Mᵍʳ →* G) (h : f'.comp (emb M) = f) :
     f' = lift f := by
   ext x
-  obtain ⟨⟨a, b⟩, rfl⟩ := Con.mk'_surjective x
+  obtain ⟨⟨a, b⟩, hab⟩ := Con.mk'_surjective (M := M × M) (c := GRConstruction.con M) x
+  simp only [MonoidHom.coe_comp, Con.coe_mk', Function.comp_apply, ← hab]
   simp only [Con.coe_mk', lift, Con.lift_coe, MonoidHom.coe_mk, OneHom.coe_mk]
   have eq (x : M) := congr($h x)
   simp only [emb, MonoidHom.coe_comp, MonoidHom.coe_mk, OneHom.coe_mk, Function.comp_apply] at eq

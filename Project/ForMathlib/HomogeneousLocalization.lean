@@ -72,4 +72,14 @@ lemma prod_val {ι : Type*} (s : Finset ι) (f : ι → HomogeneousLocalization 
   | @insert i s hi ih =>
     rw [Finset.prod_insert hi, ih, ← HomogeneousLocalization.val_mul, Finset.prod_insert hi]
 
+lemma sum_val {ι : Type*} (s : Finset ι) (f : ι → HomogeneousLocalization 𝒜 x) :
+    ∑ i ∈ s, HomogeneousLocalization.val (f i) =
+    HomogeneousLocalization.val (∑ i ∈ s, f i) := by
+  classical
+  induction s using Finset.induction_on with
+  | empty => simp
+  | @insert i s hi ih =>
+    rw [Finset.sum_insert hi, ih, ← HomogeneousLocalization.val_add, Finset.sum_insert hi]
+
+
 end HomogeneousLocalization
