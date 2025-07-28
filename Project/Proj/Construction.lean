@@ -5,7 +5,7 @@ import Mathlib.AlgebraicGeometry.Pullbacks
 suppress_compilation
 
 universe u
-variable {ι R₀ A : Type u}
+variable {ι : Type} {R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
@@ -105,5 +105,17 @@ def glueData {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) : Scheme.Glu
 --     simpa using congr($(t'_cocycle R.1 S.1 T.1) x)
 
 def Proj {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) : Scheme := glueData ℱ |>.glued
+
+/--
+F i ≤ F j
+
+F j -> Proj
+F j -> F i -> Proj
+-/
+lemma proj_glue_condition {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) (i j : τ)
+    (le : (ℱ i).toHomogeneousSubmonoid ≤ (ℱ j).toHomogeneousSubmonoid) :
+    (glueData ℱ).ι j =
+    (Spec.map <| CommRingCat.ofHom <| potionMapOfLE _ _ le) ≫ (glueData ℱ).ι i := by
+  sorry
 
 end GoodPotionIngredient

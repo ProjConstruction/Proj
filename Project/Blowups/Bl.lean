@@ -8,15 +8,15 @@ suppress_compilation
 universe u
 variable {A : Type (u+1)} [CommRing A]
 variable {B : Type (u+1)} [CommRing B]
-variable {ι : Type (u+1)} [Fintype ι] (L : ι → Ideal A) [DecidableEq ι]
+variable {ι : Type} [Fintype ι] (L : ι → Ideal A) [DecidableEq ι]
 variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
 
 
 open GoodPotionIngredient
+
 def Bl  := Proj (τ := GoodPotionIngredient (ReesAlgebra.intGrading L)) id
 
-
-structure Mu : Type (u + 1) where
+structure Mu where
 multicenter : Multicenter A
 [fin : Fintype multicenter.index]
 Ψ : multicenter.index → ι
@@ -79,6 +79,18 @@ def union_Mu (P : Mu L) (P' : Mu L) : Mu L :=
       rintro (i|i)
       · simp [P.cond i]
       · simp [P'.cond i] }
+
+open Multicenter
+def dilationToUnion_left (P P' : Mu L) : A[P.multicenter] →ₐ[A] A[(union_Mu L P P').multicenter] :=
+  Multicenter.desc _
+    sorry
+    sorry
+
+
+def dilationToUnion_right (P P' : Mu L) : A[P'.multicenter] →ₐ[A] A[(union_Mu L P P').multicenter] :=
+  Multicenter.desc _
+    sorry
+    sorry
 
 variable [DecidableEq index] [DecidableEq index']
 
@@ -478,6 +490,22 @@ def Mu_mor_iso (P: Mu L) :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
   AlgEquiv.ofBijective (clo_mu_mor ..) <| ⟨clo_mu_mor_inj L P, clo_mu_mor_surj L P⟩
 
+lemma Mu_mor_iso_commutes (P P' : Mu L) :
+    (Mu_mor_iso L _ |>.toAlgHom).comp
+    (dilationToUnion_left L P P') =
+
+    ({ toRingHom := HomogeneousSubmonoid.potionMapOfLE _ _ (by sorry)
+       commutes' := sorry } : (clo_mu L P).Potion →ₐ[A] (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toAlgHom : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion) := by sorry
+
+lemma Mu_mor_iso_commutes_ringHom (P P' : Mu L) :
+    (Mu_mor_iso L _ |>.toRingHom).comp
+    (dilationToUnion_left L P P') =
+
+    (HomogeneousSubmonoid.potionMapOfLE _ _ (by sorry) : (clo_mu L P).Potion →+* (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toRingHom : A[P.multicenter] →+* (clo_mu L P).Potion) := by
+  sorry
+
 
 def map_index (P: Mu L) :
     GoodPotionIngredient (ReesAlgebra.intGrading L) where
@@ -485,6 +513,13 @@ def map_index (P: Mu L) :
   relevant := clo_mu_rel L P
   fg := sorry
 
+open CategoryTheory AlgebraicGeometry HomogeneousSubmonoid
+
+-- example (P P' : Mu L) :
+--     (glueData (map_index L)).ι (union_Mu L P P') =
+--     (Spec.map <| CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) ≫
+--       (glueData (map_index L)).ι P := by sorry
+  -- apply proj_glue_condition
 
 open AlgebraicGeometry
 
@@ -567,6 +602,8 @@ lemma lemm_dila_double_union  [Algebra A B] (P P': Mu L) (c : ι →  nonZeroDiv
       g' = AlgHom.comp g'' (Algebra.ofId A[P'.multicenter] A[(union_Mu L P P').multicenter] |>.restrictScalars _) := by
     -- desc union_center P P'
   sorry
+
+
 
 #exit
 lemma blowups_Cars (A : CommRingCat) (L : ι → Ideal A) :

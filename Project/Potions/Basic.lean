@@ -153,6 +153,11 @@ lemma potionToMul_mk (x) : S.potionToMul T (.mk x) = .mk ⟨x.deg, x.num, x.den,
 @[simp]
 lemma potionToMul_mk' (x) : S.potionToMul T (Quotient.mk'' x) = .mk ⟨x.deg, x.num, x.den, left_le_mul _ _ x.den_mem⟩ := rfl
 
+def potionMapOfLE (h : S ≤ T) : S.Potion →+* T.Potion :=
+  HomogeneousLocalization.map _ _ (RingHom.id _) (by
+    erw [Submonoid.comap_id, ← le_iff]
+    exact h) fun i a hi ↦ hi
+
 /-
 A_(S) -> A_(ST) -> B_(φ(ST))
   |                 |

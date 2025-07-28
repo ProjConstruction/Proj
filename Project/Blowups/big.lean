@@ -34,7 +34,7 @@ open AlgebraicGeometry TopologicalSpace CategoryTheory CategoryTheory.Limits Ten
 
 universe u
 
-variable {ι : Type (u+1)} [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
+variable {ι : Type} [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
 variable {X : Scheme}
 
 structure conceptual_blowup (Z : Clos X) where
@@ -82,16 +82,6 @@ def loc_to_Clos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] : Clos 
 --     sorry
 
 
-
-lemma ProjBlowup_UnivProp_unicity_affine_empty
-  (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
-  {T : Scheme} [T.Over (Spec A)] [IsEmpty T]
-  (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T)
-  (φ φ' : T ⟶ BlMu L)
-  (φ_over : Scheme.Hom.IsOver φ (Spec A))
-  (φ'_over : Scheme.Hom.IsOver φ' (Spec A)) : φ = φ'  := by
-  sorry
-
 instance (A B : CommRingCat) [Algebra A B] : Scheme.Over (Spec B) (Spec A) where
   hom := Spec.map (CommRingCat.ofHom (algebraMap A B))
 
@@ -99,10 +89,10 @@ instance (X Y : Scheme) [Scheme.Over X Y]
   (O : Opens X) : (X.restrict O.isOpenEmbedding).Over Y where
     hom := X.ofRestrict .. ≫ X ↘ Y
 
-open GoodPotionIngredient
-theorem ProjBlowup_UnivProp_unicity_affine_nonempty
+open GoodPotionIngredient HomogeneousSubmonoid
+theorem ProjBlowup_UnivProp_unicity_affine
   (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
-  {T : Scheme} [T.Over (Spec A)] [Nonempty T]
+  {T : Scheme} [T.Over (Spec A)]
   (cond : IsPreCars _ <| pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L))
   (φ φ' : T ⟶ BlMu L)
   (φ_over : Scheme.Hom.IsOver φ (Spec A))
@@ -255,7 +245,6 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
     · simp only [Spec.toLocallyRingedSpace_obj, Category.assoc, Scheme.comp_coeBase,
       Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp, ContinuousMap.comp_assoc,
       ContinuousMap.coe_comp, Set.mem_range, Function.comp_apply]
-      -- obtain ⟨⟨mem1, mem2⟩, mem3⟩ := x_in_inter
       refine ⟨isoB.hom.base ⟨⟨x, x_in_inter⟩, U.2⟩, ?_⟩
       erw [← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
         ← ConcreteCategory.comp_apply]
@@ -267,7 +256,7 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
       have prin (i : ι) := cond.prin i γ
 
 
-      obtain ⟨g'', g''_comp_eq, g''_uniq⟩ := lemm_dila_double_union L P P' (B := B)
+      obtain ⟨g'', ⟨g''_comp_eq, g''_comp_eq'⟩, g''_uniq⟩ := lemm_dila_double_union L P P' (B := B)
         (fun i => ⟨RxToB.hom <| Submodule.IsPrincipal.generator
           ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ),
             by
@@ -295,21 +284,50 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
             (Ideal.span
               {Submodule.IsPrincipal.generator
                 ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ)}) := by
-            simp only [Ideal.span_singleton_generator, Rx, RxToB]
+            simp only [Ideal.span_singleton_generator, Rx]
             sorry
           rw [show algebraMap A B = RingHom.comp RxToB.hom AToRx.hom by sorry]
           rw [← Ideal.map_map, eq0, Ideal.map_span, Set.image_singleton])
         (cond2 := by simp)
         (cond2' := by simp)
-      have := g''.comp <| (Mu_mor_iso L (union_Mu L P P')).symm.toAlgHom
-      let φ'' : Spec B ⟶ Spec _ := Spec.map <| CommRingCat.ofHom
-        (g''.comp <| (Mu_mor_iso L (union_Mu L P P')).symm.toAlgHom).toRingHom
+      -- have g''_comp_eq_ringHom : PToB.comp (Mu_mor_iso L P).toRingHom = g''.toRingHom.comp (algebraMap _ _)
+      exact calc Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ
+          _ = specBToSpecP ≫ (glueData (map_index L)).ι _ := by
+            simp [specBToSpecP, SToSpecP]
+          _ =
+            (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
+                Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
+            (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) :
+                  Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
+                  Spec (CommRingCat.of <| (map_index L P).Potion)) ≫
+            (glueData (map_index L)).ι _ := by
+            simp only [AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe,
+              AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp,
+              Spec.map_comp, ← Category.assoc]
+            congr 1
+            simp only [Spec.toLocallyRingedSpace_obj, ← Spec.map_comp, specBToSpecP, SToSpecP]
+            rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+            -- use g''_comp_eq
+            sorry
+          _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
+                Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
+              (glueData (map_index L)).ι _ := by
+              have := proj_glue_condition (ℱ := map_index L) P (union_Mu L P P') sorry
+              rw [this]
+          _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
+                Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
+            (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) :
+                  Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
+                  Spec (CommRingCat.of <| (map_index L P').Potion)) ≫
+            (glueData (map_index L)).ι _ := by
+            have := proj_glue_condition (ℱ := map_index L) P' (union_Mu L P P') sorry
+            rw [this]
+          _ = specBToSpecP' ≫ (glueData (map_index L)).ι _ := by
+            -- use g''_comp_eq'
+            sorry
+          _ = Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ' := by
+            simp [specBToSpecP', SToSpecP']
 
-      -- φ |_ Spec B = φ'' ≫ _
-
-      sorry
-  -- check for every x i(x) ∘ φ = i(x) ∘ φ'
-  -- => φ = φ'
   have : (∀ x : T,
     ∃ (P P' : Mu L) (B : CommRingCat) (_ : Algebra A B)
       (i : Spec B ⟶ T.restrict (O P P' x).isOpenEmbedding),
@@ -321,35 +339,51 @@ theorem ProjBlowup_UnivProp_unicity_affine_nonempty
       sorry
   sorry
 
-lemma ProjBlowup_UnivProp_unicity_affine
-  (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
-  {T : Scheme} [T.Over (Spec A)]
-  (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T)
-  (φ φ' : T ⟶ BlMu L)
-  (φ_over : Scheme.Hom.IsOver φ (Spec A))
-  (φ'_over : Scheme.Hom.IsOver φ' (Spec A)) : φ = φ'  := by
-  apply Scheme.Hom.ext'
-  apply LocallyRingedSpace.Hom.ext'
+lemma ProjBlowup_UnivProp_existence_affine_preclo
+    (A: CommRingCat.{u + 1}) (L : ι → Ideal A) [fin : Fintype ι]
+    {T : Scheme} [T.Over (Spec A)]
+    (cond : IsPreCars _ <| pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)) :
+    ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
+  have (x : T) : true := by
+    let γ := (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
+    let B : CommRingCat.{u + 1} :=
+      (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
+    let U_γ := Spec B
+
+    let over0 : Scheme.Over U_γ (Spec A) :=
+      { hom := (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.map γ ≫ T ↘ Spec A }
+    let algebra0 : Algebra A B :=
+      RingHom.toAlgebra <|
+        ((Scheme.ΓSpecIso _).inv ≫ (U_γ ↘ Spec A).app _ ≫ (Scheme.ΓSpecIso _).hom).hom
+
+    let c (i : ι) : B := cond.prin i γ |>.generator
+
+    have ideal_eq (i : ι) : Ideal.map (algebraMap A B) (L i) = Ideal.span { c i } := by sorry
+    let multicenter : Multicenter B :=
+    { index := ι
+      ideal := _
+      elem := _ }
+    -- let dilaIso : B[]
+
+
+
+    sorry
   sorry
-    --  Let x ∈ T.
-    --  put y=φx
-    --  put y'=φ'x
-    --  obtain P ∈ Mu L such that y ∈ Mu P
-    --  obtain p' ∈ Mu L such that y ∈ Mu P'
-    --  observe that  x in φ^-1 (Po P) ∩ φ'^-1 (Po P').
-    --  Let U=Spec(B) be an affine neighborhood of x in the open φ^-1 (Po P) ∩ φ'^-1 (Po P').
-    --  consider the restrictions of φ and φ' to U
-    --  Phi factors through Po P, Phi' factors through Po P'
-    --  apply lemm_dila_double_union to get a unique morphism
-    --  apply univ prop of dilatations to get equality locally
-    --  deduce equality  globaly
 
 
 lemma ProjBlowup_UnivProp_existence_affine
-  (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
-  {T : Scheme} [T.Over (Spec A)]
-  (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T) :
-  ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
+    (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
+    {T : Scheme} [T.Over (Spec A)]
+    (cond : pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) ∈  CarsAsSubsetOfClos T) :
+    ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
+  obtain ⟨⟨-, ⟨⟨Z, hZ⟩, rfl⟩⟩, Z_in_Car, Z_eq⟩ := cond
+  rename_i Z_pri
+  simp only at Z_eq
+
+
+
+
+  sorry
     --    chose a representative of pullback_Clos (T ↘ Spec A) (loc_to_Clos A L) in Cars T
     --    For all x element in T (as a set)
     --        Chose an (affine) chart of the covering of the representative such that x is in the chart
@@ -468,15 +502,67 @@ lemma base_change_dil_open (A B : CommRingCat) [Algebra A B]
 --the following is also  what we need for the experiment in a first time
 lemma base_change_Bl_open [Fintype ι] (A B : CommRingCat) [Algebra A B]
     [IsOpenImmersion (Spec B ↘ Spec A)] (L: ι → Ideal A) :
-  ∃! (e : pullback (BlMu L ↘ Spec A) (Spec B ↘ Spec A) ≅
-      BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))),
-    Scheme.Hom.IsOver e.hom (Spec B) := by sorry
-  --    byy univ prop exists unique φ →
-  --    exists θ <- by fiber product
-  --    φ ∘ θ = id by univ prop
-  --    so θ is injective
-  --    to prove that θ is surjective enough to do it locally on target
-  --    we chose a potion and apply base_change_dil_open
+    ∃! (e : pullback (BlMu L ↘ Spec A) (Spec B ↘ Spec A) ≅
+
+    BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))), Scheme.Hom.IsOver e.hom (Spec B) := by sorry
+
+--     Put F: (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) → Spec(B) → Spec(A)
+
+--     Put PB:  (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) → Spec(B)
+
+--     Put fS: Spec(B) → Spec(A)
+
+--     Have EQ1 pullback_Clos {(BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) } (F) (loc_to_Clos L)
+
+--     =  pullback_Clos {(BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) } (PB)(pullback_Clos {(BlMu L) } (f) (loc_to_Clos L))
+
+--      := by exact pullback_assoc sorry
+
+--     Have EQ2 (pullback_Clos {(BlMu L) } (f) (loc_to_Clos L))  ≅ [over Spec(A)] loc_to_Clos (Spec B) (fun i : ι => Ideal.map (algebraMap A B) (L i))
+
+--      := by definitons and A/I ⊗ B = B /idealimage(I) sorry
+
+--     Have EQ3 pullback_Clos {(BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) } (F) (loc_to_Clos L)
+
+--         ≅ [SpecA]  pullback_Clos {(BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) } (PB) ( loc_to_Clos (Spec B) (fun i : ι => Ideal.map (algebraMap A B) (L i)))
+
+--     Have EQ4 pullback_Clos {(BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) } (PB)
+
+--          ( loc_to_Clos (Spec B) (fun i : ι => Ideal.map (algebraMap A B) (L i))) ∈ Cars (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i)))
+
+--             by exact blowups_Cars
+
+--     Have EQ5 pullback_Clos {(BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) } (F) (loc_to_Clos L)  ∈ Cars (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i)))
+
+--          by exact EQ3 and EQ4
+
+--     EQ6:   EQ5 implies, by Universal property of blowups, that there exists a unique morphism over Spec(A)
+
+--        φ :  (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) → BlMu L
+
+--     EQ7: By propertties of fiber product get a map θ over Spec(B) :  (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i))) → BlMu L × [Spec(A)] Spec(B)
+
+--     SAME METHOD TO PROVE exists ψ :  BlMu L × [Spec(A)] Spec(B) → (BlMu (L := fun i : ι => Ideal.map (algebraMap A B) (L i)))  over Spec(B)
+
+--           -cf Proof.pdf for details
+
+--     Have I1: ψ ∘ θ = id by unicity part of universal prop of blowups
+
+--     Have I2: θ ∘ ψ = id because these are morphisms over BlMu L and because open imm are preserved by pullabck and because of  lemma_open_eq below
+
+
+lemma lemma_open_eq (U : Scheme) (i : U ⟶ X) [IsOpenImmersion i]
+
+  (f: U ⟶ U) (hi : i = f ≫ i) : f = 𝟙 _:= by
+  sorry
+-- since i is injective as a set map, we have f=id as a set map
+
+--                                    it is enough to prove that for any open of U they equal as sheaf morphism
+
+--                                    this is trivial from definition of open immersions
+
+--                                    e.g. AlgebraicGeometry.PresheafedSpace.IsOpenImmersion.scheme_toScheme  sorry
+
 
 
 def ideal_loc (X: Scheme) (Z: PreClos X) (γ : Z.cov.J) : Z.indnumb → Ideal (Z.cov.obj γ) :=

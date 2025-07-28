@@ -434,3 +434,12 @@ lemma pullback_Cars (X' : Scheme) (f: X' ⟶  X FLAT) (Z: Clos X)  : pullback_Cl
   is Cars X' := by
 
   sorry
+
+
+lemma pullback_Pre_assoc  (X'' : Scheme) (X' : Scheme) (f': X'' ⟶  X') (f: X' ⟶  X) (Z: PreClos X):
+  pullback_PreClos (X'') (f ∘ f') Z is equivalent to pullback_PreClos (X'') ( f') (pullback_PreClos (X') (f ) (Z)):=
+  by this is trivial by assoc of fiber products sorry
+
+lemma pullback_assoc  (X'' : Scheme) (X' : Scheme) (f': X'' ⟶  X') (f: X' ⟶  X) (Z: Clos X):
+  pullback_Clos (X'') (f ∘ f') Z = pullback_Clos (X'') ( f') (pullback_Clos (X') (f ) (Z)):=
+  by pullback_Pre_assoc sorry

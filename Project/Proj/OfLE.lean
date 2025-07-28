@@ -18,7 +18,7 @@ open HomogeneousSubmonoid
 namespace GoodPotionIngredient
 
 universe u
-variable {τ τ' ι R₀ A : Type u}
+variable {ι : Type} {τ τ' R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
@@ -47,8 +47,8 @@ def LE_.potionEquivMap (le : LE_ ℱ ℱ') (i : τ) : (ℱ' (le i)).Potion ≃+*
       (ℱ' (le i)).Potion →+* (ℱ i).Potion)
     (HomogeneousLocalization.map _ _ (RingHom.id _) (by erw [Submonoid.comap_id]; simp) (by simp) :
       (ℱ i).Potion →+* (ℱ' (le i)).Potion)
-     (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
-     (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
+    (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
+    (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
 
 lemma LE_.potionEquivMap_comp (le : LE_ ℱ ℱ') (i j : τ) :
       ((ℱ i).potionToMul (ℱ j).1).comp (le.potionEquivMap i).toRingHom =
@@ -362,9 +362,9 @@ instance proj_iso_proj_idealify :
       congr 1
       ext x
       induction x using Quotient.inductionOn' with | h x =>
-      simp only [mul_toSubmonoid, RingHom.coe_comp, Function.comp_apply, potionToMul_mk]
+      simp only [mul_toSubmonoid, RingHom.coe_comp, Function.comp_apply]
       erw [HomogeneousLocalization.map_mk]
-      simp only [RingHom.id_apply, Subtype.coe_eta, HomogeneousLocalization.val_mk, id_eq]
+      simp only [RingHom.id_apply, Subtype.coe_eta, HomogeneousLocalization.val_mk]
       rw [← Localization.mk_one_eq_algebraMap]
       have eq := localizationToPotion_mk' (ℱ i).1 T.1 (finitePotionGen (ℱ i).relevant T.fg) x ∅ id (fun _ ↦ 1)
       simp only [mul_toSubmonoid, id_eq, pow_one, Finset.prod_empty, map_one, mul_one] at eq
@@ -393,19 +393,18 @@ instance proj_iso_proj_idealify :
       change Ideal.comap _ (Ideal.comap _ _) = _
       rw [Ideal.comap_comap]
       ext z
-      simp only [Ideal.mem_comap, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
-        potionEquiv_trans_apply, mul_toSubmonoid, e]
+      simp only [Ideal.mem_comap, RingHom.coe_comp, Function.comp_apply, e]
       induction z using Quotient.inductionOn' with | h z =>
-      simp only [mul_toSubmonoid, e]
+      simp only [mul_toSubmonoid]
       erw [HomogeneousLocalization.map_mk]
       swap
-      · simp only [mul_toSubmonoid, e]
+      · simp only [mul_toSubmonoid]
         rw [← mul_assoc, Submonoid.mul_self]
         erw [Submonoid.comap_id]
       swap
       · intro _ _ h
         exact h
-      simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta, e]
+      simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta]
       rfl
 
 section Sets
