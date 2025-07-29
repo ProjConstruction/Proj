@@ -5,7 +5,7 @@ import Project.Grading.GradedRingHom
 suppress_compilation
 
 universe u
-variable {τ ι R₀ A B : Type u}
+variable {ι : Type} {τ R₀ A B : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 variable [CommRing B] [Algebra R₀ B] {ℬ : ι → Submodule R₀ B}

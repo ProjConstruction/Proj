@@ -35,7 +35,7 @@ open AlgebraicGeometry TopologicalSpace CategoryTheory CategoryTheory.Limits Ten
 universe u
 
 variable {ι : Type} [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
-variable {X : Scheme}
+variable {X : Scheme.{u+1}}
 
 structure conceptual_blowup (Z : Clos X) where
   scheme : Scheme
@@ -57,7 +57,7 @@ def singletonCovering (A: CommRingCat) :
   covers := by simp
   map_prop _ := inferInstance
 
-def loc_to_PreClos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] : PreClos (Spec A) where
+def loc_to_PreClos (A: CommRingCat) (L : ι → Ideal A) : PreClos (Spec A) where
   indnumb := ι
   subscheme i := Spec (CommRingCat.of <| A ⧸ L i)
   over i :=
@@ -71,7 +71,7 @@ def loc_to_PreClos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] : Pr
   condover i _ := by
     sorry
 
-def loc_to_Clos (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι] : Clos (Spec A) :=
+def loc_to_Clos (A: CommRingCat) (L : ι → Ideal A) : Clos (Spec A) :=
   Quotient.mk' (loc_to_PreClos A L)
 
 
@@ -91,13 +91,12 @@ instance (X Y : Scheme) [Scheme.Over X Y]
 
 open GoodPotionIngredient HomogeneousSubmonoid
 theorem ProjBlowup_UnivProp_unicity_affine
-  (A: CommRingCat) (L : ι → Ideal A) [fin : Fintype ι]
+  (A: CommRingCat.{u+1}) (L : ι → Ideal A) [fin : Fintype ι]
   {T : Scheme} [T.Over (Spec A)]
   (cond : IsPreCars _ <| pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L))
   (φ φ' : T ⟶ BlMu L)
   (φ_over : Scheme.Hom.IsOver φ (Spec A))
   (φ'_over : Scheme.Hom.IsOver φ' (Spec A)) : φ = φ' := by
-
   let O (P P' : Mu L) (x : T) :
     Opens T :=
     ⟨(φ.base ⁻¹' (((glueData (τ := Mu L) (map_index L)).ι P).opensRange).1) ∩

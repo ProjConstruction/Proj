@@ -16,7 +16,7 @@ open GoodPotionIngredient
 
 def Bl  := Proj (τ := GoodPotionIngredient (ReesAlgebra.intGrading L)) id
 
-structure Mu where
+structure Mu : Type (u + 1) where
 multicenter : Multicenter A
 [fin : Fintype multicenter.index]
 Ψ : multicenter.index → ι

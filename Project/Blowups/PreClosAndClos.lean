@@ -12,7 +12,7 @@ universe u
 
 open AlgebraicGeometry CategoryTheory Limits TopologicalSpace TensorProduct
 
-variable {X : Scheme.{u}}
+variable {X : Scheme.{u+1}}
 
 section over_instances
 
@@ -49,10 +49,10 @@ end over_instances
 
 variable (X) in
 structure PreClos where
-  (indnumb : Type u)
+  (indnumb : Type)
   (subscheme: indnumb → Scheme)
   [over : ∀ (i : indnumb), Scheme.Over (subscheme i) X]
-  cov : Scheme.AffineCover.{u, u} (P := @IsOpenImmersion) X
+  cov : Scheme.AffineCover.{u+1} (P := @IsOpenImmersion) X
   ideal: ∀ (_ : indnumb) (γ : cov.J), Ideal (cov.obj γ)
   condiso : ∀ (i : indnumb) (γ : cov.J),
     Spec (CommRingCat.of (cov.obj γ ⧸ ideal i γ)) ≅
@@ -155,11 +155,11 @@ def Cars : Set (Pri X) := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPr
 def CarsAsSubsetOfClos : Set (Clos X) :=
   {x : Clos X | ∃ y : Pri X, y ∈ Cars X ∧ x = y }
 
-def pull_loc_cov (X: Scheme.{u}) (Z: PreClos.{u} X) (X': Scheme.{u}) (g : X' ⟶  X) (γ : Z.cov.J ) :=
+def pull_loc_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (g : X' ⟶  X) (γ : Z.cov.J ) :=
     Scheme.affineOpenCover (pullback g (Z.cov.map γ))
 
 @[simps]
-def  pull_cov (X: Scheme.{u}) (Z : PreClos.{u} X) (X' : Scheme.{u}) (g : X' ⟶  X) :
+def  pull_cov (X: Scheme) (Z : PreClos X) (X' : Scheme) (g : X' ⟶  X) :
             Scheme.AffineCover (P := @IsOpenImmersion) X' where
     J := (γ : Z.cov.J) × (pull_loc_cov X Z X' g γ).J
     obj p := (pull_loc_cov X Z X' g p.1).obj p.2
@@ -171,8 +171,7 @@ def  pull_cov (X: Scheme.{u}) (Z : PreClos.{u} X) (X' : Scheme.{u}) (g : X' ⟶ 
       exact (pull_loc_cov X Z X' g (Z.cov.f <| g.base x)).f <| h1.choose⟩
     covers (x : X') := by
       dsimp
-      simp only [eq_mp_eq_cast, Scheme.comp_coeBase, TopCat.coe_comp, Set.mem_range,
-        Function.comp_apply]
+      simp only [Set.mem_range, Function.comp_apply]
       have h1 : x ∈ g.base ⁻¹' Set.range (Z.cov.map (Z.cov.f <| g.base x)).base :=
         Z.cov.covers (g.base x)
       rw [← Scheme.Pullback.range_fst (f := g) (g := Z.cov.map (Z.cov.f <| g.base x))] at h1
@@ -215,6 +214,7 @@ def lemma_iso (A B : Type*) [CommRing A] [CommRing B] [Algebra A B] (I : Ideal A
   (Algebra.TensorProduct.quotIdealMapEquivTensorQuot B I |>.restrictScalars A).trans <|
     Algebra.TensorProduct.comm _ _ _
 
+set_option maxHeartbeats 400000 in
 def pullback_PreClos_condiso {X' : Scheme} {f : X' ⟶  X} {Z: PreClos X}
     (γβ : (pull_cov X Z X' f).J) (i: Z.indnumb) :
     Spec (CommRingCat.of (((pull_cov X Z X' f).obj γβ) ⧸ pull_ideal X Z X' f γβ i)) ≅
@@ -316,7 +316,7 @@ def pullback_PreClos_condiso {X' : Scheme} {f : X' ⟶  X} {Z: PreClos X}
 
 
     refine e1 ≪≫ (pullbackSpecIso _ _ _).symm ≪≫ e3 ≪≫ pullback.squash₃ _ _ _ ≪≫ pullback.congrHom (by
-      simp only [pull_cov_obj, pull_mor_ring, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc]
+      simp only [pull_mor_ring, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc]
       rw [pullback.condition]
       simp only [← Category.assoc]
       congr 1
@@ -382,7 +382,7 @@ def pullback_PreClos (X' : Scheme) (f: X' ⟶  X) (Z: PreClos X)  : PreClos X'  
     intro i γβ
     exact pullback_PreClos_condover _ γβ i
 
-def pullback_lem (Z Z': PreClos.{u} X) (T : Scheme.{u}) (f : T ⟶ X) (e : relStructure.{u} Z Z') :
+def pullback_lem (Z Z': PreClos X) (T : Scheme) (f : T ⟶ X) (e : relStructure.{u} Z Z') :
       relStructure (pullback_PreClos X T f Z)  (pullback_PreClos X T f Z') where
   indnumb_equiv := e.indnumb_equiv
   subscheme_iso i :=

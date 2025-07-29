@@ -109,7 +109,7 @@ instance (c: ι): DirectSum.Decomposition (𝒬⸨c⸩) where
   left_inv := by
     rintro x
     induction x using DirectSum.Decomposition.inductionOn 𝒬 with
-    |zero => simp[coe_of_apply]
+    |zero => simp
     |@homogeneous =>
       simp[maptwisting]
       simp[maptwistingshift]
@@ -118,13 +118,15 @@ instance (c: ι): DirectSum.Decomposition (𝒬⸨c⸩) where
   right_inv := by
     rintro x
     induction x using DirectSum.induction_on with
-      | zero => simp[coe_of_apply]
+      | zero => simp
       | of x =>
-        simp[maptwisting, maptwistingshift, DirectSum.coeAddMonoidHom_of, DirectSum.coe_of_apply]
+        simp only [maptwisting, maptwistingshift, AddEquiv.toAddMonoidHom_eq_coe,
+          coeAddMonoidHom_of, AddMonoidHom.coe_comp, AddMonoidHom.coe_coe, Function.comp_apply,
+          decomposeAddEquiv_apply, decompose_coe, toAddMonoid_of, AddMonoidHom.coe_mk,
+          ZeroHom.coe_mk]
         ext
-        simp[DirectSum.coe_of_apply]
-        split_ifs
-        rfl
+        simp only [coe_of_apply, add_sub_cancel_left]
+        split_ifs <;>
         rfl
       | add  x y ihx ihy =>
           simp [map_add, ihx, ihy]

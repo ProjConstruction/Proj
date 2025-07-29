@@ -14,9 +14,9 @@ universe u
 
 section defs
 
-variable (A : Type u) [CommSemiring A]
+variable (A : Type (u+1)) [CommSemiring A]
 
-structure Multicenter where
+structure Multicenter : Type (u+1) where
   (index : Type)
   (ideal : index → Ideal A)
   (elem : index → A)
@@ -26,7 +26,7 @@ namespace Multicenter
 
 section semiring
 
-variable {A : Type u} [CommSemiring A] (F : Multicenter A)
+variable {A : Type _} [CommSemiring A] (F : Multicenter A)
 
 -- scoped notation: max F"^ℕ"  => Multicenter.index F  →₀ ℕ
 
@@ -448,7 +448,7 @@ section ring
 
 namespace Dilatation
 
-variable {A : Type u} [CommRing A] {F : Multicenter A}
+variable {A : Type _} [CommRing A] {F : Multicenter A}
 
 @[simps]
 def neg' (x : F.PreDil) : F.PreDil where
@@ -486,7 +486,7 @@ end ring
 
 section universal_property
 
-variable {A B : Type u} [CommRing A] [CommRing B] (F : Multicenter A)
+variable {A B : Type _} [CommRing A] [CommRing B] (F : Multicenter A)
 
 
 lemma  cond_univ_implies_large_cond [Algebra A B]
