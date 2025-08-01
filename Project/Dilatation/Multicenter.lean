@@ -83,7 +83,7 @@ abbrev prodLargeIdealPower (v : F.index →₀ ℕ) : Ideal A :=
 structure PreDil where
   pow : F.index →₀ ℕ
   num : A
-  num_mem : num ∈ F.LargeIdeal ^pow
+  num_mem : num ∈ F.LargeIdeal ^ pow
 
 def r : F.PreDil → F.PreDil → Prop := fun x y =>
   ∃ β : F.index →₀ ℕ, x.num * F.elem^(β + y.pow) = y.num * F.elem^(β + x.pow)

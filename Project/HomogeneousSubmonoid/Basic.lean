@@ -107,6 +107,13 @@ def closure (s : Set A) (hs : ∀ x ∈ s, SetLike.IsHomogeneousElem 𝒜 x) : H
       (SetLike.isHomogeneousElem_one 𝒜)
       (fun _ _ _ _ hx hy => hx.mul hy) hx
 
+lemma closure_mono {s s' : Set A}
+    (hs : ∀ x ∈ s, SetLike.IsHomogeneousElem 𝒜 x)
+    (hs' : ∀ x ∈ s', SetLike.IsHomogeneousElem 𝒜 x)
+    (hss' : s ⊆ s') :
+    closure s hs ≤ closure s' hs' :=
+  Submonoid.closure_mono hss'
+
 lemma mem_closure_singleton (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) (x) :
     x ∈ (closure {a} (by simpa)) ↔
     ∃ (n : ℕ), x = a ^ n := by

@@ -228,6 +228,19 @@ lemma clo_mu_rel (P: Mu L) : (clo_mu L P).IsRelevant := by
   rw [HomogeneousSubmonoid.isRelevant_iff_finiteIndex_of_FG, clo_mu_bar_agrDeg]
   infer_instance
 
+omit [Fintype ι] in
+lemma clo_mu_union_Mu_left (P P' : Mu L) : clo_mu _ P ≤ clo_mu _ (union_Mu _ P P') := by
+  apply HomogeneousSubmonoid.closure_mono
+  simp only [Set.setOf_subset_setOf, forall_exists_index, forall_apply_eq_imp_iff]
+  exact fun i => ⟨Sum.inl i, rfl⟩
+
+
+omit [Fintype ι] in
+lemma clo_mu_union_Mu_right (P P' : Mu L) : clo_mu _ P' ≤ clo_mu _ (union_Mu _ P P') := by
+  apply HomogeneousSubmonoid.closure_mono
+  simp only [Set.setOf_subset_setOf, forall_exists_index, forall_apply_eq_imp_iff]
+  exact fun i => ⟨Sum.inr i, rfl⟩
+
 -- A -> (Rees L)[0] -> (clo_mu L P).Potion
 def mu_potion_algebraMap (P: Mu L)  :
     A →+* ((clo_mu L P).Potion) :=
@@ -254,11 +267,10 @@ def clo_mu_mor (P: Mu L) : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
       change HomogeneousLocalization.mk x * HomogeneousLocalization.mk _ = 0 at hx
       simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
         HomogeneousLocalization.ext_iff_val, HomogeneousLocalization.val_mul,
-        HomogeneousLocalization.val_mk, Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast,
-        cast_eq, SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, mul_one,
-        HomogeneousLocalization.val_zero, ← Localization.mk_zero 1, Localization.mk_eq_mk_iff,
-        Localization.r_iff_exists, OneMemClass.coe_one, one_mul, mul_zero, Subtype.exists,
-        HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop] at hx ⊢
+        HomogeneousLocalization.val_mk, SetLike.GradeZero.coe_one, Localization.mk_mul,
+        Submonoid.mk_mul_mk, mul_one, HomogeneousLocalization.val_zero, ← Localization.mk_zero 1,
+        Localization.mk_eq_mk_iff, Localization.r_iff_exists, OneMemClass.coe_one, one_mul,
+        mul_zero, Subtype.exists, HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop] at hx ⊢
       obtain ⟨s, hs1, hs2⟩ := hx
       rw [mem_clo_mu] at hs1
       obtain ⟨n, rfl⟩ := hs1
@@ -308,7 +320,6 @@ def clo_mu_mor (P: Mu L) : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
           simp only [HomogeneousLocalization.val_mul, HomogeneousLocalization.val_mk]
           erw [HomogeneousLocalization.val_mk, HomogeneousLocalization.val_mk]
           simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
-            Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast, cast_eq,
             SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, one_mul,
             Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists,
             HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop]
@@ -486,6 +497,80 @@ lemma clo_mu_mor_surj (P : Mu L) : Function.Surjective (clo_mu_mor L P) := by
     use ⟨0, β_mem⟩
     simp
 
+lemma clo_mu_mor_mk (P : Mu L) (x) :
+    clo_mu_mor L P (Dilatation.mk x) =
+    .mk
+      { deg := ρNatToInt _ <| x.pow.mapDomain P.Ψ
+        num := ⟨ReesAlgebra.single L (x.pow.mapDomain P.Ψ) ⟨x.num, by
+          rw [familyPow_def]
+          rw [Finsupp.prod_mapDomain_index]
+          · simp only [Finsupp.prod_pow]
+            convert x.num_mem using 1
+            simp_rw [← P.cond]
+            rw [familyPow_def]
+            simp only [Finsupp.prod_pow]
+          · simp
+          intro i n n'
+          rw [pow_add]⟩, ReesAlgebra.single_has_degree' L _ _⟩
+        den := ⟨ReesAlgebra.single L (x.pow.mapDomain P.Ψ) ⟨P.multicenter.elem ^ x.pow, by
+          rw [familyPow_def]
+          rw [Finsupp.prod_mapDomain_index]
+          · simp only [Finsupp.prod_pow]
+            rw [familyPow_def]
+            simp only [Finsupp.prod_pow]
+            apply Ideal.prod_mem_prod
+            intro i hi
+            rw [← P.cond]
+
+            apply Ideal.pow_mem_pow
+            exact elem_mem_LargeIdeal P.multicenter i
+          · simp
+
+          sorry⟩, ReesAlgebra.single_has_degree' L _ _⟩
+        den_mem := by
+          simp only [HomogeneousSubmonoid.mem_toSubmonoid_iff]
+          set d := _
+          change d ∈ _
+          have d_eq : d = ∏ i ∈ x.pow.support,
+            .single _ (Finsupp.single (P.Ψ i) (x.pow i)) ⟨P.multicenter.elem i ^ x.pow i, by
+              simp only [familyPow_single']
+              apply Ideal.pow_mem_pow
+              rw [← P.cond]
+              exact elem_mem_LargeIdeal P.multicenter i⟩ := by
+            rw [ReesAlgebra.single_prod]
+            simp only [Finsupp.mapDomain, Finsupp.sum, d]
+            rfl
+          rw [d_eq]
+          apply prod_mem
+          intro i hi
+          apply Submonoid.subset_closure
+          simp only [Set.mem_setOf_eq]
+          use i
+
+          sorry } := by
+  simp only [clo_mu_mor, desc, AlgHom.coe_mk, RingHom.coe_mk, MonoidHom.coe_mk, OneHom.coe_mk,
+    descFun_mk]
+  apply def_unique_elem_unique
+  ext
+  simp only [HomogeneousLocalization.val_mul, HomogeneousLocalization.val_mk]
+  erw [HomogeneousLocalization.val_mk, HomogeneousLocalization.val_mk]
+  simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+    SetLike.GradeZero.coe_one, Localization.mk_mul, ReesAlgebra.single_mul, Submonoid.mk_mul_mk,
+    one_mul, Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists,
+    HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop]
+  refine ⟨1, one_mem _, ?_⟩
+  simp only [one_mul]
+  ext v
+  simp only [ReesAlgebra.single_apply_val, SetLike.coe_eq_coe]
+  ext
+  rw [DirectSum.coe_of_apply, DirectSum.coe_of_apply]
+  split_ifs with h1 h2
+  · aesop
+  · aesop
+  · aesop
+  · aesop
+
+
 def Mu_mor_iso (P: Mu L) :
     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
   AlgEquiv.ofBijective (clo_mu_mor ..) <| ⟨clo_mu_mor_inj L P, clo_mu_mor_surj L P⟩
@@ -493,19 +578,69 @@ def Mu_mor_iso (P: Mu L) :
 lemma Mu_mor_iso_commutes (P P' : Mu L) :
     (Mu_mor_iso L _ |>.toAlgHom).comp
     (dilationToUnion_left L P P') =
+    ({ toRingHom := HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_left L P P')
+       commutes' a := rfl } : (clo_mu L P).Potion →ₐ[A] (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toAlgHom : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion) := by
+  ext x
+  induction x using Dilatation.induction_on with | h x =>
+  sorry
 
-    ({ toRingHom := HomogeneousSubmonoid.potionMapOfLE _ _ (by sorry)
-       commutes' := sorry } : (clo_mu L P).Potion →ₐ[A] (clo_mu L (union_Mu L P P')).Potion).comp
-    (Mu_mor_iso L _ |>.toAlgHom : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion) := by sorry
+lemma Mu_mor_iso_commutes_right (P P' : Mu L) :
+    (Mu_mor_iso L _ |>.toAlgHom).comp
+    (dilationToUnion_right L P P') =
+    ({ toRingHom := HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_right L P P')
+       commutes' a := rfl } : (clo_mu L P').Potion →ₐ[A] (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toAlgHom : A[P'.multicenter] →ₐ[A] (clo_mu L P').Potion) := by
+  ext x
+  induction x using Dilatation.induction_on with | h x =>
+  sorry
 
 lemma Mu_mor_iso_commutes_ringHom (P P' : Mu L) :
     (Mu_mor_iso L _ |>.toRingHom).comp
     (dilationToUnion_left L P P') =
-
-    (HomogeneousSubmonoid.potionMapOfLE _ _ (by sorry) : (clo_mu L P).Potion →+* (clo_mu L (union_Mu L P P')).Potion).comp
+    (HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_left L P P') : (clo_mu L P).Potion →+* (clo_mu L (union_Mu L P P')).Potion).comp
     (Mu_mor_iso L _ |>.toRingHom : A[P.multicenter] →+* (clo_mu L P).Potion) := by
-  sorry
+  ext x : 1
+  exact congr($(Mu_mor_iso_commutes L P P') x)
 
+lemma Mu_mor_iso_commutes_ringHom_right (P P' : Mu L) :
+    (Mu_mor_iso L _ |>.toRingHom).comp
+    (dilationToUnion_right L P P') =
+    (HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_right L P P') : (clo_mu L P').Potion →+* (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toRingHom : A[P'.multicenter] →+* (clo_mu L P').Potion) := by
+  ext x : 1
+  exact congr($(Mu_mor_iso_commutes_right L P P') x)
+
+
+lemma Mu_mor_iso_commutes_ringHom' (P P' : Mu L) :
+    (dilationToUnion_left L P P').toRingHom =
+    RingHom.comp (Mu_mor_iso L _ |>.symm.toRingHom)
+    ((HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_left L P P') : (clo_mu L P).Potion →+* (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toRingHom : A[P.multicenter] →+* (clo_mu L P).Potion)) := by
+  rw [← Mu_mor_iso_commutes_ringHom]
+  rw [← RingHom.comp_assoc]
+  symm
+  convert RingHom.id_comp _
+  ext x
+  simp only [AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe,
+    AlgEquiv.toRingEquiv_toRingHom, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+    RingHom.id_apply]
+  exact AlgEquiv.symm_apply_apply _ x
+
+lemma Mu_mor_iso_commutes_ringHom_right' (P P' : Mu L) :
+    (dilationToUnion_right L P P').toRingHom =
+    RingHom.comp (Mu_mor_iso L _ |>.symm.toRingHom)
+    ((HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_right L P P') : (clo_mu L P').Potion →+* (clo_mu L (union_Mu L P P')).Potion).comp
+    (Mu_mor_iso L _ |>.toRingHom : A[P'.multicenter] →+* (clo_mu L P').Potion)) := by
+  rw [← Mu_mor_iso_commutes_ringHom_right]
+  rw [← RingHom.comp_assoc]
+  symm
+  convert RingHom.id_comp _
+  ext x
+  simp only [AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe,
+    AlgEquiv.toRingEquiv_toRingHom, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
+    RingHom.id_apply]
+  exact AlgEquiv.symm_apply_apply _ x
 
 def map_index (P: Mu L) :
     GoodPotionIngredient (ReesAlgebra.intGrading L) where
@@ -515,11 +650,11 @@ def map_index (P: Mu L) :
 
 open CategoryTheory AlgebraicGeometry HomogeneousSubmonoid
 
--- example (P P' : Mu L) :
---     (glueData (map_index L)).ι (union_Mu L P P') =
---     (Spec.map <| CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) ≫
---       (glueData (map_index L)).ι P := by sorry
-  -- apply proj_glue_condition
+example (P P' : Mu L) :
+    (glueData (map_index L)).ι (union_Mu L P P') =
+    (Spec.map <| CommRingCat.ofHom <| potionMapOfLE _ _ (clo_mu_union_Mu_left L P P')) ≫
+      (glueData (map_index L)).ι P := by
+  apply proj_glue_condition
 
 open AlgebraicGeometry
 
@@ -574,7 +709,7 @@ lemma inter_Po (P P' : Mu L) :
 
 
 def dilToDilUnion (P P': Mu L) : A[P.multicenter] →ₐ[A] A[(union_Mu L P P').multicenter] :=
-  Multicenter.desc _ sorry sorry
+  dilationToUnion_left L P P'
 
 instance (P P': Mu L) : Algebra A[P.multicenter] A[(union_Mu L P P').multicenter] :=
   RingHom.toAlgebra (dilToDilUnion L P P')
@@ -583,7 +718,7 @@ lemma dilToDilUnion_as_algebraMap (P P': Mu L) : algebraMap A[P.multicenter] A[(
   dilToDilUnion L P P' := rfl
 
 def dilToDilUnion' (P P': Mu L) : A[P'.multicenter]→ₐ[A] A[(union_Mu L P P').multicenter] :=
-  Multicenter.desc _ sorry sorry
+  dilationToUnion_right L P P'
 
 instance (P P': Mu L) : Algebra A[P'.multicenter] A[(union_Mu L P P').multicenter] :=
   RingHom.toAlgebra (dilToDilUnion' L P P')

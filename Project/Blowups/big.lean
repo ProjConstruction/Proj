@@ -217,6 +217,13 @@ theorem ProjBlowup_UnivProp_unicity_affine
     let PToB : CommRingCat.of (map_index L P).Potion ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecP.app _ ≫ (Scheme.ΓSpecIso _).hom
 
+    have PToB_def' : Spec.map PToB = specBToSpecP := by
+      simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc, PToB]
+      rw [← Scheme.toSpecΓ_naturality_assoc]
+      convert Category.comp_id _
+      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+      simp only [Iso.inv_hom_id, Spec.map_id]
+
     let RxToB : Rx ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
 
@@ -231,6 +238,13 @@ theorem ProjBlowup_UnivProp_unicity_affine
 
     let P'ToB : CommRingCat.of (map_index L P').Potion ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecP'.app _ ≫ (Scheme.ΓSpecIso _).hom
+
+    have P'ToB_def' : Spec.map P'ToB = specBToSpecP' := by
+      simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc, P'ToB]
+      rw [← Scheme.toSpecΓ_naturality_assoc]
+      convert Category.comp_id _
+      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+      simp only [Iso.inv_hom_id, Spec.map_id]
 
     let RxToB : Rx ⟶ B :=
       (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
@@ -306,24 +320,45 @@ theorem ProjBlowup_UnivProp_unicity_affine
             congr 1
             simp only [Spec.toLocallyRingedSpace_obj, ← Spec.map_comp, specBToSpecP, SToSpecP]
             rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
-            -- use g''_comp_eq
-            sorry
+            have : PToB.hom.comp _  = g''.toRingHom.comp (dilationToUnion_left _ _ _).toRingHom :=
+              congr($(g''_comp_eq).toRingHom)
+            rw [Mu_mor_iso_commutes_ringHom', ← RingHom.comp_assoc, ← RingHom.comp_assoc] at this
+            simp only [AlgEquiv.toAlgHom_eq_coe, AlgHomClass.toRingHom_toAlgHom,
+              AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv,
+              RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom] at this
+            erw [RingEquiv.comp_cancel] at this
+            erw [← this]
+            erw [PToB_def']
           _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
                 Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
               (glueData (map_index L)).ι _ := by
-              have := proj_glue_condition (ℱ := map_index L) P (union_Mu L P P') sorry
-              rw [this]
+              rw [proj_glue_condition (ℱ := map_index L) P (union_Mu L P P')
+                (clo_mu_union_Mu_left L P P')]
           _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
                 Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
-            (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) :
+            (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (clo_mu_union_Mu_right L P P')) :
                   Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
                   Spec (CommRingCat.of <| (map_index L P').Potion)) ≫
             (glueData (map_index L)).ι _ := by
-            have := proj_glue_condition (ℱ := map_index L) P' (union_Mu L P P') sorry
+            have := proj_glue_condition (ℱ := map_index L) P' (union_Mu L P P')
+              (clo_mu_union_Mu_right L P P')
             rw [this]
           _ = specBToSpecP' ≫ (glueData (map_index L)).ι _ := by
-            -- use g''_comp_eq'
-            sorry
+            simp only [AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe,
+              AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp,
+              Spec.map_comp, ← Category.assoc]
+            congr 1
+            simp only [← Spec.map_comp, specBToSpecP, SToSpecP]
+            rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+            have : P'ToB.hom.comp _  = g''.toRingHom.comp (dilationToUnion_right _ _ _).toRingHom :=
+              congr($(g''_comp_eq').toRingHom)
+            rw [Mu_mor_iso_commutes_ringHom_right', ← RingHom.comp_assoc, ← RingHom.comp_assoc] at this
+            simp only [AlgEquiv.toAlgHom_eq_coe, AlgHomClass.toRingHom_toAlgHom,
+              AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv,
+              RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom] at this
+            erw [RingEquiv.comp_cancel] at this
+            erw [← this]
+            erw [P'ToB_def']
           _ = Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ' := by
             simp [specBToSpecP', SToSpecP']
 
