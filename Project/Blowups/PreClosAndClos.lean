@@ -1,10 +1,12 @@
 import Mathlib.AlgebraicGeometry.Scheme
 import Mathlib.AlgebraicGeometry.PullbackCarrier
+import Mathlib.AlgebraicGeometry.Morphisms.Flat
 import Mathlib.AlgebraicGeometry.Over
 import Mathlib.RingTheory.TensorProduct.Quotient
 
 import Project.ForMathlib.CubeIdentity
 import Project.ForMathlib.AlgEquivRestrictScalars
+import Project.ForMathlib.Flat
 
 suppress_compilation
 
@@ -139,21 +141,30 @@ def Clos := Quotient (relSetoid X)
 structure PrePri extends PreClos X where
   [prin : ∀ i γ, ideal i γ |>.IsPrincipal]
 
+structure IsPrePri (Z : PreClos X) : Prop where
+  prin : ∀ i γ, Z.ideal i γ |>.IsPrincipal
+
 attribute [instance] PrePri.prin
 
 structure PreCars extends PrePri X where
   nonzerodiv : ∀ i γ, Submodule.IsPrincipal.generator (ideal i γ) ∈ nonZeroDivisors (cov.obj γ)
 
-structure IsPreCars (Z : PreClos X) : Prop where
-  prin : ∀ i γ, Z.ideal i γ |>.IsPrincipal
+structure IsPreCars (Z : PreClos X) extends IsPrePri _ Z where
   nonzerodiv : ∀ i γ, Submodule.IsPrincipal.generator (Z.ideal i γ) ∈ nonZeroDivisors (Z.cov.obj γ)
 
-def Pri : Set (Clos X) := {x : Clos X | ∃ (y : PrePri X), Quotient.mk'' y.toPreClos = x}
+structure IsPri (Z : Clos X) : Prop where
+  exists_rep : ∃ (Z' : PreClos X), IsPrePri _ Z' ∧ Quotient.mk'' Z' = Z
 
-def Cars : Set (Pri X) := {x : Pri X | ∃ (y : PreCars X), Quotient.mk'' y.toPreClos = x.val}
+def Pri : Set (Clos X) := {x : Clos X | IsPri _ x}
 
-def CarsAsSubsetOfClos : Set (Clos X) :=
-  {x : Clos X | ∃ y : Pri X, y ∈ Cars X ∧ x = y }
+structure IsCars (Z : Clos X) : Prop where
+  exists_rep : ∃ (Z' : PreClos X), IsPreCars _ Z' ∧ Quotient.mk'' Z' = Z
+
+def IsCars.isPri (Z : Clos X) : IsCars _ Z → IsPri _ Z := by sorry
+
+def Cars : Set (Pri X) := {x : Pri X | IsCars _ x.1}
+
+def CarsAsSubsetOfClos : Set (Clos X) := {x : Clos X | IsCars _ x }
 
 def pull_loc_cov (X: Scheme) (Z: PreClos X) (X': Scheme) (g : X' ⟶  X) (γ : Z.cov.J ) :=
     Scheme.affineOpenCover (pullback g (Z.cov.map γ))
@@ -182,7 +193,7 @@ def  pull_cov (X: Scheme) (Z : PreClos X) (X' : Scheme) (g : X' ⟶  X) :
     map_prop j :=  IsOpenImmersion.comp ((pull_loc_cov X Z X' g j.fst).map j.snd)
           (pullback.fst g (Z.cov.map j.fst))
 
-def  pull_mor_ring (X: Scheme)  (Z : PreClos X) (X' : Scheme) (f: X' ⟶  X)
+def  pull_mor_ring (X: Scheme)  (Z : PreClos X) (X' : Scheme) (f : X' ⟶  X)
       (γβ : (pull_cov X Z X' f).J) :
     Z.cov.obj γβ.1 ⟶ (pull_loc_cov X Z X' f γβ.1).obj γβ.2 := by
   let F := (pull_loc_cov X Z X' f γβ.1).map γβ.2 ≫ pullback.snd _ _
@@ -413,32 +424,57 @@ variable {X}
 def pullback_Clos {X': Scheme} (f: X' ⟶  X): Clos X → Clos X' :=
   Quotient.map (pullback_PreClos X X' f) <| fun Z Z' e => Nonempty.map (pullback_lem X Z Z' X' f) e
 
+lemma pullback_PrePri (X' : Scheme) (f: X' ⟶  X) (Z: PreClos X) (hZ : IsPrePri _ Z)  :
+    IsPrePri _ <| pullback_PreClos _ _ f Z := by
+  fconstructor
+  rintro i ⟨γ, β⟩
+  apply Submodule.IsPrincipal.map_ringHom
+  exact hZ.prin i γ
+
+lemma pullback_PreCars (X' : Scheme) (f: X' ⟶  X) [flat_f : AlgebraicGeometry.Flat f]
+    (Z: PreClos X) (hZ : IsPreCars _ Z)  :
+    IsPreCars _ <| pullback_PreClos _ _ f Z := by
+  refine ⟨pullback_PrePri X' f Z hZ.toIsPrePri, ?_⟩
+  rintro i ⟨γ, β⟩
+  have := hZ.nonzerodiv i γ
+  have := hZ.prin i γ
+  have := pullback_PrePri X' f Z hZ.1 |>.prin i
+  -- change Submodule.IsPrincipal.generator (Ideal.map _ _) ∈ _
+
+  have : Submodule.IsPrincipal.generator ((pullback_PreClos X X' f Z).ideal i ⟨γ, β⟩) =
+    ((pull_mor_ring X Z X' f ⟨γ, β⟩)) (Submodule.IsPrincipal.generator (Z.ideal i γ)) := by
+
+    sorry
+  rw [this]
+  apply RingHom.Flat.preserves_nonzeroDivisors
+-- exact for affine
+  · sorry
+  · sorry
+
+lemma pullback_IsCars (X' : Scheme) (f: X' ⟶  X) [AlgebraicGeometry.Flat f]
+    (Z: Clos X) (hZ : IsCars _ Z)  :
+    IsCars _ <| pullback_Clos f Z := by
+  obtain ⟨Z, hZ, rfl⟩ := hZ.exists_rep
+    -- exact for affine
+  sorry
+
+
+def pullback_Pre_assoc  (X'' X' : Scheme)
+    (f': X'' ⟶  X') (f: X' ⟶  X) (Z: PreClos X):
+    rel _
+      (pullback_PreClos _ _ (f' ≫ f) Z)
+      (pullback_PreClos _ _ f' (pullback_PreClos _ _ f Z)) := by sorry
+  -- is equivalent to pullback_PreClos (X'') ( f') (pullback_PreClos (X') (f ) (Z)):=
+  -- by this is trivial by assoc of fiber products sorry
+
+lemma pullback_assoc (X'' X' : Scheme) (f': X'' ⟶  X') (f: X' ⟶  X) (Z: Clos X):
+    pullback_Clos (f' ≫ f) Z = pullback_Clos f' (pullback_Clos f Z) := by
+  sorry
+
+
+
 #exit
-lemma pullback_PrePri (X' : Scheme) (f: X' ⟶  X) (Z: PreClos X)  :
-    pullback_PreClos X' f Z
-  is PrePri X' := by
 
-  sorry
-
-lemma pullback_Pri (X' : Scheme) (f: X' ⟶  X) (Z: Clos X)  : pullback_Clos X' f Z
-  is Pri X' := by
-
-  sorry
-
-lemma pullback_PreCars (X' : Scheme) (f: X' ⟶  X FLAT) (Z: PreClos X)  : pullback_PreClos X' f Z
-  is PreCars X' := by exact for affine
-
-  sorry
-
-lemma pullback_Cars (X' : Scheme) (f: X' ⟶  X FLAT) (Z: Clos X)  : pullback_Clos X' f Z
-  is Cars X' := by
-
-  sorry
-
-
-lemma pullback_Pre_assoc  (X'' : Scheme) (X' : Scheme) (f': X'' ⟶  X') (f: X' ⟶  X) (Z: PreClos X):
-  pullback_PreClos (X'') (f ∘ f') Z is equivalent to pullback_PreClos (X'') ( f') (pullback_PreClos (X') (f ) (Z)):=
-  by this is trivial by assoc of fiber products sorry
 
 lemma pullback_assoc  (X'' : Scheme) (X' : Scheme) (f': X'' ⟶  X') (f: X' ⟶  X) (Z: Clos X):
   pullback_Clos (X'') (f ∘ f') Z = pullback_Clos (X'') ( f') (pullback_Clos (X') (f ) (Z)):=

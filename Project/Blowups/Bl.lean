@@ -525,8 +525,7 @@ lemma clo_mu_mor_mk (P : Mu L) (x) :
             apply Ideal.pow_mem_pow
             exact elem_mem_LargeIdeal P.multicenter i
           · simp
-
-          sorry⟩, ReesAlgebra.single_has_degree' L _ _⟩
+          simp [pow_add]⟩, ReesAlgebra.single_has_degree' L _ _⟩
         den_mem := by
           simp only [HomogeneousSubmonoid.mem_toSubmonoid_iff]
           set d := _
@@ -581,9 +580,13 @@ lemma Mu_mor_iso_commutes (P P' : Mu L) :
     ({ toRingHom := HomogeneousSubmonoid.potionMapOfLE _ _ (clo_mu_union_Mu_left L P P')
        commutes' a := rfl } : (clo_mu L P).Potion →ₐ[A] (clo_mu L (union_Mu L P P')).Potion).comp
     (Mu_mor_iso L _ |>.toAlgHom : A[P.multicenter] →ₐ[A] (clo_mu L P).Potion) := by
-  ext x
-  induction x using Dilatation.induction_on with | h x =>
-  sorry
+  apply lemma_exists_unique_morphism'
+  · intro i
+    simp only [nonZeroDivisors, Submonoid.mem_inf, mem_nonZeroDivisorsLeft_iff,
+      mem_nonZeroDivisorsRight_iff]
+    simp_rw []
+    sorry
+  · sorry
 
 lemma Mu_mor_iso_commutes_right (P P' : Mu L) :
     (Mu_mor_iso L _ |>.toAlgHom).comp

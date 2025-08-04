@@ -5,7 +5,7 @@ import Mathlib.AlgebraicGeometry.Restrict
 suppress_compilation
 
 universe u
-variable {ι R₀ A : Type u}
+variable {ι : Type} {R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
@@ -67,7 +67,7 @@ lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩) :
   ∃ (f : Spec (CommRingCat.of <| sum_potion a deg rel) ⟶ unionSpec a deg rel),
-    IsOpenImmersion f ∧ Scheme.Hom.IsOver f (SpecBase 𝒜) := by
+    Scheme.Hom.IsOver f (SpecBase 𝒜) := by
   have eq : ∑ i : Fin n, s_elem a deg rel i = 1 := by
     delta s_elem
     ext
@@ -90,6 +90,8 @@ lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
   -- how do I get X -> Y
   -- refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms ?_, ?_⟩
   have := Scheme.Cover.fromGlued (X := Spec (CommRingCat.of <| sum_potion a deg rel)) U.ulift
+  sorry
+  #exit
   refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms U
     (fun i : Fin n => (AlgebraicGeometry.basicOpenIsoSpecAway _).hom ≫
         (sum_lemma_open a deg rel i).choose)

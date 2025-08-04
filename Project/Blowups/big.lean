@@ -93,294 +93,301 @@ open GoodPotionIngredient HomogeneousSubmonoid
 theorem ProjBlowup_UnivProp_unicity_affine
   (A: CommRingCat.{u+1}) (L : ι → Ideal A) [fin : Fintype ι]
   {T : Scheme} [T.Over (Spec A)]
-  (cond : IsPreCars _ <| pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L))
+  (cond : IsCars _ (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L)))
+  -- (cond : IsPreCars _ <| pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L))
   (φ φ' : T ⟶ BlMu L)
   (φ_over : Scheme.Hom.IsOver φ (Spec A))
   (φ'_over : Scheme.Hom.IsOver φ' (Spec A)) : φ = φ' := by
-  let O (P P' : Mu L) (x : T) :
-    Opens T :=
-    ⟨(φ.base ⁻¹' (((glueData (τ := Mu L) (map_index L)).ι P).opensRange).1) ∩
-      (φ'.base ⁻¹' (((glueData (τ := Mu L) (map_index L)).ι P').opensRange).1) ∩
-        ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map <|
-          (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x).opensRange.1,
-        IsOpen.inter (IsOpen.inter
-          (by
-            apply Continuous.isOpen_preimage
-            · continuity
-            · exact (Scheme.Hom.opensRange ((glueData (map_index L)).ι P)).is_open')
-          (by
-            apply Continuous.isOpen_preimage
-            · continuity
-            · exact (Scheme.Hom.opensRange ((glueData (map_index L)).ι P')).is_open'))
-          ((Scheme.Hom.opensRange _).is_open')⟩
+  -- let O (P P' : Mu L) (x : T) :
+  --   Opens T :=
+  --   ⟨(φ.base ⁻¹' (((glueData (τ := Mu L) (map_index L)).ι P).opensRange).1) ∩
+  --     (φ'.base ⁻¹' (((glueData (τ := Mu L) (map_index L)).ι P').opensRange).1) ∩
+  --       ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map <|
+  --         (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x).opensRange.1,
+  --       IsOpen.inter (IsOpen.inter
+  --         (by
+  --           apply Continuous.isOpen_preimage
+  --           · continuity
+  --           · exact (Scheme.Hom.opensRange ((glueData (map_index L)).ι P)).is_open')
+  --         (by
+  --           apply Continuous.isOpen_preimage
+  --           · continuity
+  --           · exact (Scheme.Hom.opensRange ((glueData (map_index L)).ι P')).is_open'))
+  --         ((Scheme.Hom.opensRange _).is_open')⟩
 
-  let S (P P' : Mu L) (x : T) : Scheme := T.restrict (O P P' x).isOpenEmbedding
+  -- let S (P P' : Mu L) (x : T) : Scheme := T.restrict (O P P' x).isOpenEmbedding
 
-  let SToSpecP (P P' : Mu L) (x : T) : S P P' x ⟶
-    Spec (CommRingCat.of <| (map_index L P).Potion) :=
-    IsOpenImmersion.lift ((glueData (map_index L)).ι P) (T.ofRestrict .. ≫ φ)
-      (by
-        rintro _ ⟨⟨z, ⟨⟨⟨y, hy1⟩, mem2⟩, mem3⟩⟩, rfl⟩
-        simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
-          ContinuousMap.comp_apply, Set.mem_range]
-        use y
-        erw [hy1]
-        rfl)
+  -- let SToSpecP (P P' : Mu L) (x : T) : S P P' x ⟶
+  --   Spec (CommRingCat.of <| (map_index L P).Potion) :=
+  --   IsOpenImmersion.lift ((glueData (map_index L)).ι P) (T.ofRestrict .. ≫ φ)
+  --     (by
+  --       rintro _ ⟨⟨z, ⟨⟨⟨y, hy1⟩, mem2⟩, mem3⟩⟩, rfl⟩
+  --       simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
+  --         ContinuousMap.comp_apply, Set.mem_range]
+  --       use y
+  --       erw [hy1]
+  --       rfl)
 
-  letI isOver₀ (P P' : Mu L) (x : T) :
-      (Spec (CommRingCat.of (map_index L P).Potion)).Over (Spec A) :=
-    { hom := (glueData (τ := Mu L) (map_index L)).ι P ≫ (BlMu L) ↘ Spec A  }
-
-
-  have isOverA₀ (P P' : Mu L) (x : T) :
-    @Scheme.Hom.IsOver _ _ (SToSpecP P P' x) (Spec A) inferInstance (isOver₀ P P' x) := by sorry
+  -- letI isOver₀ (P P' : Mu L) (x : T) :
+  --     (Spec (CommRingCat.of (map_index L P).Potion)).Over (Spec A) :=
+  --   { hom := (glueData (τ := Mu L) (map_index L)).ι P ≫ (BlMu L) ↘ Spec A  }
 
 
-  let SToSpecP' (P P' : Mu L) (x) : S P P' x ⟶ Spec (CommRingCat.of <| (map_index L P').Potion) :=
-    IsOpenImmersion.lift ((glueData (map_index L)).ι P') (T.ofRestrict .. ≫ φ')
-      (by
-        rintro _ ⟨⟨z, ⟨⟨mem1, ⟨y, hy1⟩⟩, mem3⟩⟩, rfl⟩
-        simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
-          ContinuousMap.comp_apply, Set.mem_range]
-        use y
-        erw [hy1]
-        rfl)
-
-  let SToSpecRx (P P' : Mu L) (x) :
-      S P P' x ⟶
-      Spec ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj <|
-        (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x) :=
-    IsOpenImmersion.lift ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map _)
-      (T.ofRestrict ..)
-      (by
-        rintro _ ⟨⟨z, ⟨⟨mem1, mem2⟩, ⟨y, hy1⟩⟩⟩, rfl⟩
-        simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
-          ContinuousMap.comp_apply, Set.mem_range]
-        use y
-        erw [hy1]
-        rfl)
-
-  have (x : T) :
-    ∃ (P P' : Mu L) (B : CommRingCat) (_ : Algebra A B)
-      (i : Spec B ⟶
-        T.restrict (O P P' x).isOpenEmbedding),
-      IsOpenImmersion i ∧
-      Scheme.Hom.IsOver i (Spec A) ∧
-      x ∈ Set.range ((i ≫ T.ofRestrict ..).base) ∧
-      i ≫ T.ofRestrict _ ≫ φ = i ≫ T.ofRestrict _ ≫ φ' := by
-    let y := φ.base x
-    let y' := φ'.base x
-    have  ⟨(P : Mu L), (Y : Spec <| _), hY⟩ := (glueData <| map_index L).ι_jointly_surjective y
-    have  ⟨(P' : Mu L), (Y' : Spec <| _), hY'⟩ := (glueData <| map_index L).ι_jointly_surjective y'
-
-    have x_in_inter : x ∈ O P P' x := ⟨⟨⟨Y, hY⟩, ⟨Y', hY'⟩⟩,
-      (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.covers x⟩
-
-    let γ := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
-    let Rx : CommRingCat := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
-    let SpecRxOverT : Scheme.Over (Spec Rx) T :=
-      { hom := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map γ }
-    let SpecRxOverSpecA : Scheme.Over (Spec Rx) (Spec A) :=
-      { hom := Spec Rx ↘ T ≫ T ↘ Spec A}
-
-    let x' : S P P' x := ⟨x, x_in_inter⟩
-    obtain ⟨U, B, ⟨isoB : _⟩⟩ := (S P P' x).local_affine ⟨x, x_in_inter⟩
-
-    let F : Spec B ⟶ Spec A := ⟨isoB.inv⟩ ≫ (S P P' x).restrict U.isOpenEmbedding ↘ Spec A
-    let f : A ⟶ B :=
-      (Scheme.ΓSpecIso _).inv ≫ F.app _ ≫ (Scheme.ΓSpecIso _).hom
-    let alg : Algebra A B := RingHom.toAlgebra f.hom
-
-    have specB_over_specA_eq : Spec B ↘ Spec A = F := by
-      change Spec.map (_ ≫ _ ≫ _) = _ ≫ _
-      simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc,
-        Spec.toLocallyRingedSpace_obj]
-      rw [← Scheme.toSpecΓ_naturality_assoc]
-      convert Category.comp_id _
-      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
-      simp only [Iso.inv_hom_id, Spec.map_id]
-
-    let specBToSpecP : Spec B ⟶ Spec (CommRingCat.of <| (map_index L P).Potion) :=
-      ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecP P P' x
-
-    let specBToSpecP' : Spec B ⟶ Spec (CommRingCat.of <| (map_index L P').Potion) :=
-      ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecP' P P' x
-
-    let specBToSpecRx : Spec B ⟶ Spec Rx :=
-      ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecRx P P' x
-
-    haveI oi1 : IsOpenImmersion specBToSpecRx := by
-      apply IsOpenImmersion.comp
-
-    haveI flat1 : Flat specBToSpecRx := inferInstance
-
-    let PToB : CommRingCat.of (map_index L P).Potion ⟶ B :=
-      (Scheme.ΓSpecIso _).inv ≫ specBToSpecP.app _ ≫ (Scheme.ΓSpecIso _).hom
-
-    have PToB_def' : Spec.map PToB = specBToSpecP := by
-      simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc, PToB]
-      rw [← Scheme.toSpecΓ_naturality_assoc]
-      convert Category.comp_id _
-      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
-      simp only [Iso.inv_hom_id, Spec.map_id]
-
-    let RxToB : Rx ⟶ B :=
-      (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
-
-    letI alg2 : Algebra A (map_index L P).Potion :=
-      instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
-
-    letI alg2' : Algebra A (map_index L P').Potion :=
-      instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
-
-    letI alg3 : Algebra Rx B :=
-      RingHom.toAlgebra <| RxToB.hom
-
-    let P'ToB : CommRingCat.of (map_index L P').Potion ⟶ B :=
-      (Scheme.ΓSpecIso _).inv ≫ specBToSpecP'.app _ ≫ (Scheme.ΓSpecIso _).hom
-
-    have P'ToB_def' : Spec.map P'ToB = specBToSpecP' := by
-      simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc, P'ToB]
-      rw [← Scheme.toSpecΓ_naturality_assoc]
-      convert Category.comp_id _
-      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
-      simp only [Iso.inv_hom_id, Spec.map_id]
-
-    let RxToB : Rx ⟶ B :=
-      (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
-    let AToRx : A ⟶ Rx :=
-      (Scheme.ΓSpecIso _).inv ≫ (_ ↘ Spec A).app _ ≫ (Scheme.ΓSpecIso _).hom
-
-    refine ⟨P, P', B, inferInstance, (⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict ..), inferInstance, ?_,
-      ?_, ?_⟩
-    · rw [Scheme.Hom.isOver_iff, Category.assoc, specB_over_specA_eq]
-      rfl
-    · simp only [Spec.toLocallyRingedSpace_obj, Category.assoc, Scheme.comp_coeBase,
-      Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp, ContinuousMap.comp_assoc,
-      ContinuousMap.coe_comp, Set.mem_range, Function.comp_apply]
-      refine ⟨isoB.hom.base ⟨⟨x, x_in_inter⟩, U.2⟩, ?_⟩
-      erw [← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
-        ← ConcreteCategory.comp_apply]
-      rw [← Category.assoc]
-      change ((isoB.hom ≫ isoB.inv).base ≫ _) _ = x
-      rw [Iso.hom_inv_id]
-      rfl
-    · have nonzerodiv (i : ι) := cond.nonzerodiv i γ
-      have prin (i : ι) := cond.prin i γ
+  -- have isOverA₀ (P P' : Mu L) (x : T) :
+  --   @Scheme.Hom.IsOver _ _ (SToSpecP P P' x) (Spec A) inferInstance (isOver₀ P P' x) := by sorry
 
 
-      obtain ⟨g'', ⟨g''_comp_eq, g''_comp_eq'⟩, g''_uniq⟩ := lemm_dila_double_union L P P' (B := B)
-        (fun i => ⟨RxToB.hom <| Submodule.IsPrincipal.generator
-          ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ),
-            by
-              apply RingHom.Flat.preserves_nonzeroDivisors
-              · have flat2 := flat1.flat_of_affine_subset ⟨⊤, sorry⟩ ⟨⊤, sorry⟩ (by intro x hx; simp)
-                simp only at flat2
-                simp only [Opens.map_top, CommRingCat.hom_comp, RxToB, Rx]
-                refine RingHom.Flat.comp ?_ (RingHom.Flat.comp flat2 ?_) <;>
-                · apply RingHom.Flat.of_bijective
-                  exact ConcreteCategory.bijective_of_isIso _
-              · apply nonzerodiv⟩)
-        (g := AlgHom.comp
-            { toRingHom := PToB.hom
-              commutes' :=
-                sorry }
-            (Mu_mor_iso L P).toAlgHom)
-        (g' := AlgHom.comp
-            { toRingHom := P'ToB.hom
-              commutes' := sorry }
-            (Mu_mor_iso L P').toAlgHom)
-        (cond1 := by
-          intro i
-          dsimp
-          have eq0 : Ideal.map AToRx.hom (L i) =
-            (Ideal.span
-              {Submodule.IsPrincipal.generator
-                ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ)}) := by
-            simp only [Ideal.span_singleton_generator, Rx]
-            sorry
-          rw [show algebraMap A B = RingHom.comp RxToB.hom AToRx.hom by sorry]
-          rw [← Ideal.map_map, eq0, Ideal.map_span, Set.image_singleton])
-        (cond2 := by simp)
-        (cond2' := by simp)
-      -- have g''_comp_eq_ringHom : PToB.comp (Mu_mor_iso L P).toRingHom = g''.toRingHom.comp (algebraMap _ _)
-      exact calc Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ
-          _ = specBToSpecP ≫ (glueData (map_index L)).ι _ := by
-            simp [specBToSpecP, SToSpecP]
-          _ =
-            (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
-                Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
-            (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) :
-                  Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
-                  Spec (CommRingCat.of <| (map_index L P).Potion)) ≫
-            (glueData (map_index L)).ι _ := by
-            simp only [AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe,
-              AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp,
-              Spec.map_comp, ← Category.assoc]
-            congr 1
-            simp only [Spec.toLocallyRingedSpace_obj, ← Spec.map_comp, specBToSpecP, SToSpecP]
-            rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
-            have : PToB.hom.comp _  = g''.toRingHom.comp (dilationToUnion_left _ _ _).toRingHom :=
-              congr($(g''_comp_eq).toRingHom)
-            rw [Mu_mor_iso_commutes_ringHom', ← RingHom.comp_assoc, ← RingHom.comp_assoc] at this
-            simp only [AlgEquiv.toAlgHom_eq_coe, AlgHomClass.toRingHom_toAlgHom,
-              AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv,
-              RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom] at this
-            erw [RingEquiv.comp_cancel] at this
-            erw [← this]
-            erw [PToB_def']
-          _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
-                Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
-              (glueData (map_index L)).ι _ := by
-              rw [proj_glue_condition (ℱ := map_index L) P (union_Mu L P P')
-                (clo_mu_union_Mu_left L P P')]
-          _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
-                Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
-            (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (clo_mu_union_Mu_right L P P')) :
-                  Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
-                  Spec (CommRingCat.of <| (map_index L P').Potion)) ≫
-            (glueData (map_index L)).ι _ := by
-            have := proj_glue_condition (ℱ := map_index L) P' (union_Mu L P P')
-              (clo_mu_union_Mu_right L P P')
-            rw [this]
-          _ = specBToSpecP' ≫ (glueData (map_index L)).ι _ := by
-            simp only [AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe,
-              AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp,
-              Spec.map_comp, ← Category.assoc]
-            congr 1
-            simp only [← Spec.map_comp, specBToSpecP, SToSpecP]
-            rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
-            have : P'ToB.hom.comp _  = g''.toRingHom.comp (dilationToUnion_right _ _ _).toRingHom :=
-              congr($(g''_comp_eq').toRingHom)
-            rw [Mu_mor_iso_commutes_ringHom_right', ← RingHom.comp_assoc, ← RingHom.comp_assoc] at this
-            simp only [AlgEquiv.toAlgHom_eq_coe, AlgHomClass.toRingHom_toAlgHom,
-              AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv,
-              RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom] at this
-            erw [RingEquiv.comp_cancel] at this
-            erw [← this]
-            erw [P'ToB_def']
-          _ = Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ' := by
-            simp [specBToSpecP', SToSpecP']
+  -- let SToSpecP' (P P' : Mu L) (x) : S P P' x ⟶ Spec (CommRingCat.of <| (map_index L P').Potion) :=
+  --   IsOpenImmersion.lift ((glueData (map_index L)).ι P') (T.ofRestrict .. ≫ φ')
+  --     (by
+  --       rintro _ ⟨⟨z, ⟨⟨mem1, ⟨y, hy1⟩⟩, mem3⟩⟩, rfl⟩
+  --       simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
+  --         ContinuousMap.comp_apply, Set.mem_range]
+  --       use y
+  --       erw [hy1]
+  --       rfl)
 
-  have : (∀ x : T,
-    ∃ (P P' : Mu L) (B : CommRingCat) (_ : Algebra A B)
-      (i : Spec B ⟶ T.restrict (O P P' x).isOpenEmbedding),
-      IsOpenImmersion i ∧
-      Scheme.Hom.IsOver i (Spec A) ∧
-      x ∈ Set.range ((i ≫ T.ofRestrict ..).base) ∧
-      (i ≫ T.ofRestrict _ ≫ φ = i ≫ T.ofRestrict _ ≫ φ')) → φ = φ' := by
-      -- because sheaf nonsense
-      sorry
+  -- let SToSpecRx (P P' : Mu L) (x) :
+  --     S P P' x ⟶
+  --     Spec ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj <|
+  --       (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x) :=
+  --   IsOpenImmersion.lift ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map _)
+  --     (T.ofRestrict ..)
+  --     (by
+  --       rintro _ ⟨⟨z, ⟨⟨mem1, mem2⟩, ⟨y, hy1⟩⟩⟩, rfl⟩
+  --       simp only [Scheme.comp_coeBase, Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp,
+  --         ContinuousMap.comp_apply, Set.mem_range]
+  --       use y
+  --       erw [hy1]
+  --       rfl)
+
+  -- have (x : T) :
+  --   ∃ (P P' : Mu L) (B : CommRingCat) (_ : Algebra A B)
+  --     (i : Spec B ⟶
+  --       T.restrict (O P P' x).isOpenEmbedding),
+  --     IsOpenImmersion i ∧
+  --     Scheme.Hom.IsOver i (Spec A) ∧
+  --     x ∈ Set.range ((i ≫ T.ofRestrict ..).base) ∧
+  --     i ≫ T.ofRestrict _ ≫ φ = i ≫ T.ofRestrict _ ≫ φ' := by
+  --   let y := φ.base x
+  --   let y' := φ'.base x
+  --   have  ⟨(P : Mu L), (Y : Spec <| _), hY⟩ := (glueData <| map_index L).ι_jointly_surjective y
+  --   have  ⟨(P' : Mu L), (Y' : Spec <| _), hY'⟩ := (glueData <| map_index L).ι_jointly_surjective y'
+
+  --   have x_in_inter : x ∈ O P P' x := ⟨⟨⟨Y, hY⟩, ⟨Y', hY'⟩⟩,
+  --     (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.covers x⟩
+
+  --   let γ := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
+  --   let Rx : CommRingCat := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
+  --   let SpecRxOverT : Scheme.Over (Spec Rx) T :=
+  --     { hom := (pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).cov.map γ }
+  --   let SpecRxOverSpecA : Scheme.Over (Spec Rx) (Spec A) :=
+  --     { hom := Spec Rx ↘ T ≫ T ↘ Spec A}
+
+  --   let x' : S P P' x := ⟨x, x_in_inter⟩
+  --   obtain ⟨U, B, ⟨isoB : _⟩⟩ := (S P P' x).local_affine ⟨x, x_in_inter⟩
+
+  --   let F : Spec B ⟶ Spec A := ⟨isoB.inv⟩ ≫ (S P P' x).restrict U.isOpenEmbedding ↘ Spec A
+  --   let f : A ⟶ B :=
+  --     (Scheme.ΓSpecIso _).inv ≫ F.app _ ≫ (Scheme.ΓSpecIso _).hom
+  --   let alg : Algebra A B := RingHom.toAlgebra f.hom
+
+  --   have specB_over_specA_eq : Spec B ↘ Spec A = F := by
+  --     change Spec.map (_ ≫ _ ≫ _) = _ ≫ _
+  --     simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc,
+  --       Spec.toLocallyRingedSpace_obj]
+  --     rw [← Scheme.toSpecΓ_naturality_assoc]
+  --     convert Category.comp_id _
+  --     rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+  --     simp only [Iso.inv_hom_id, Spec.map_id]
+
+  --   let specBToSpecP : Spec B ⟶ Spec (CommRingCat.of <| (map_index L P).Potion) :=
+  --     ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecP P P' x
+
+  --   let specBToSpecP' : Spec B ⟶ Spec (CommRingCat.of <| (map_index L P').Potion) :=
+  --     ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecP' P P' x
+
+  --   let specBToSpecRx : Spec B ⟶ Spec Rx :=
+  --     ⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict .. ≫ SToSpecRx P P' x
+
+  --   haveI oi1 : IsOpenImmersion specBToSpecRx := by
+  --     apply IsOpenImmersion.comp
+
+  --   haveI flat1 : Flat specBToSpecRx := inferInstance
+
+  --   let PToB : CommRingCat.of (map_index L P).Potion ⟶ B :=
+  --     (Scheme.ΓSpecIso _).inv ≫ specBToSpecP.app _ ≫ (Scheme.ΓSpecIso _).hom
+
+  --   have PToB_def' : Spec.map PToB = specBToSpecP := by
+  --     simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc, PToB]
+  --     rw [← Scheme.toSpecΓ_naturality_assoc]
+  --     convert Category.comp_id _
+  --     rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+  --     simp only [Iso.inv_hom_id, Spec.map_id]
+
+  --   let RxToB : Rx ⟶ B :=
+  --     (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
+
+  --   letI alg2 : Algebra A (map_index L P).Potion :=
+  --     instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
+
+  --   letI alg2' : Algebra A (map_index L P').Potion :=
+  --     instAlgebraPotionFinsuppIntReesAlgebraClo_mu _ _
+
+  --   letI alg3 : Algebra Rx B :=
+  --     RingHom.toAlgebra <| RxToB.hom
+
+  --   let P'ToB : CommRingCat.of (map_index L P').Potion ⟶ B :=
+  --     (Scheme.ΓSpecIso _).inv ≫ specBToSpecP'.app _ ≫ (Scheme.ΓSpecIso _).hom
+
+  --   have P'ToB_def' : Spec.map P'ToB = specBToSpecP' := by
+  --     simp only [Opens.map_top, Spec.map_comp, SpecMap_ΓSpecIso_hom, Category.assoc, P'ToB]
+  --     rw [← Scheme.toSpecΓ_naturality_assoc]
+  --     convert Category.comp_id _
+  --     rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+  --     simp only [Iso.inv_hom_id, Spec.map_id]
+
+  --   let RxToB : Rx ⟶ B :=
+  --     (Scheme.ΓSpecIso _).inv ≫ specBToSpecRx.app _ ≫ (Scheme.ΓSpecIso _).hom
+  --   let AToRx : A ⟶ Rx :=
+  --     (Scheme.ΓSpecIso _).inv ≫ (_ ↘ Spec A).app _ ≫ (Scheme.ΓSpecIso _).hom
+
+  --   refine ⟨P, P', B, inferInstance, (⟨isoB.inv⟩ ≫ (S P P' x).ofRestrict ..), inferInstance, ?_,
+  --     ?_, ?_⟩
+  --   · rw [Scheme.Hom.isOver_iff, Category.assoc, specB_over_specA_eq]
+  --     rfl
+  --   · simp only [Spec.toLocallyRingedSpace_obj, Category.assoc, Scheme.comp_coeBase,
+  --     Scheme.ofRestrict_toLRSHom_base, TopCat.hom_comp, ContinuousMap.comp_assoc,
+  --     ContinuousMap.coe_comp, Set.mem_range, Function.comp_apply]
+  --     refine ⟨isoB.hom.base ⟨⟨x, x_in_inter⟩, U.2⟩, ?_⟩
+  --     erw [← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
+  --       ← ConcreteCategory.comp_apply]
+  --     rw [← Category.assoc]
+  --     change ((isoB.hom ≫ isoB.inv).base ≫ _) _ = x
+  --     rw [Iso.hom_inv_id]
+  --     rfl
+  --   ·
+  --     have nonzerodiv (i : ι) := cond.nonzerodiv i γ
+  --     have prin (i : ι) := cond.prin i γ
+
+
+  --     obtain ⟨g'', ⟨g''_comp_eq, g''_comp_eq'⟩, g''_uniq⟩ := lemm_dila_double_union L P P' (B := B)
+  --       (fun i => ⟨RxToB.hom <| Submodule.IsPrincipal.generator
+  --         ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ),
+  --           by
+  --             apply RingHom.Flat.preserves_nonzeroDivisors
+  --             · have flat2 := flat1.flat_of_affine_subset ⟨⊤, sorry⟩ ⟨⊤, sorry⟩ (by intro x hx; simp)
+  --               simp only at flat2
+  --               simp only [Opens.map_top, CommRingCat.hom_comp, RxToB, Rx]
+  --               refine RingHom.Flat.comp ?_ (RingHom.Flat.comp flat2 ?_) <;>
+  --               · apply RingHom.Flat.of_bijective
+  --                 exact ConcreteCategory.bijective_of_isIso _
+  --             · apply nonzerodiv⟩)
+  --       (g := AlgHom.comp
+  --           { toRingHom := PToB.hom
+  --             commutes' :=
+  --               sorry }
+  --           (Mu_mor_iso L P).toAlgHom)
+  --       (g' := AlgHom.comp
+  --           { toRingHom := P'ToB.hom
+  --             commutes' := sorry }
+  --           (Mu_mor_iso L P').toAlgHom)
+  --       (cond1 := by
+  --         intro i
+  --         dsimp
+  --         have eq0 : Ideal.map AToRx.hom (L i) =
+  --           (Ideal.span
+  --             {Submodule.IsPrincipal.generator
+  --               ((pullback_PreClos (Spec A) T (T ↘ Spec A) (loc_to_PreClos A L)).ideal i γ)}) := by
+  --           simp only [Ideal.span_singleton_generator, Rx]
+  --           sorry
+  --         rw [show algebraMap A B = RingHom.comp RxToB.hom AToRx.hom by sorry]
+  --         rw [← Ideal.map_map, eq0, Ideal.map_span, Set.image_singleton])
+  --       (cond2 := by simp)
+  --       (cond2' := by simp)
+  --     -- have g''_comp_eq_ringHom : PToB.comp (Mu_mor_iso L P).toRingHom = g''.toRingHom.comp (algebraMap _ _)
+  --     exact calc Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ
+  --         _ = specBToSpecP ≫ (glueData (map_index L)).ι _ := by
+  --           simp [specBToSpecP, SToSpecP]
+  --         _ =
+  --           (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
+  --               Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
+  --           (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (by sorry)) :
+  --                 Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
+  --                 Spec (CommRingCat.of <| (map_index L P).Potion)) ≫
+  --           (glueData (map_index L)).ι _ := by
+  --           simp only [AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe,
+  --             AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp,
+  --             Spec.map_comp, ← Category.assoc]
+  --           congr 1
+  --           simp only [Spec.toLocallyRingedSpace_obj, ← Spec.map_comp, specBToSpecP, SToSpecP]
+  --           rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+  --           have : PToB.hom.comp _  = g''.toRingHom.comp (dilationToUnion_left _ _ _).toRingHom :=
+  --             congr($(g''_comp_eq).toRingHom)
+  --           rw [Mu_mor_iso_commutes_ringHom', ← RingHom.comp_assoc, ← RingHom.comp_assoc] at this
+  --           simp only [AlgEquiv.toAlgHom_eq_coe, AlgHomClass.toRingHom_toAlgHom,
+  --             AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv,
+  --             RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom] at this
+  --           erw [RingEquiv.comp_cancel] at this
+  --           erw [← this]
+  --           erw [PToB_def']
+  --         _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
+  --               Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
+  --             (glueData (map_index L)).ι _ := by
+  --             rw [proj_glue_condition (ℱ := map_index L) P (union_Mu L P P')
+  --               (clo_mu_union_Mu_left L P P')]
+  --         _ = (Spec.map (CommRingCat.ofHom <| g''.toRingHom.comp (Mu_mor_iso L (union_Mu L P P')).symm.toRingHom) :
+  --               Spec B ⟶ Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion)) ≫
+  --           (Spec.map (CommRingCat.ofHom <| potionMapOfLE _ _ (clo_mu_union_Mu_right L P P')) :
+  --                 Spec (CommRingCat.of <| (map_index L <| union_Mu L P P').Potion) ⟶
+  --                 Spec (CommRingCat.of <| (map_index L P').Potion)) ≫
+  --           (glueData (map_index L)).ι _ := by
+  --           have := proj_glue_condition (ℱ := map_index L) P' (union_Mu L P P')
+  --             (clo_mu_union_Mu_right L P P')
+  --           rw [this]
+  --         _ = specBToSpecP' ≫ (glueData (map_index L)).ι _ := by
+  --           simp only [AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe,
+  --             AlgEquiv.symm_toRingEquiv, RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp,
+  --             Spec.map_comp, ← Category.assoc]
+  --           congr 1
+  --           simp only [← Spec.map_comp]
+  --           rw [← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp]
+  --           have : P'ToB.hom.comp _  = g''.toRingHom.comp (dilationToUnion_right _ _ _).toRingHom :=
+  --             congr($(g''_comp_eq').toRingHom)
+  --           rw [Mu_mor_iso_commutes_ringHom_right', ← RingHom.comp_assoc, ← RingHom.comp_assoc] at this
+  --           simp only [AlgEquiv.toAlgHom_eq_coe, AlgHomClass.toRingHom_toAlgHom,
+  --             AlgHom.toRingHom_eq_coe, AlgEquiv.toRingEquiv_eq_coe, AlgEquiv.symm_toRingEquiv,
+  --             RingEquiv.toRingHom_eq_coe, AlgEquiv.toRingEquiv_toRingHom] at this
+  --           erw [RingEquiv.comp_cancel] at this
+  --           erw [← this]
+  --           erw [P'ToB_def']
+  --         _ = Scheme.Hom.mk isoB.inv ≫ (S P P' x).ofRestrict _ ≫ T.ofRestrict _ ≫ φ' := by
+  --           simp [specBToSpecP', SToSpecP']
+
+  -- have : (∀ x : T,
+  --   ∃ (P P' : Mu L) (B : CommRingCat) (_ : Algebra A B)
+  --     (i : Spec B ⟶ T.restrict (O P P' x).isOpenEmbedding),
+  --     IsOpenImmersion i ∧
+  --     Scheme.Hom.IsOver i (Spec A) ∧
+  --     x ∈ Set.range ((i ≫ T.ofRestrict ..).base) ∧
+  --     (i ≫ T.ofRestrict _ ≫ φ = i ≫ T.ofRestrict _ ≫ φ')) → φ = φ' := by
+  --     -- because sheaf nonsense
+  --     sorry
   sorry
 
+
+-- set_option maxHeartbeats 400000 in
+open Multicenter in
+-- set_option diagnostics true in
 lemma ProjBlowup_UnivProp_existence_affine_preclo
     (A: CommRingCat.{u + 1}) (L : ι → Ideal A) [fin : Fintype ι]
     {T : Scheme} [T.Over (Spec A)]
-    (cond : IsPreCars _ <| pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)) :
+    (cond : IsCars _ (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L))) :
     ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
+
   have (x : T) : true := by
     let γ := (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
-    let B : CommRingCat.{u + 1} :=
+    let B : CommRingCat :=
       (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
     let U_γ := Spec B
 
@@ -390,18 +397,117 @@ lemma ProjBlowup_UnivProp_existence_affine_preclo
       RingHom.toAlgebra <|
         ((Scheme.ΓSpecIso _).inv ≫ (U_γ ↘ Spec A).app _ ≫ (Scheme.ΓSpecIso _).hom).hom
 
+    -- pick a rep in the begining
     let c (i : ι) : B := cond.prin i γ |>.generator
 
+
+
     have ideal_eq (i : ι) : Ideal.map (algebraMap A B) (L i) = Ideal.span { c i } := by sorry
-    let multicenter : Multicenter B :=
+    let mc : Multicenter B :=
     { index := ι
-      ideal := _
-      elem := _ }
-    -- let dilaIso : B[]
+      ideal i := Ideal.map (algebraMap A B) (L i)
+      elem i := c i }
+
+    let dilaIso : B[mc] ≃ₐ[B] B :=
+      (AlgEquiv.ofAlgHom
+        (desc _ sorry sorry)
+        (Algebra.ofId _ _)
+        sorry
+        sorry)
+      -- (Multicenter.ofFamilyIso (c := ofFamily ι c) sorry)
+      -- _
+
+    let Rees := ReesAlgebra (fun i : ι => Ideal.map (algebraMap A B) (L i))
+
+    let C : Rees := ∑ i : ι, .single _ (Finsupp.single i 1) _
+    -- exists finite set S such f_{s, i} ∈ L_i for each s ∈ S and each i ∈ ι and λ_{s, i} in B for each s ∈ S and i ∈ ι,
+    -- such that c_i = ∑ s ∈ S, f_{s, i} • λ_{s, i} -- this is because in span
+    -- so S = ∪ s_i
+
+    let Mu_c : Mu (fun i => Ideal.map (algebraMap A B) (L i)) :=
+    { multicenter := mc
+      fin := inferInstance
+      Ψ := id
+      sec := id
+      surj := by simp
+      cond := by sorry }
+
+    let SpecBDilaIso :
+      Spec (CommRingCat.of (B[mc])) ≅
+      Spec (CommRingCat.of (clo_mu _ Mu_c).Potion)  :=
+      { hom := Spec.map <| CommRingCat.ofHom <| (Mu_mor_iso _ _).symm.toRingHom
+        inv := Spec.map <| CommRingCat.ofHom <| (Mu_mor_iso _ Mu_c).toRingHom
+        hom_inv_id := sorry
+        inv_hom_id := sorry }
+
+    have mem (i : ι) : c i ∈ Ideal.map (algebraMap A B) (L i) := by
+      rw [ideal_eq]
+      exact Ideal.mem_span_singleton_self (c i)
+
+    have c_repr (i : ι) : ∃ (l : A → A) (b : A → B) (s : Finset A),
+      Function.support l ⊆ s ∧
+      c i = ∑ i ∈ s, l i • b i := by
+      sorry
+
+
+
 
 
 
     sorry
+
+  have gluing_material (x : T) :
+    ∃ (B : CommRingCat)
+      (emb : Spec B ⟶ T) (_ : Scheme.Over (Spec B) (Spec A))
+      (_ : Scheme.Hom.IsOver emb (Spec A))
+      (_ : IsOpenImmersion emb)
+      (φ : Spec B ⟶ BlMu L),
+      x ∈ Set.range emb.base ∧ Scheme.Hom.IsOver φ (Spec A) := by
+
+
+
+    sorry
+
+  choose B emb oB emb_over_A o_emb φ mem over using gluing_material
+
+  letI (x y : T) : (pullback (emb x) (emb y)).Over (Spec A) :=
+  { hom := pullback.fst (emb x) (emb y) ≫ (Spec (B x) ↘ Spec A) }
+
+  letI (x y : T) : Flat (pullback (emb x) (emb y) ↘ Spec A) := by sorry
+
+
+  let φ_global : T ⟶ BlMu L := AlgebraicGeometry.Scheme.Cover.glueMorphisms
+    { J := T
+      obj x := Spec <| B x
+      map x := emb x
+      f := id
+      covers := mem
+      map_prop := o_emb }
+    φ
+    (by
+      rintro (x y : T)
+      simp only
+      apply ProjBlowup_UnivProp_unicity_affine
+      · have eq0 := pullback_assoc
+          (Z := loc_to_Clos A L) (X'' := pullback (emb x) (emb y)) (X' := T)
+          (pullback.fst _ _ ≫ emb x) (T ↘ Spec A)
+        simp only [Category.assoc] at eq0
+        have is_car1 : IsCars _ (pullback_Clos (pullback.fst (emb x) (emb y) ≫ emb x) (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L))) := by
+          apply pullback_IsCars
+          assumption
+        rw [← eq0] at is_car1
+
+        convert is_car1 using 2
+        change pullback.fst _ _ ≫ _ = _
+        congr 1
+        have := emb_over_A x
+        rw [Scheme.Hom.isOver_iff] at this
+        exact this.symm
+      · sorry -- this is easy
+      · sorry -- this is easy
+        )
+  use φ_global
+
   sorry
 
 
@@ -434,7 +540,7 @@ lemma ProjBlowup_UnivProp_existence_affine
     --               Union PotionSch ( f(l_j) )→ Union PotionSch (l_j) over Spec(A)
     --  This gives a morphism  φx : Spec(B) ⟶ BlMu L over Spec(A) because Potion(c)is  isomorphic to Spec(B)
     --  We glue all the φx to get a morphism φ : T ⟶ BlMu L (use unicity) over Spec(A)
-      sorry
+
 
 
 lemma ProjBlowup_UnivProp_affine

@@ -16,10 +16,12 @@ section defs
 
 variable (A : Type (u+1)) [CommSemiring A]
 
+@[ext]
 structure Multicenter : Type (u+1) where
   (index : Type)
   (ideal : index → Ideal A)
   (elem : index → A)
+
 end defs
 
 namespace Multicenter
@@ -27,6 +29,12 @@ namespace Multicenter
 section semiring
 
 variable {A : Type _} [CommSemiring A] (F : Multicenter A)
+
+@[simps]
+def ofFamily (index : Type) (c : index → A) : Multicenter A where
+  index := index
+  ideal i := Ideal.span {c i}
+  elem i := c i
 
 -- scoped notation: max F"^ℕ"  => Multicenter.index F  →₀ ℕ
 
@@ -351,7 +359,9 @@ def fromBaseRing : A →+* A[F] where
   map_zero' := by simp [zero_def]
   map_add' _ _ := by simp [mk_add_mk, mk_eq_mk]; use 0; simp
 
-instance : Algebra A A[F] := RingHom.toAlgebra (fromBaseRing F)
+-- instance : Algebra A A[F] := RingHom.toAlgebra (fromBaseRing F)
+instance instAlgebra {B : Type _} [CommSemiring B] [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
+  RingHom.toAlgebra (RingHom.comp (fromBaseRing G) (algebraMap A B))
 
 lemma algebraMap_eq : (algebraMap A A[F]) = fromBaseRing F := rfl
 
@@ -582,8 +592,6 @@ lemma def_unique_elem_unique  [Algebra A B] (v : F.index →₀ ℕ) (m : F.Larg
     intro bm hbm
     apply ((lemma_exists_in_image F  non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
 
-
-
 def desc [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)) :
@@ -688,6 +696,38 @@ lemma  lemma_exists_unique_morphism [Algebra A B]
       rw[← eq3]
       rfl
 
+lemma  lemma_exists_unique_morphism' [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i))
+    (χ χ' :A[F]→ₐ[A] B)  : χ = χ' := by
+      trans desc F non_zero_divisor gen
+      · apply lemma_exists_unique_morphism
+      · symm
+        apply lemma_exists_unique_morphism
+
+
+-- instance [Algebra A B] (F : Multicenter B) : Algebra A B[F] :=
+--   RingHom.toAlgebra <| RingHom.comp (algebraMap B B[F]) (algebraMap A B)
+
+-- instance [Algebra A B] (F : Multicenter B) : IsScalarTower A B B[F] :=
+--   IsScalarTower.of_algebraMap_smul fun _ ↦ congrFun rfl
+
+def ofFamilyIso {index : Type} {c : index → A} (c0 : ∀ i, c i ∈ nonZeroDivisors A) :
+    A[ofFamily index c] ≃ₐ[A] A :=
+  AlgEquiv.ofAlgHom
+    (desc _ c0 <| by simp [LargeIdeal])
+    (Algebra.ofId _ _)
+    (by simp)
+    (by sorry)
+
+def ofEqual {F F' : Multicenter A} (eq : F = F') :
+    A[F] ≃ₐ[A] A[F'] :=
+  AlgEquiv.ofAlgHom
+    (desc _ sorry sorry)
+    (desc _ sorry sorry)
+    sorry
+    sorry
+
 open Dilatation
 open Multicenter
 lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
@@ -770,10 +810,6 @@ lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
   rw[Ideal.map_sup]
   rw[Ideal.map_span]
   simp
-
-instance [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
-  RingHom.toAlgebra (RingHom.comp (algebraMap B B[G]) (algebraMap A B))
-
 
 def functo_dila_alg [Algebra A B]: A[F] →ₐ[A]  B[image_mult (B := B) F]  :=
   desc F (by
