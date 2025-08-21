@@ -64,7 +64,6 @@ structure PreClos where
       (Spec (CommRingCat.of (cov.obj γ)))
 
 attribute [instance] PreClos.over
--- attribute [instance] PreClos.fin_indnumb
 
 lemma PreClos.index_eq_triangle {X : Scheme} (Z : PreClos X) (i j : Z.indnumb) (eq : i = j) :
     Scheme.Hom.IsOver (eqToHom (by rw [eq]) : Z.subscheme i ⟶ Z.subscheme j) X := by
@@ -159,6 +158,7 @@ def Pri : Set (Clos X) := {x : Clos X | IsPri _ x}
 
 structure IsCars (Z : Clos X) : Prop where
   exists_rep : ∃ (Z' : PreClos X), IsPreCars _ Z' ∧ Quotient.mk'' Z' = Z
+
 
 def IsCars.isPri (Z : Clos X) : IsCars _ Z → IsPri _ Z := by sorry
 
