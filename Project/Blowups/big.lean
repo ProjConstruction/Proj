@@ -383,20 +383,23 @@ lemma ProjBlowup_UnivProp_existence_affine_preclo
     (cond : IsCars _ (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L))) :
     ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
 
-  have (x : T) : true := by
-    let γ := (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.f x
-    let B : CommRingCat :=
-      (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.obj γ
+  have (x : T) : false := by
+    obtain ⟨Z, hZ, eq⟩ := cond
+    change Quotient.mk'' _ = Quotient.mk'' _ at eq
+    rw [Quotient.eq''] at eq
+    obtain ⟨eq⟩ := eq
+
+    let γ := Z.cov.f x
+    let B : CommRingCat := Z.cov.obj γ
     let U_γ := Spec B
 
-    let over0 : Scheme.Over U_γ (Spec A) :=
-      { hom := (pullback_PreClos _ _ (T ↘ Spec A) (loc_to_PreClos A L)).cov.map γ ≫ T ↘ Spec A }
+    let over0 : Scheme.Over U_γ (Spec A) := { hom := Z.cov.map γ ≫ T ↘ Spec A }
     let algebra0 : Algebra A B :=
       RingHom.toAlgebra <|
         ((Scheme.ΓSpecIso _).inv ≫ (U_γ ↘ Spec A).app _ ≫ (Scheme.ΓSpecIso _).hom).hom
 
     -- pick a rep in the begining
-    let c (i : ι) : B := cond.prin i γ |>.generator
+    let c (i : ι) : B := hZ.prin (eq.indnumb_equiv.symm i) γ |>.generator
 
 
 
