@@ -18,8 +18,11 @@ instance (B : Type u) [CommRing B] [Algebra (𝒜 0) B] :
 
 abbrev sum_potion {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
-    (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩) :=
-    Potion (HomogeneousSubmonoid.closure (𝒜 := 𝒜) {∑ i : Fin n, a i} sorry)
+    (_ : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩) :=
+    Potion (HomogeneousSubmonoid.closure (𝒜 := 𝒜) {∑ i : Fin n, a i} <| by
+      rintro a rfl
+      refine ⟨d, sum_mem ?_⟩
+      aesop)
 
 abbrev s_elem {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
@@ -29,24 +32,30 @@ abbrev s_elem {n : ℕ} {d : ι} (a : Fin n → A)
   Quotient.mk''
     { deg := d
       num := ⟨a i, deg i⟩
-      den := ⟨∑ i, a i, sorry⟩
-      den_mem := sorry }
+      den := ⟨∑ i, a i, sum_mem <| by aesop⟩
+      den_mem := by
+        simp only [mem_toSubmonoid_iff]
+        exact Submonoid.mem_closure_singleton_self }
 
 def s_lemma {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩)
     (i : Fin n) :
   Localization.Away (s_elem a deg rel i) ≃ₐ[𝒜 0]
-  Potion (HomogeneousSubmonoid.closure (𝒜 := 𝒜) {a i * ∑ j : Fin n, a j} sorry) := by
+  Potion (HomogeneousSubmonoid.closure (𝒜 := 𝒜) {a i * ∑ j : Fin n, a j} <| by
+    rintro - rfl
+    exact SetLike.IsHomogeneousElem.mul ⟨d, by aesop⟩ ⟨d, sum_mem <| by aesop⟩) := by
   sorry
 
 abbrev unionSpec {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩) : Scheme :=
   Proj (𝒜 := 𝒜) (τ := ULift <| Fin n) fun i =>
-    { toHomogeneousSubmonoid := .closure { a i.down } sorry
-      relevant := by sorry
-      fg := by sorry }
+    { toHomogeneousSubmonoid := .closure { a i.down } <| by
+        cases i
+        simpa using ⟨d, by aesop⟩
+      relevant := rel _
+      fg := ⟨{a i.down}, by simp; rfl⟩ }
 
 lemma sum_lemma_open {n : ℕ} {d : ι} (a : Fin n → A)
     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
@@ -77,141 +86,34 @@ lemma sum_open {n : ℕ} {d : ι} (a : Fin n → A)
     erw [← Localization.mk_sum (M := Submonoid.closure {∑ i, a i}) a (Finset.univ) ⟨∑ i, a i, Submonoid.subset_closure (by simp)⟩]
     simp only [Localization.mk_self_mk]
   have := PrimeSpectrum.iSup_basicOpen_eq_top_iff (f := fun i : Fin n => s_elem a deg rel i) |>.2 (by
-    sorry)
+    rw [Ideal.eq_top_iff_one, ← eq]
+    apply Ideal.sum_mem
+    rintro i -
+    refine Ideal.subset_span ?_
+    simp)
 
   let U : Scheme.OpenCover (Spec (CommRingCat.of <| sum_potion a deg rel)) :=
     Scheme.openCoverOfISupEqTop _ (fun i : Fin n => PrimeSpectrum.basicOpen (s_elem a deg rel i))
       this
-  -- Spec (CommRingCat.of <| sum_potion a deg rel)
-  -- ≅
-  -- gluing Spec (CommRingCat.of (Localization.Away (s_elem a deg rel i)))
-  -- If I have a cover U_i for X
-  -- and U_i -> Y
-  -- how do I get X -> Y
-  -- refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms ?_, ?_⟩
-  have := Scheme.Cover.fromGlued (X := Spec (CommRingCat.of <| sum_potion a deg rel)) U.ulift
-  sorry
-  #exit
+
   refine ⟨AlgebraicGeometry.Scheme.Cover.glueMorphisms U
     (fun i : Fin n => (AlgebraicGeometry.basicOpenIsoSpecAway _).hom ≫
         (sum_lemma_open a deg rel i).choose)
-    ?_, ?_, ?_⟩
+    ?_, ?_⟩
   · sorry
-  · apply (config := {allowSynthFailures := true}) IsOpenImmersion.comp
-    sorry
-  · sorry
-
-
---  Put D(a_k'):= Spec ((Localization sum_potion (a_1...a_n) s_elem k ) )
-
---                                            (a basic open of Spec(sum_potion))
-
---             Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
-
---                    Union k=1...n D(a_k') = Spec(sum_potion)
-
---             Have open immersion D(a_k') → ( (a_k)).PotionSch over Spec(A_0)
-
---               --by sum_lemm_open
-
---             Have open immersion  Union k=1...n D(a_k') → Union_k=1..n  ( ( a_k)).PotionSch over Spec(A_0)
-
---                -- by union/gluing
-
---             Have open immersion  Spec(sum_potion)  → Union ( ( a_k)).PotionSch over Spec(A_0)
-
---                  -- by Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
-
---                    --BigUnion k=1...n D(a_k') = Spec(sum_potion)
-
-
-#exit
-
-           ∃(∑ _{k=1}^n a_k).PotionSch → ∪ _k (a_k).PotionSch open immersion over Spec(A_0) :=  by
-
-            Have Eq= s_elem  1 +...+s_elem  k +... +s_elem  n =1  in sum_potion (a_1, … , a_n )
-
-            Put D(a_k'):= Spec ((Localization sum_potion (a_1...a_n) s_elem k ) )
-
-                                           (a basic open of Spec(sum_potion))
-
-            Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
-
-                   Union k=1...n D(a_k') = Spec(sum_potion)
-
-            Have open immersion D(a_k') → ( (a_k)).PotionSch over Spec(A_0)
-
-              --by sum_lemm_open
-
-            Have open immersion  Union k=1...n D(a_k') → Union_k=1..n  ( ( a_k)).PotionSch over Spec(A_0)
-
-               -- by union/gluing
-
-            Have open immersion  Spec(sum_potion)  → Union ( ( a_k)).PotionSch over Spec(A_0)
-
-                 -- by Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
-
-                   --BigUnion k=1...n D(a_k') = Spec(sum_potion)
-
-            sorry
-
-/-
-
-
-  --(A_(∑ a_k))_{a_k'}= A_(a_k(∑ a_k)) (localization of potion ring isom potion of subtile product)
-
-  lemma sum_lemm :  (a_1, … , a_n ) relevant of degree i (k ∈ {1...n}):
-
-    (Localization sum_potion (a_1...a_n) s_elem k )
-
-           ≅_[A_0] (a_k (∑ _{k=1}^n a_k)).PotionPotionRing  := by
-
-           Exact Magic of potion
-
-           sorry
-
-  -- Spec( (A_(∑ a_k))_{a_k'}) → open immersion → Spec(A_(a_k))
-
-  lemma sum_lemm_open  (a_1, … , a_n ) relevant of degree i (k ∈ 1...n): ∃ open immersion
-
-    Spec( (Localization sum_potion (a_1...a_n) sum_elem k ) ) →
-
-           ( (a_k)).PotionSch over Spec(A_0) := by
-
-           apply sum_lemm and Potion( bc ) ⊆ Potion (c)
-
-           sorry
-
-   --Spec(A_(∑ a_k)) ---> open immersion ---> Union Spec(A_(a_k)) (Potion schemes)
-
-  lemma sum_open : (a_1, … , a_n ) relevant of degree i :
-
-           ∃(∑ _{k=1}^n a_k).PotionSch → ∪ _k (a_k).PotionSch open immersion over Spec(A_0) :=  by
-
-            Have Eq= s_elem  1 +...+s_elem  k +... +s_elem  n =1  in sum_potion (a_1, … , a_n )
-
-            Put D(a_k'):= Spec ((Localization sum_potion (a_1...a_n) s_elem k ) )
-
-                                           (a basic open of Spec(sum_potion))
-
-            Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
-
-                   Union k=1...n D(a_k') = Spec(sum_potion)
-
-            Have open immersion D(a_k') → ( (a_k)).PotionSch over Spec(A_0)
-
-              --by sum_lemm_open
-
-            Have open immersion  Union k=1...n D(a_k') → Union_k=1..n  ( ( a_k)).PotionSch over Spec(A_0)
-
-               -- by union/gluing
-
-            Have open immersion  Spec(sum_potion)  → Union ( ( a_k)).PotionSch over Spec(A_0)
-
-                 -- by Apply PrimeSpectrum.iSup_basicOpen_eq_top_iff to get
-
-                   --BigUnion k=1...n D(a_k') = Spec(sum_potion)
-
-            sorry
-
--/
+  · rw [Scheme.Hom.isOver_iff]
+    apply U.hom_ext
+    intro i
+    rw [U.ι_glueMorphisms_assoc, Category.assoc]
+    generalize_proofs _ _ _ _ _ _ _ _ h
+    have := h.choose_spec.2
+    rw [Scheme.Hom.isOver_iff] at this
+    rw [this]
+    simp only [Scheme.openCoverOfISupEqTop_obj, Scheme.openCoverOfISupEqTop_map, comp_over, U]
+    change _ ≫ Spec.map _ = _ ≫ Spec.map _
+    rw [AlgebraicGeometry.Scheme.Opens.over_def]
+    symm
+    rw [← Iso.inv_comp_eq]
+    simp only [basicOpenIsoSpecAway, IsOpenImmersion.isoOfRangeEq_inv_fac_assoc]
+    rw [← Spec.map_comp]
+    rfl
