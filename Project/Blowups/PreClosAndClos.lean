@@ -196,14 +196,9 @@ def  pull_cov (X: Scheme) (Z : PreClos X) (X' : Scheme) (g : X' ⟶  X) :
 def  pull_mor_ring (X: Scheme)  (Z : PreClos X) (X' : Scheme) (f : X' ⟶  X)
       (γβ : (pull_cov X Z X' f).J) :
     Z.cov.obj γβ.1 ⟶ (pull_loc_cov X Z X' f γβ.1).obj γβ.2 := by
-  let F := (pull_loc_cov X Z X' f γβ.1).map γβ.2 ≫ pullback.snd _ _
-  let A : AffineSchemeᵒᵖ :=
-    Opposite.op ⟨Spec ((pull_loc_cov X Z X' f γβ.fst).obj γβ.snd),
-      ⟨Opposite.op <| (pull_loc_cov X Z X' f γβ.fst).obj γβ.snd, ⟨Iso.refl _⟩⟩⟩
-  let B : AffineSchemeᵒᵖ :=
-    Opposite.op ⟨Spec (Z.cov.obj γβ.fst), ⟨Opposite.op (Z.cov.obj γβ.fst), ⟨Iso.refl _⟩⟩⟩
-  let F' : B ⟶ A := Quiver.Hom.op F
-  exact (Scheme.ΓSpecIso _).inv ≫ (AffineScheme.Γ.map F') ≫ (Scheme.ΓSpecIso _).hom
+  letI F := (pull_loc_cov X Z X' f γβ.1).map γβ.2 ≫ pullback.snd _ _
+  exact (Scheme.ΓSpecIso _).inv ≫ Scheme.Γ.map (Opposite.op F) ≫ (Scheme.ΓSpecIso _).hom
+
 
   -- have := (Scheme.ΓSpecIso (Spec ((pull_loc_cov X Z X' f γβ.fst).obj γβ.snd))).inv
   -- U_β -> X' ×_{X} U_γ -> U_γ
@@ -331,14 +326,26 @@ def pullback_PreClos_condiso {X' : Scheme} {f : X' ⟶  X} {Z: PreClos X}
       rw [pullback.condition]
       simp only [← Category.assoc]
       congr 1
-      change (ΓSpec.adjunction.unit.app _ ≫ (Scheme.Γ.rightOp ⋙ Scheme.Spec).map _) ≫ _ = _
-      rw [← ΓSpec.adjunction.unit.naturality]
-      simp only [Functor.id_obj, AffineScheme.forgetToScheme_obj, Functor.comp_obj,
-        Functor.rightOp_obj, Scheme.Γ_obj, Scheme.Spec_obj, Quiver.Hom.unop_op,
-        AffineScheme.forgetToScheme_map, Functor.id_map, ΓSpec.adjunction_unit_app, Category.assoc]
-      rw [← Category.assoc]
+      change (ΓSpec.adjunction.unit.app _ ≫ (Scheme.Spec).map _) ≫ _ = _
+      simp only [Functor.id_obj, Scheme.Spec_obj, Functor.comp_obj, Functor.rightOp_obj,
+        Scheme.Γ_obj, ΓSpec.adjunction_unit_app, Scheme.Γ_map, Quiver.Hom.unop_op', Scheme.comp_app,
+        Spec.locallyRingedSpaceObj_toSheafedSpace, Spec.sheafedSpaceObj_carrier, Spec.topObj_forget,
+        Spec.sheafedSpaceObj_presheaf, Opens.map_top, Scheme.Spec_map, Spec.map_comp,
+        Category.assoc]
+      change _ ≫ Spec.map (Scheme.Hom.appTop _) ≫ _ = _
+      -- simp only [Functor.id_obj, Scheme.Spec_obj, Functor.comp_obj, Functor.rightOp_obj,
+      --   Scheme.Γ_obj, ΓSpec.adjunction_unit_app, Scheme.Γ_map, Quiver.Hom.unop_op', Scheme.comp_app,
+      --   Spec.locallyRingedSpaceObj_toSheafedSpace, Spec.sheafedSpaceObj_carrier, Spec.topObj_forget,
+      --   Spec.sheafedSpaceObj_presheaf, Opens.map_top, Scheme.Spec_map, Spec.map_comp,
+      --   Category.assoc]
+      rw [← Scheme.toSpecΓ_naturality_assoc]
+      change _ ≫ _ ≫ Spec.map (Scheme.Hom.appTop _) ≫ _ = _
+      rw [← Scheme.toSpecΓ_naturality_assoc]
+      simp only [Spec.locallyRingedSpaceObj_toSheafedSpace, Spec.sheafedSpaceObj_carrier,
+        Spec.topObj_forget, Spec.sheafedSpaceObj_presheaf]
+      congr 1
       convert Category.comp_id _
-      rw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
+      erw [← SpecMap_ΓSpecIso_hom, ← Spec.map_comp]
       simp) rfl ≪≫ (pullback.squash₃' _ _ _).symm
 
 set_option maxHeartbeats 800000 in
@@ -446,10 +453,86 @@ lemma pullback_PreCars (X' : Scheme) (f: X' ⟶  X) [flat_f : AlgebraicGeometry.
 
     sorry
   rw [this]
+
+  let F : pullback f (Z.cov.map γ) ⟶ X := pullback.fst _ _ ≫ f
+  haveI flat_F : AlgebraicGeometry.Flat F := AlgebraicGeometry.Flat.comp _ _
   apply RingHom.Flat.preserves_nonzeroDivisors
 -- exact for affine
-  · sorry
-  · sorry
+  · have := flat_F.flat_of_affine_subset
+      ⟨Z.cov.map γ |>.opensRange, isAffineOpen_opensRange (Z.cov.map γ)⟩
+      ⟨(pull_loc_cov X Z X' f γ).map β |>.opensRange, isAffineOpen_opensRange _⟩ sorry
+    convert RingHom.Flat.comp ?_ (RingHom.Flat.comp this ?_) using 1
+
+    pick_goal 2
+    · refine RingHom.comp (CommRingCat.Hom.hom <| X.presheaf.map <| eqToHom ?_) <|
+        (IsOpenImmersion.ΓIso (Z.cov.map γ) ⊤ |>.commRingCatIsoToRingEquiv.toRingHom).comp <|
+        CommRingCat.Hom.hom <| Scheme.ΓSpecIso (Z.cov.obj γ) |>.inv
+      · aesop
+
+    pick_goal 3
+    · refine RingHom.comp (CommRingCat.Hom.hom <| Scheme.ΓSpecIso _ |>.hom) <|
+        (IsOpenImmersion.ΓIsoTop ((pull_loc_cov X Z X' f γ).map β)) |>.commRingCatIsoToRingEquiv.symm.toRingHom.comp <|
+        CommRingCat.Hom.hom <| (pullback f (Z.cov.map γ)).presheaf.map <| eqToHom ?_
+      aesop
+    · simp only [Opens.map_top, RingEquiv.toRingHom_eq_coe,
+        Iso.commRingCatIsoToRingEquiv_toRingHom, ← CommRingCat.hom_comp]
+      simp only [Category.assoc, CommRingCat.hom_comp]
+      rw [show (IsOpenImmersion.ΓIsoTop ((pull_loc_cov X Z X' f γ).map β)).commRingCatIsoToRingEquiv.symm =
+        (IsOpenImmersion.ΓIsoTop ((pull_loc_cov X Z X' f γ).map β)).inv.hom by rfl]
+      simp only [eqToHom_refl, CategoryTheory.Functor.map_id, CommRingCat.hom_id,
+        RingHomCompTriple.comp_eq, ← CommRingCat.hom_comp, Category.assoc,
+        Scheme.Hom.map_appLE_assoc]
+      congr 1
+      change _ ≫ _ ≫ _ = _
+      congr 1
+      simp only [Scheme.Γ_obj, Spec.locallyRingedSpaceObj_toSheafedSpace,
+        Spec.sheafedSpaceObj_carrier, Spec.topObj_forget, Spec.sheafedSpaceObj_presheaf,
+        Scheme.Γ_map, Quiver.Hom.unop_op', Scheme.comp_app, Opens.map_top, ← Category.assoc]
+      congr 1
+      simp only [Category.assoc]
+      rw [← Iso.inv_comp_eq]
+      simp only [IsOpenImmersion.ΓIso_inv, Opens.map_top]
+      simp only [IsOpenImmersion.ΓIsoTop, Iso.trans_inv, Functor.mapIso_inv, Iso.op_inv,
+        eqToIso.inv, eqToHom_op, Iso.symm_inv, Scheme.Hom.appLE_map_assoc]
+      rw [Scheme.Hom.appIso_hom]
+      simp only [eqToHom_op]
+      change _ ≫ Scheme.Hom.appTop _ ≫ Scheme.Hom.appTop _ = _
+      rw [show Scheme.Hom.appTop (pullback.snd f (Z.cov.map γ)) ≫ Scheme.Hom.appTop ((pull_loc_cov X Z X' f γ).map β) =
+        Scheme.Hom.appTop ((pull_loc_cov X Z X' f γ).map β ≫ pullback.snd f (Z.cov.map γ)) by rfl]
+
+      rw [show Scheme.Hom.app ((pull_loc_cov X Z X' f γ).map β) ((pull_loc_cov X Z X' f γ).map β ''ᵁ ⊤) =
+        Scheme.Hom.appLE ((pull_loc_cov X Z X' f γ).map β) _ _ (by simp) by rfl]
+      erw [Scheme.Hom.appLE_map']
+      swap
+      · simp
+      swap
+      · simp
+      aesop_cat
+    · apply RingHom.Flat.comp
+      · apply RingHom.Flat.comp
+        · apply RingHom.Flat.of_bijective
+          exact ConcreteCategory.bijective_of_isIso ..
+        · apply RingHom.Flat.of_bijective
+          exact RingEquiv.bijective _
+      · apply RingHom.Flat.of_bijective
+        rw [Function.bijective_iff_has_inverse]
+        use (CommRingCat.Hom.hom <| X.presheaf.map (eqToHom (by aesop)))
+        constructor
+        · intro x
+          rw [← ConcreteCategory.comp_apply, ← X.presheaf.map_comp, eqToHom_trans, eqToHom_refl]
+          simp
+        · intro x
+          rw [← ConcreteCategory.comp_apply, ← X.presheaf.map_comp, eqToHom_trans, eqToHom_refl]
+          simp
+    · apply RingHom.Flat.comp
+      · apply RingHom.Flat.comp
+        · apply RingHom.Flat.of_bijective
+          exact ConcreteCategory.bijective_of_isIso ..
+        · apply RingHom.Flat.of_bijective
+          exact RingEquiv.bijective _
+      · apply RingHom.Flat.of_bijective
+        exact ConcreteCategory.bijective_of_isIso ..
+  · assumption
 
 lemma pullback_IsCars (X' : Scheme) (f: X' ⟶  X) [AlgebraicGeometry.Flat f]
     (Z: Clos X) (hZ : IsCars _ Z)  :
