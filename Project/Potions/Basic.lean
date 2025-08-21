@@ -77,6 +77,9 @@ def potionEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃+* 
       simp [← show HomogeneousLocalization.mk x = Quotient.mk'' x by rfl,
         HomogeneousLocalization.map_mk])
 
+def potionAlgEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃ₐ[𝒜 0] T.Potion :=
+AlgEquiv.ofRingEquiv (f := potionEquiv eq) (by sorry)
+
 @[simp]
 lemma potionEquiv_mk {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) (x) :
     S.potionEquiv eq (.mk x) = .mk ⟨x.deg, ⟨x.num, eq ▸ x.num.2⟩, ⟨x.den, eq ▸ x.den.2⟩,
@@ -443,5 +446,31 @@ lemma PotionGen.disjUnion_genSubmonoid {R S T : HomogeneousSubmonoid 𝒜}
     · exact Submonoid.subset_closure ⟨Sum.inr t, rfl⟩
 
 end PotionGen
+
+-- def potionEquivProduct' (S : HomogeneousSubmonoid 𝒜) [DecidableEq A] {ι : Type*}
+--   (f : ι → A)
+--   (s : Finset ι) (s_hom : ∀ i ∈ s, SetLike.IsHomogeneousElem 𝒜 (f i))
+--   (S_eq : S = closure (s.image f) s_hom) :
+--   S.Potion ≃+* (HomogeneousSubmonoid.closure {∏ a ∈ s, f a}
+--     (by rintro - rfl; apply SetLike.IsHomogeneousElem.prod''; sorry) : HomogeneousSubmonoid 𝒜).Potion :=
+--   -- S.equivBarPotion.trans <| RingEquiv.trans (potionEquiv <| (by rw [S_eq, closure_product_bar])) <|
+--   --   (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+--   --     (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).equivBarPotion.symm
+
+def potionEquivProduct (S : HomogeneousSubmonoid 𝒜)
+  (s : Finset A) (s_hom : ∀ a ∈ s, SetLike.IsHomogeneousElem 𝒜 a)
+  (S_eq : S = closure s s_hom) :
+  S.Potion ≃+* (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+    (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).Potion :=
+  S.equivBarPotion.trans <| RingEquiv.trans (potionEquiv <| (by rw [S_eq, closure_product_bar])) <|
+    (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+      (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).equivBarPotion.symm
+
+def potionAlgEquivProduct (S : HomogeneousSubmonoid 𝒜)
+    (s : Finset A) (s_hom : ∀ a ∈ s, SetLike.IsHomogeneousElem 𝒜 a)
+    (S_eq : S = closure s s_hom) :
+    S.Potion ≃ₐ[𝒜 0] (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+      (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).Potion :=
+  AlgEquiv.ofRingEquiv (f := S.potionEquivProduct s s_hom S_eq) (by sorry)
 
 end HomogeneousSubmonoid

@@ -1,6 +1,8 @@
 import Project.Dilatation.Family
 import Project.Grading.Injection
 
+import Project.Potions.Basic
+
 import Mathlib.RingTheory.GradedAlgebra.Basic
 
 suppress_compilation
@@ -587,6 +589,9 @@ lemma eq_single_of_homogeneous' (x : ReesAlgebra F) (hx : SetLike.IsHomogeneousE
   use 0
   ext w
   simp [zero_def]
+
+instance (S : HomogeneousSubmonoid (ReesAlgebra.intGrading F)) : Algebra A S.Potion :=
+  RingHom.toAlgebra <| RingHom.comp (algebraMap _ _) (degreeZeroIso' F).toRingHom
 
 end ReesAlgebra
 

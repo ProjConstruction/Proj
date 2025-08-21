@@ -75,6 +75,10 @@ lemma IsRelevant.ofLE (h : T ≤ S) (T_rel : T.IsRelevant) : S.IsRelevant := by
   use x
   rfl
 
+
+lemma IsRelevant.mul_homogeneous (S T : HomogeneousSubmonoid 𝒜) (S_rel : S.IsRelevant) :
+  (S * T).IsRelevant := IsRelevant.ofLE _ _ (left_le_mul S T) S_rel
+
 lemma isRelevant_iff_finite_quotient_of_FG [AddGroup.FG ι] :
     S.IsRelevant ↔ Finite (ι ⧸ ι[S.bar]) := by
   rw [isRelevant_iff_isTorsion_quotient]

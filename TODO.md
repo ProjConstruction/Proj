@@ -6,3 +6,8 @@ this is almost done
 
 - pullback_PreCars: reduce to affine
 done
+
+
+
+- finish `closure_product_bar`
+- finish c_repr_rees

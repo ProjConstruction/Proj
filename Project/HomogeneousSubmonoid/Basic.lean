@@ -214,6 +214,19 @@ lemma bar_mono (S T : HomogeneousSubmonoid 𝒜) : S ≤ T → S.bar ≤ T.bar :
   rintro h x ⟨hom_x, ⟨y, ⟨hy, hy'⟩⟩⟩
   exact ⟨hom_x, ⟨y, ⟨h hy, hy'⟩⟩⟩
 
+lemma self_le_bar (S : HomogeneousSubmonoid 𝒜) : S ≤ S.bar := by
+  intro s hs
+  simp only [mem_toSubmonoid_iff, mem_bar] at hs ⊢
+  exact ⟨S.homogeneous hs, ⟨s, hs, by rfl⟩⟩
+
+@[simp]
+lemma bar_bar (S : HomogeneousSubmonoid 𝒜) : S.bar.bar = S.bar := by
+  refine le_antisymm ?_ S.bar.self_le_bar
+  intro x hx
+  simp only [mem_toSubmonoid_iff, mem_bar] at hx ⊢
+  obtain ⟨hx1, ⟨-, ⟨hy1, ⟨-, hz, ⟨z, rfl⟩⟩⟩, ⟨y, rfl⟩⟩⟩ := hx
+  exact ⟨hx1, ⟨x * y * z, hz, ⟨y * z, by ring⟩⟩⟩
+
 omit [AddCommGroup ι] [DecidableEq ι] [AddSubgroupClass σ A] [GradedRing 𝒜] in
 lemma le_iff (S T : HomogeneousSubmonoid 𝒜) : S ≤ T ↔ S.toSubmonoid ≤ T.toSubmonoid :=
   Iff.rfl
@@ -302,6 +315,27 @@ lemma mem_deg_singleton (a : A) (ha : SetLike.IsHomogeneousElem 𝒜 a) (x) :
     refine ⟨a^n, ?_, hn⟩
     rw [mem_closure_singleton (ha := ha)]
     aesop
+
+lemma closure_product_bar (s : Finset A) (s_hom : ∀ x ∈ s, SetLike.IsHomogeneousElem 𝒜 x) :
+    (closure s s_hom).bar  =
+    (closure {∏ x ∈ s, x} (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ s_hom)).bar := by
+  classical
+  refine le_antisymm ?_ (bar_mono _ _ <| ?_)
+  · suffices (closure  s s_hom).bar ≤ (closure {∏ x ∈ s, x} (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ s_hom)).bar.bar by
+      simpa
+    apply bar_mono
+    change Submonoid.closure _ ≤ _
+    dsimp
+    rw [Submonoid.closure_le]
+    intro x hx
+    simp only [SetLike.mem_coe, mem_toSubmonoid_iff, mem_bar]
+    refine ⟨s_hom _ hx, ∏ x ∈ s, x, ?_, ∏ y ∈ s with y ≠ x, y, ?_⟩
+
+    · apply Submonoid.subset_closure
+      simp
+    ·
+      sorry
+  · sorry
 
 lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S, x ∈ 𝒜 i := Iff.rfl
 

@@ -26,6 +26,7 @@ import Mathlib.RingTheory.RingHom.Flat
 
 import Project.Blowups.PreClosAndClos
 import Project.Blowups.Bl
+import Project.Proj.Sum'
 
 
 suppress_compilation
@@ -374,7 +375,7 @@ theorem ProjBlowup_UnivProp_unicity_affine
   sorry
 
 
--- set_option maxHeartbeats 400000 in
+set_option maxHeartbeats 400000 in
 open Multicenter in
 -- set_option diagnostics true in
 lemma ProjBlowup_UnivProp_existence_affine_preclo
@@ -382,6 +383,7 @@ lemma ProjBlowup_UnivProp_existence_affine_preclo
     {T : Scheme} [T.Over (Spec A)]
     (cond : IsCars _ (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L))) :
     ∃ φ : T ⟶ BlMu L, Scheme.Hom.IsOver φ (Spec A) := by
+  classical
 
   have (x : T) : false := by
     obtain ⟨Z, hZ, eq⟩ := cond
@@ -420,10 +422,11 @@ lemma ProjBlowup_UnivProp_existence_affine_preclo
 
     let Rees := ReesAlgebra (fun i : ι => Ideal.map (algebraMap A B) (L i))
 
-    let C : Rees := ∑ i : ι, .single _ (Finsupp.single i 1) _
-    -- exists finite set S such f_{s, i} ∈ L_i for each s ∈ S and each i ∈ ι and λ_{s, i} in B for each s ∈ S and i ∈ ι,
-    -- such that c_i = ∑ s ∈ S, f_{s, i} • λ_{s, i} -- this is because in span
-    -- so S = ∪ s_i
+
+  --   let C : Rees := ∑ i : ι, .single _ (Finsupp.single i 1) _
+  --   -- exists finite set S such f_{s, i} ∈ L_i for each s ∈ S and each i ∈ ι and λ_{s, i} in B for each s ∈ S and i ∈ ι,
+  --   -- such that c_i = ∑ s ∈ S, f_{s, i} • λ_{s, i} -- this is because in span
+  --   -- so S = ∪ s_i
 
     let Mu_c : Mu (fun i => Ideal.map (algebraMap A B) (L i)) :=
     { multicenter := mc
@@ -433,81 +436,190 @@ lemma ProjBlowup_UnivProp_existence_affine_preclo
       surj := by simp
       cond := by sorry }
 
-    let SpecBDilaIso :
-      Spec (CommRingCat.of (B[mc])) ≅
-      Spec (CommRingCat.of (clo_mu _ Mu_c).Potion)  :=
-      { hom := Spec.map <| CommRingCat.ofHom <| (Mu_mor_iso _ _).symm.toRingHom
-        inv := Spec.map <| CommRingCat.ofHom <| (Mu_mor_iso _ Mu_c).toRingHom
-        hom_inv_id := sorry
-        inv_hom_id := sorry }
+    let iso1 : B[mc] ≃ₐ[B] (clo_mu _ Mu_c).Potion := (Mu_mor_iso _ Mu_c)
+
+    let iso2 : (clo_mu _ Mu_c).Potion ≃ₐ[B] HomogeneousSubmonoid.Potion
+      (.closure {∏ i : ι, ReesAlgebra.single _ (Finsupp.single i 1)
+        ⟨c i, by simp [ideal_eq]; aesop⟩} (by sorry) :
+          HomogeneousSubmonoid (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i))) :=
+      AlgEquiv.ofRingEquiv (f := HomogeneousSubmonoid.potionEquivProduct (clo_mu _ Mu_c)
+        ((Finset.univ (α := ι)).image fun i => ReesAlgebra.single _ (Finsupp.single i 1)
+        ⟨c i, by simp [ideal_eq]; aesop⟩) sorry sorry) sorry |>.trans <| AlgEquiv.ofRingEquiv (f := potionEquiv sorry) sorry
+
+
+    -- let SpecBDilaIso :
+    --   Spec (CommRingCat.of (B[mc])) ≅
+    --   Spec (CommRingCat.of (clo_mu _ Mu_c).Potion)  :=
+    --   { hom := Spec.map <| CommRingCat.ofHom <| (Mu_mor_iso _ _).symm.toRingHom
+    --     inv := Spec.map <| CommRingCat.ofHom <| (Mu_mor_iso _ Mu_c).toRingHom
+    --     hom_inv_id := sorry
+    --     inv_hom_id := sorry }
 
     have mem (i : ι) : c i ∈ Ideal.map (algebraMap A B) (L i) := by
       rw [ideal_eq]
       exact Ideal.mem_span_singleton_self (c i)
-
-    have c_repr (i : ι) : ∃ (l : A → A) (b : A → B) (s : Finset A),
-      Function.support l ⊆ s ∧
-      c i = ∑ i ∈ s, l i • b i := by
+    change ∀ i, c i ∈ Submodule.span _ _ at mem
+    simp_rw [Submodule.mem_span_iff_exists_finset_subset] at mem
+    -- have c_repr (i : ι) : ∃ (l : A → A) (b : A → B) (s : Finset A),
+    --   Function.support l ⊆ s ∧
+    --   c i = ∑ i ∈ s, l i • b i := by
+    --   sorry
+    have c_repr (i : ι) : ∃ (lambda : A → B) (t : Finset A), (t : Set A) ⊆ L i ∧
+      Function.support lambda ⊆ t ∧ ∑ a ∈ t, lambda a • algebraMap A B a = c i := by
       sorry
 
+    choose lambda t t_subset lambda_support EQ using c_repr
+
+    have c_repr_rees (i : ι) :
+      (∑ a ∈ t i, ReesAlgebra.single ((fun i ↦ Ideal.map (algebraMap A B) (L i))) 0 ⟨lambda i a, sorry⟩ *
+        ReesAlgebra.single ((fun i ↦ Ideal.map (algebraMap A B) (L i))) (Finsupp.single i 1) ⟨algebraMap A B a, sorry⟩ : Rees) =
+      (ReesAlgebra.single _ (Finsupp.single i 1) ⟨c i, by simp [ideal_eq]; aesop⟩ : Rees) := by
+
+      sorry
+
+    have eq :
+      (∏ i : ι, ReesAlgebra.single _ (Finsupp.single i 1) ⟨c i, by simp [ideal_eq]; aesop⟩ : Rees) =
+      ∏ i : ι, (∑ a ∈ t i, ReesAlgebra.single ((fun i ↦ Ideal.map (algebraMap A B) (L i))) 0 ⟨lambda i a, sorry⟩ *
+        ReesAlgebra.single ((fun i ↦ Ideal.map (algebraMap A B) (L i))) (Finsupp.single i 1) ⟨algebraMap A B a, sorry⟩ : Rees) := by sorry
+
+    rw [Finset.prod_sum] at eq
+
+    set rhs_summand : ((a : ι) → a ∈ Finset.univ → ↑A) → Rees := _
+    set rhs :=  ∑ p ∈ Finset.univ.pi t, rhs_summand p
+    change _ = rhs at eq
+    let iso3 : (.closure {∏ i : ι, ReesAlgebra.single _ (Finsupp.single i 1)
+        ⟨c i, by simp [ideal_eq]; aesop⟩} (by sorry) :
+          HomogeneousSubmonoid (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i))).Potion ≃ₐ[B]
+      (.closure {rhs} (by sorry) :
+          HomogeneousSubmonoid (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i))).Potion :=
+      AlgEquiv.ofRingEquiv (f := potionEquiv sorry) sorry
+
+    let ISO := dilaIso.symm.trans <| iso1.trans iso2 |>.trans iso3
+
+    let potionOfSum := (HomogeneousSubmonoid.closure {rhs} sorry :
+      HomogeneousSubmonoid (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap ↑A ↑B) (L i))).Potion
+
+    let mor3 : Spec B ≅ Spec (CommRingCat.of <| potionOfSum) :=
+    { hom := Spec.map <| CommRingCat.ofHom <| ISO.symm
+      inv := Spec.map <| CommRingCat.ofHom <| ISO
+      hom_inv_id := sorry
+      inv_hom_id := sorry }
+
+    obtain ⟨F, hF⟩  := sum_open_finset
+      (𝒜 := (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i))) (s := Finset.univ.pi t) (f := rhs_summand)
+      (d := ∑ i : ι, Finsupp.single i 1) sorry sorry
+
+    let rhs_summand_simplifed : ((a : ι) → a ∈ Finset.univ → ↑A) → Rees := fun p =>
+      ∏ x ∈ Finset.univ.attach,
+    (ReesAlgebra.single (fun i ↦ Ideal.map (algebraMap ↑A ↑B) (L i)) (Finsupp.single x.1 1))
+        ⟨(algebraMap A B) (p x sorry), sorry⟩
+
+    let aux0_component (p : (a : ι) → a ∈ Finset.univ → A) :
+      Spec (CommRingCat.of <| (HomogeneousSubmonoid.closure {rhs_summand p} sorry :
+        HomogeneousSubmonoid (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i))).Potion) ⟶
+      Spec (CommRingCat.of <| (HomogeneousSubmonoid.closure {rhs_summand_simplifed p} sorry :
+        HomogeneousSubmonoid (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i))).Potion) :=
+      Spec.map <| sorry
+
+
+    let aux0 :
+      unionSpecFinset (𝒜 := (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i)))
+        (d := ∑ i : ι, Finsupp.single i 1)
+        (f := rhs_summand) (s := Finset.univ.pi t) sorry sorry ⟶
+      unionSpecFinset (𝒜 := (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i)))
+        (d := ∑ i : ι, Finsupp.single i 1)
+        (f := rhs_summand_simplifed) (s := Finset.univ.pi t) sorry sorry :=
+      Multicoequalizer.desc _ _
+        (fun p => aux0_component p.1 ≫ componentToUnionSpecFinset
+          (𝒜 := (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i)))
+          (d := ∑ i : ι, Finsupp.single i 1)
+          (f := rhs_summand_simplifed) (s := Finset.univ.pi t)
+          _ _ _ (by simp))
+        sorry
+
+    let rhs_summand_ReesA : ((a : ι) → a ∈ Finset.univ → A) → ReesAlgebra fun i ↦ L i := fun p =>
+      ∏ x ∈ Finset.univ.attach,
+      (ReesAlgebra.single (fun i ↦ L i) (Finsupp.single x.1 1))
+        ⟨p x sorry, sorry⟩
+
+    let aux1 :
+      unionSpecFinset (𝒜 := (ReesAlgebra.intGrading fun i ↦ Ideal.map (algebraMap A B) (L i)))
+        (d := ∑ i : ι, Finsupp.single i 1)
+        (f := rhs_summand_simplifed) (s := Finset.univ.pi t) sorry sorry ⟶
+      unionSpecFinset (𝒜 := (ReesAlgebra.intGrading fun i ↦ L i))
+        (d := ∑ i : ι, Finsupp.single i 1)
+        (f := rhs_summand_ReesA)
+        (s := Finset.univ.pi t)
+        sorry sorry :=
+      Multicoequalizer.desc _ _
+        (fun i => sorry)
+        sorry
+
+    let aux2 :
+      unionSpecFinset (𝒜 := (ReesAlgebra.intGrading fun i ↦ L i))
+        (d := ∑ i : ι, Finsupp.single i 1)
+        (f := rhs_summand_ReesA)
+        (s := Finset.univ.pi t)
+        sorry sorry ⟶
+      BlMu L := sorry
+
+    let finalF := F ≫ aux0 ≫ aux1 ≫ aux2
+    -- let mor4 : Spec (CommRingCat.of <| potionOfSum) ⟶ unionSpec _ _ _ := by sorry
+
+
+  --   sorry
+
+  -- have gluing_material (x : T) :
+  --   ∃ (B : CommRingCat)
+  --     (emb : Spec B ⟶ T) (_ : Scheme.Over (Spec B) (Spec A))
+  --     (_ : Scheme.Hom.IsOver emb (Spec A))
+  --     (_ : IsOpenImmersion emb)
+  --     (φ : Spec B ⟶ BlMu L),
+  --     x ∈ Set.range emb.base ∧ Scheme.Hom.IsOver φ (Spec A) := by
 
 
 
+  --   sorry
+
+  -- choose B emb oB emb_over_A o_emb φ mem over using gluing_material
+
+  -- letI (x y : T) : (pullback (emb x) (emb y)).Over (Spec A) :=
+  -- { hom := pullback.fst (emb x) (emb y) ≫ (Spec (B x) ↘ Spec A) }
+
+  -- letI (x y : T) : Flat (pullback (emb x) (emb y) ↘ Spec A) := by sorry
 
 
-    sorry
+  -- let φ_global : T ⟶ BlMu L := AlgebraicGeometry.Scheme.Cover.glueMorphisms
+  --   { J := T
+  --     obj x := Spec <| B x
+  --     map x := emb x
+  --     f := id
+  --     covers := mem
+  --     map_prop := o_emb }
+  --   φ
+  --   (by
+  --     rintro (x y : T)
+  --     simp only
+  --     apply ProjBlowup_UnivProp_unicity_affine
+  --     · have eq0 := pullback_assoc
+  --         (Z := loc_to_Clos A L) (X'' := pullback (emb x) (emb y)) (X' := T)
+  --         (pullback.fst _ _ ≫ emb x) (T ↘ Spec A)
+  --       simp only [Category.assoc] at eq0
+  --       have is_car1 : IsCars _ (pullback_Clos (pullback.fst (emb x) (emb y) ≫ emb x) (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L))) := by
+  --         apply pullback_IsCars
+  --         assumption
+  --       rw [← eq0] at is_car1
 
-  have gluing_material (x : T) :
-    ∃ (B : CommRingCat)
-      (emb : Spec B ⟶ T) (_ : Scheme.Over (Spec B) (Spec A))
-      (_ : Scheme.Hom.IsOver emb (Spec A))
-      (_ : IsOpenImmersion emb)
-      (φ : Spec B ⟶ BlMu L),
-      x ∈ Set.range emb.base ∧ Scheme.Hom.IsOver φ (Spec A) := by
-
-
-
-    sorry
-
-  choose B emb oB emb_over_A o_emb φ mem over using gluing_material
-
-  letI (x y : T) : (pullback (emb x) (emb y)).Over (Spec A) :=
-  { hom := pullback.fst (emb x) (emb y) ≫ (Spec (B x) ↘ Spec A) }
-
-  letI (x y : T) : Flat (pullback (emb x) (emb y) ↘ Spec A) := by sorry
-
-
-  let φ_global : T ⟶ BlMu L := AlgebraicGeometry.Scheme.Cover.glueMorphisms
-    { J := T
-      obj x := Spec <| B x
-      map x := emb x
-      f := id
-      covers := mem
-      map_prop := o_emb }
-    φ
-    (by
-      rintro (x y : T)
-      simp only
-      apply ProjBlowup_UnivProp_unicity_affine
-      · have eq0 := pullback_assoc
-          (Z := loc_to_Clos A L) (X'' := pullback (emb x) (emb y)) (X' := T)
-          (pullback.fst _ _ ≫ emb x) (T ↘ Spec A)
-        simp only [Category.assoc] at eq0
-        have is_car1 : IsCars _ (pullback_Clos (pullback.fst (emb x) (emb y) ≫ emb x) (pullback_Clos (T ↘ Spec A) (loc_to_Clos A L))) := by
-          apply pullback_IsCars
-          assumption
-        rw [← eq0] at is_car1
-
-        convert is_car1 using 2
-        change pullback.fst _ _ ≫ _ = _
-        congr 1
-        have := emb_over_A x
-        rw [Scheme.Hom.isOver_iff] at this
-        exact this.symm
-      · sorry -- this is easy
-      · sorry -- this is easy
-        )
-  use φ_global
+  --       convert is_car1 using 2
+  --       change pullback.fst _ _ ≫ _ = _
+  --       congr 1
+  --       have := emb_over_A x
+  --       rw [Scheme.Hom.isOver_iff] at this
+  --       exact this.symm
+  --     · sorry -- this is easy
+  --     · sorry -- this is easy
+  --       )
+  -- use φ_global
 
   sorry
 
