@@ -284,6 +284,21 @@ lemma single_eq (v v' : ι →₀ ℕ) (eq : v = v') (x : A) (hx : x ∈ F^v) :
   subst eq
   rfl
 
+lemma single_eq_iff (v v' : ι →₀ ℕ) (x : A) (hx : x ∈ F^v) (hx' : x ∈ F^v') (x_ne_zero : x ≠ 0) :
+    single F v ⟨x, hx⟩ = single F v' ⟨x, hx'⟩ ↔ v = v' := by
+  constructor
+  · intro eq
+    rw [ReesAlgebra.ext_iff] at eq
+    simp only [single_apply_val] at eq
+    have eq' := congr($eq v)
+    simp only [of_eq_same, of_apply, Subtype.ext_iff] at eq'
+    split_ifs at eq' with h
+    · exact h.symm
+    simp only [ZeroMemClass.coe_zero] at eq'
+    tauto
+  · rintro rfl
+    rfl
+
 lemma single_eq' (v v' : ι →₀ ℕ) (eq : v = v')
     (x : A) (hx : x ∈ F^v)
     (y : A) (hy : y ∈ F^v')

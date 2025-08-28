@@ -26,28 +26,28 @@ abbrev sum_potion_finset {d : ι} (s : Finset τ)
       refine ⟨d, sum_mem ?_⟩
       apply deg)
 
--- abbrev s_elem {n : ℕ} {d : ι} (a : Fin n → A)
---     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
---     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩)
---     (i : Fin n) :
---     sum_potion a deg rel :=
---   Quotient.mk''
---     { deg := d
---       num := ⟨a i, deg i⟩
---       den := ⟨∑ i, a i, sum_mem <| by aesop⟩
---       den_mem := by
---         simp only [mem_toSubmonoid_iff]
---         exact Submonoid.mem_closure_singleton_self }
+abbrev s_elem  {d : ι} (s : Finset τ)
+    (deg : ∀ a ∈ s, f a ∈ 𝒜 d)
+    (rel : ∀ (a : τ) (mem : a ∈ s), ElemIsRelevant (f a) ⟨d, deg _ mem⟩)
+    (i : τ) (hi : i ∈ s) :
+    sum_potion_finset f s deg rel :=
+  Quotient.mk''
+    { deg := d
+      num := ⟨f i, deg i hi⟩
+      den := ⟨∑ i ∈ s, f i, sum_mem <| by aesop⟩
+      den_mem := by
+        simp only [mem_toSubmonoid_iff]
+        exact Submonoid.mem_closure_singleton_self }
 
--- def s_lemma {n : ℕ} {d : ι} (a : Fin n → A)
---     (deg : ∀ i : Fin n, a i ∈ 𝒜 d)
---     (rel : ∀ i : Fin n, ElemIsRelevant (a i) ⟨d, deg i⟩)
---     (i : Fin n) :
---   Localization.Away (s_elem a deg rel i) ≃ₐ[𝒜 0]
---   Potion (HomogeneousSubmonoid.closure (𝒜 := 𝒜) {a i * ∑ j : Fin n, a j} <| by
---     rintro - rfl
---     exact SetLike.IsHomogeneousElem.mul ⟨d, by aesop⟩ ⟨d, sum_mem <| by aesop⟩) := by
---   sorry
+def s_lemma {d : ι} (s : Finset τ)
+    (deg : ∀ a ∈ s, f a ∈ 𝒜 d)
+    (rel : ∀ (a : τ) (mem : a ∈ s), ElemIsRelevant (f a) ⟨d, deg _ mem⟩)
+    (i : τ) (hi : i ∈ s) :
+  Localization.Away (s_elem f s deg rel i hi) ≃ₐ[𝒜 0]
+  Potion (HomogeneousSubmonoid.closure (𝒜 := 𝒜) {f i * ∑ j ∈ s, f j} <| by
+    rintro - rfl
+    exact SetLike.IsHomogeneousElem.mul ⟨d, by aesop⟩ ⟨d, sum_mem <| by aesop⟩) := by
+  sorry
 
 abbrev unionSpecFinset {d : ι} (s : Finset τ)
     (deg : ∀ a ∈ s, f a ∈ 𝒜 d)

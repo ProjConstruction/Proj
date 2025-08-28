@@ -10,4 +10,7 @@ done
 
 
 - finish `closure_product_bar`
+done
+
 - finish c_repr_rees
+done

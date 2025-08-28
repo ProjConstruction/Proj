@@ -333,9 +333,19 @@ lemma closure_product_bar (s : Finset A) (s_hom : ∀ x ∈ s, SetLike.IsHomogen
 
     · apply Submonoid.subset_closure
       simp
-    ·
-      sorry
-  · sorry
+    · calc ∏ x ∈ s, x
+        _ = ∏ y ∈ insert x (s.erase x), y := by
+          refine Finset.prod_congr ?_ fun _ _ => rfl
+          rwa [Finset.insert_erase]
+        _ = x * ∏ y ∈ s.erase x, y := by
+          simp [Finset.prod_insert]
+        _ = x * ∏ y ∈ s with y ≠ x, y := by
+          congr
+          ext
+          aesop
+  · refine Submonoid.closure_le.2 ?_
+    rintro - rfl
+    exact prod_mem fun x hx => Submonoid.subset_closure hx
 
 lemma mem_deg {i} : i ∈ S.deg ↔ ∃ x ∈ S, x ∈ 𝒜 i := Iff.rfl
 
