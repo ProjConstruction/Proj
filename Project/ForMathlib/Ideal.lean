@@ -1,6 +1,6 @@
-import Mathlib.Algebra.Group.Subsemigroup.Operations
-import Mathlib.Order.CompleteLattice
 import Mathlib.Algebra.Group.Pointwise.Set.Basic
+import Mathlib.Algebra.Group.Subsemigroup.Defs
+import Mathlib.Data.Set.Lattice.Image
 
 variable (A : Type*) [CommSemigroup A]
 
@@ -216,7 +216,7 @@ instance : Bot (Ideal A) where
 @[simp]
 lemma coe_bot : ((⊥ : Ideal A) : Set A) = ∅ := rfl
 
-lemma not_mem_bot (x : A) : x ∉ (⊥ : Ideal A) := Set.not_mem_empty x
+lemma not_mem_bot (x : A) : x ∉ (⊥ : Ideal A) := Set.notMem_empty x
 
 @[simp]
 lemma mem_bot_iff_false (x : A) : x ∈ (⊥ : Ideal A) ↔ False := Iff.rfl

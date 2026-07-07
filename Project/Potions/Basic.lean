@@ -1,11 +1,6 @@
-import Project.HomogeneousSubmonoid.IsoBar
 import Project.HomogeneousSubmonoid.Relevant
-import Project.ForMathlib.HomogeneousLocalization
-import Project.ForMathlib.LocalizationAway
 
-import Mathlib.AlgebraicGeometry.Gluing
-import Mathlib.AlgebraicGeometry.GammaSpecAdjunction
-import Mathlib.AlgebraicGeometry.Pullbacks
+import Mathlib.RingTheory.GradedAlgebra.HomogeneousLocalization
 
 suppress_compilation
 
@@ -25,6 +20,9 @@ lemma potion_nonzero_divisor {i : ι} (s s' : A)
     (mem : s ∈ S) (mem' : s' ∈ S) :
     HomogeneousLocalization.mk
       ⟨i, ⟨s, deg⟩, ⟨s', deg'⟩, mem'⟩ ∈ nonZeroDivisors S.Potion := by
+  rw [mem_nonZeroDivisors_iff]
+  simp_rw [mul_comm]
+  simp only [and_self]
   intro x hx
   induction x using Quotient.inductionOn' with | h x =>
   change Quotient.mk'' _ = Quotient.mk'' 0 at hx
@@ -78,6 +76,9 @@ def potionEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃+* 
       induction x using Quotient.inductionOn' with | h x =>
       simp [← show HomogeneousLocalization.mk x = Quotient.mk'' x by rfl,
         HomogeneousLocalization.map_mk])
+
+def potionAlgEquiv {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) : S.Potion ≃ₐ[𝒜 0] T.Potion :=
+AlgEquiv.ofRingEquiv (f := potionEquiv eq) (by sorry)
 
 @[simp]
 lemma potionEquiv_mk {S T : HomogeneousSubmonoid 𝒜} (eq : S = T) (x) :
@@ -155,6 +156,11 @@ lemma potionToMul_mk (x) : S.potionToMul T (.mk x) = .mk ⟨x.deg, x.num, x.den,
 @[simp]
 lemma potionToMul_mk' (x) : S.potionToMul T (Quotient.mk'' x) = .mk ⟨x.deg, x.num, x.den, left_le_mul _ _ x.den_mem⟩ := rfl
 
+def potionMapOfLE (h : S ≤ T) : S.Potion →+* T.Potion :=
+  HomogeneousLocalization.map _ _ (RingHom.id _) (by
+    erw [Submonoid.comap_id, ← le_iff]
+    exact h) fun i a hi ↦ hi
+
 /-
 A_(S) -> A_(ST) -> B_(φ(ST))
   |                 |
@@ -213,7 +219,7 @@ lemma toBarPotion_surjective : Function.Surjective (toBarPotion S) := by
   rcases x with ⟨i, ⟨m, hm⟩, ⟨n, hn⟩, hn'⟩
   simp only [mem_toSubmonoid_iff, mem_bar] at hn'
   obtain ⟨hn', y, hy, dvd⟩ := hn'
-  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hn'
+  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 hn'
     (S.homogeneous hy) dvd
   refine ⟨.mk ⟨i + j, ⟨m * z, SetLike.mul_mem_graded hm hz⟩,
     ⟨n * z, SetLike.mul_mem_graded hn hz⟩, hy⟩, ?_⟩
@@ -222,7 +228,7 @@ lemma toBarPotion_surjective : Function.Surjective (toBarPotion S) := by
   simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,
     Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists, mem_toSubmonoid_iff,
     mem_bar, exists_prop]
-  exact ⟨1, ⟨SetLike.homogeneous_one _,
+  exact ⟨1, ⟨SetLike.isHomogeneousElem_one _,
     ⟨1, one_mem _, by rfl⟩⟩, by group⟩
 
 lemma toBarPotion_injective : Function.Injective (toBarPotion S) := by
@@ -278,7 +284,7 @@ lemma toMul_equivBarPotion_symm (x) :
   rcases x with ⟨i, ⟨m, hm⟩, ⟨n, hn⟩, hn'⟩
   simp only [mem_toSubmonoid_iff, mem_bar] at hn'
   obtain ⟨hn', y, hy, dvd⟩ := hn'
-  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hn'
+  obtain ⟨z, rfl, ⟨j, hz⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 hn'
     (S.homogeneous hy) dvd
   rw [equivBarPotion_symm_apply (z_mem := hz) (hz := hy), potionToMul_mk]
   simp only
@@ -332,7 +338,7 @@ lemma finite_potionGen_exists_aux₁ (S_rel : IsRelevant S) (t : A) (m : ι) (ht
   simpa
 
 variable {S} in
-lemma finite_potionGen_exists_aux₂ (S_rel : IsRelevant S) (t : A) (ht : SetLike.Homogeneous 𝒜 t) :
+lemma finite_potionGen_exists_aux₂ (S_rel : IsRelevant S) (t : A) (ht : SetLike.IsHomogeneousElem 𝒜 t) :
   ∃ (n : ℕ+) (s s' : A) (i i' : ι),
     t^(n : ℕ) ∈ 𝒜 (i - i') ∧ s ∈ 𝒜 i ∧ s' ∈ 𝒜 i' ∧ s ∈ S.bar ∧ s' ∈ S.bar :=
   finite_potionGen_exists_aux₁ S_rel t ht.choose ht.choose_spec
@@ -440,5 +446,31 @@ lemma PotionGen.disjUnion_genSubmonoid {R S T : HomogeneousSubmonoid 𝒜}
     · exact Submonoid.subset_closure ⟨Sum.inr t, rfl⟩
 
 end PotionGen
+
+-- def potionEquivProduct' (S : HomogeneousSubmonoid 𝒜) [DecidableEq A] {ι : Type*}
+--   (f : ι → A)
+--   (s : Finset ι) (s_hom : ∀ i ∈ s, SetLike.IsHomogeneousElem 𝒜 (f i))
+--   (S_eq : S = closure (s.image f) s_hom) :
+--   S.Potion ≃+* (HomogeneousSubmonoid.closure {∏ a ∈ s, f a}
+--     (by rintro - rfl; apply SetLike.IsHomogeneousElem.prod''; sorry) : HomogeneousSubmonoid 𝒜).Potion :=
+--   -- S.equivBarPotion.trans <| RingEquiv.trans (potionEquiv <| (by rw [S_eq, closure_product_bar])) <|
+--   --   (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+--   --     (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).equivBarPotion.symm
+
+def potionEquivProduct (S : HomogeneousSubmonoid 𝒜)
+  (s : Finset A) (s_hom : ∀ a ∈ s, SetLike.IsHomogeneousElem 𝒜 a)
+  (S_eq : S = closure s s_hom) :
+  S.Potion ≃+* (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+    (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).Potion :=
+  S.equivBarPotion.trans <| RingEquiv.trans (potionEquiv <| (by rw [S_eq, closure_product_bar])) <|
+    (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+      (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).equivBarPotion.symm
+
+def potionAlgEquivProduct (S : HomogeneousSubmonoid 𝒜)
+    (s : Finset A) (s_hom : ∀ a ∈ s, SetLike.IsHomogeneousElem 𝒜 a)
+    (S_eq : S = closure s s_hom) :
+    S.Potion ≃ₐ[𝒜 0] (HomogeneousSubmonoid.closure {∏ a ∈ s, a}
+      (by rintro - rfl; exact SetLike.IsHomogeneousElem.prod _ (by aesop)) : HomogeneousSubmonoid 𝒜).Potion :=
+  AlgEquiv.ofRingEquiv (f := S.potionEquivProduct s s_hom S_eq) (by sorry)
 
 end HomogeneousSubmonoid

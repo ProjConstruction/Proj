@@ -1,0 +1,623 @@
+-- import Project.Dilatation.Multicenter
+-- import Mathlib.Data.Sum.Basic
+-- import Project.Dilatation.ReesAlgebra
+-- import Mathlib.RingTheory.Ideal.Maps
+-- import Mathlib.Algebra.DirectSum.Basic
+-- import Project.Dilatation.lemma
+-- import Mathlib.RingTheory.Ideal.Operations
+-- import Mathlib.RingTheory.Localization.Basic
+-- import Project.Dilatation.Family
+-- import Mathlib.RingTheory.GradedAlgebra.Basic
+-- import Mathlib.RingTheory.TensorProduct.Basic
+-- import Project.HomogeneousSubmonoid.Basic
+-- import Project.ForMathlib.TensorProduct
+-- import Project.Proj.Over
+-- import Project.Dilatation.Multicenter
+
+
+-- suppress_compilation
+-- universe u
+-- variable {A : Type u} [CommRing A]
+-- variable {B : Type u} [CommRing B]
+-- variable {ι : Type u} [Fintype ι] (L : ι → Ideal A)
+-- [DecidableEq ι]
+-- variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
+
+
+-- open GoodPotionIngredient
+-- def Bl  := Proj (τ := GoodPotionIngredient (ReesAlgebra.intGrading L)) id
+
+
+-- structure Mu where
+-- multicenter: Multicenter A
+-- Ψ : multicenter.index → ι
+-- sec : ι → multicenter.index
+-- surj : ∀ i, Ψ (sec i) = i
+-- cond : ∀ i, multicenter.LargeIdeal i = L (Ψ i)
+
+-- instance [Nonempty ι] (P : Mu L) : Nonempty P.multicenter.index := by
+--   apply Nonempty.map P.sec
+--   assumption
+
+-- instance [IsEmpty ι] (P : Mu L) : IsEmpty P.multicenter.index := by
+--   by_contra rid
+--   simp only [not_isEmpty_iff] at rid
+--   have : IsEmpty (P.multicenter.index → ι) := by
+--     infer_instance
+--   exact this.elim P.Ψ
+
+-- omit [Fintype ι] [DecidableEq ι] [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))] in
+-- lemma Mu.surjective (P: Mu L) : Function.Surjective P.Ψ := by
+--   intro i
+--   use P.sec i
+--   exact P.surj i
+
+
+-- @[simps]
+-- def union_center (F F': Multicenter A): Multicenter A :=
+--   { index := F.index ⊕ F'.index
+--     ideal := fun i => match i with
+--       | Sum.inl i => F.ideal i
+--       | Sum.inr i => F'.ideal i
+--     elem := fun i => match i with
+--       | Sum.inl i => F.elem i
+--       | Sum.inr i => F'.elem i
+--     }
+-- @[simp]
+-- lemma union_center_largeIdeal_left (F F' : Multicenter A) (i : F.index) :
+--  (union_center F F').LargeIdeal (Sum.inl i) = F.LargeIdeal i := rfl
+
+-- @[simp]
+-- lemma union_center_largeIdeal_right (F F' : Multicenter A) (i : F'.index) :
+--  (union_center F F').LargeIdeal (Sum.inr i) = F'.LargeIdeal i := rfl
+
+-- def union_Mu (P P' : Mu L) : Mu L :=
+--   { multicenter := union_center P.multicenter P'.multicenter,
+--     Ψ := Sum.rec (P.Ψ) (P'.Ψ),
+--     sec := Sum.inl ∘ P.sec
+--     surj := by
+--       intro i
+--       simpa [union_center_index, Function.comp_apply] using P.surj i
+--     cond := by
+--       rintro (i|i)
+--       · simp [P.cond i]
+--       · simp [P'.cond i] }
+
+-- def clo_mu (P: Mu L) [DecidableEq P.multicenter.index] :
+--     HomogeneousSubmonoid (ReesAlgebra.intGrading L):=
+--   HomogeneousSubmonoid.closure
+--       { ReesAlgebra.single L (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, by
+--         rw [familyPow_single, ← P.cond i]
+--         apply Multicenter.elem_mem_LargeIdeal⟩ | (i : P.multicenter.index) } <| by
+--   rintro _ ⟨i, rfl⟩
+--   use (Finsupp.single (P.Ψ i) 1)
+--   simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply]
+--   split_ifs with h
+--   · rcases h with ⟨n, hn⟩
+--     have eq₀ : n = Finsupp.single (P.Ψ i) 1 := by
+--       ext j
+--       rw [Finsupp.ext_iff] at hn
+--       specialize hn j
+--       simp only [Finsupp.single_apply] at hn ⊢
+--       split_ifs at hn ⊢ with h
+--       · simpa [ρNatToInt] using hn
+--       · simpa [ρNatToInt] using hn
+
+--     refine ⟨⟨P.multicenter.elem i, ?_⟩, ?_⟩
+--     · simp_rw [← hn]
+--       generalize_proofs _ h1
+--       have eq : Set.rangeSplitting ⇑(ρNatToInt ι) ⟨(ρNatToInt ι) n, h1⟩ = n := by
+--         apply ρNatToInt_inj
+--         rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+--       rw [eq, eq₀]
+
+--       rw [familyPow_single, ← P.cond i]
+--       apply Multicenter.elem_mem_LargeIdeal
+
+--     · apply ReesAlgebra.single_eq
+--       subst eq₀
+--       apply ρNatToInt_inj
+--       simp_rw [← hn]
+--       rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+--   · refine h ?_ |>.elim
+--     use Finsupp.single (P.Ψ i) 1
+--     ext j
+--     simp [ρNatToInt]
+
+-- omit [Fintype ι] in
+-- lemma mu_clo_isEmpty [IsEmpty ι] (P: Mu L) [DecidableEq P.multicenter.index] :
+--     clo_mu L P = HomogeneousSubmonoid.bot := by
+--   ext x
+--   simp only [Subsemigroup.mem_carrier, Submonoid.mem_toSubsemigroup,
+--     HomogeneousSubmonoid.mem_toSubmonoid_iff, HomogeneousSubmonoid.mem_bot]
+--   refine ⟨?_, by rintro rfl; exact one_mem _⟩
+--   intro H
+--   refine Submonoid.closure_induction (hx := H) ?_ ?_ ?_
+--   · rintro _ ⟨i, rfl⟩
+--     exact (inferInstance : IsEmpty P.multicenter.index).elim i
+--   · rfl
+--   · rintro x y hx hy rfl rfl
+--     simp
+
+-- open Family
+-- omit [Fintype ι] in
+-- lemma mem_clo_mu (P : Mu L) [DecidableEq P.multicenter.index] (x) :
+--     x ∈ clo_mu L P ↔
+--       ∃ (n : P.multicenter.index →₀ ℕ), x =
+--       (fun i ↦ .single L (Finsupp.single (P.Ψ i) 1)
+--       ⟨P.multicenter.elem i, by
+--         simp only [familyPow_single]
+--         rw [← P.cond]
+--         exact Multicenter.elem_mem_LargeIdeal P.multicenter i⟩ : P.multicenter.index → ReesAlgebra L) ^ n := by
+--   obtain (E|⟨i⟩) := isEmpty_or_nonempty ι
+--   · fconstructor
+--     · rintro h
+--       rw [mu_clo_isEmpty] at h
+--       simp only [HomogeneousSubmonoid.mem_bot] at h
+--       subst h
+--       use 0
+--       simp
+--     · rintro ⟨n, hn, rfl⟩
+--       refine prod_mem fun i hi ↦ ?_
+--       exact (inferInstance : IsEmpty P.multicenter.index).elim i
+--   fconstructor
+--   · intro hx
+--     refine Submonoid.closure_induction (hx := hx) ?_ ?_ ?_
+--     · rintro _ ⟨i, rfl⟩
+--       use Finsupp.single i 1
+--       simp only [familyPow_single]
+--     · use Finsupp.single (inferInstance : Nonempty P.multicenter.index).some 0
+--       simp
+--     · rintro x y hx hy ⟨m, rfl⟩ ⟨n, rfl⟩
+--       use m + n
+--       rw [familyPow_add]
+
+--   · rintro ⟨n, hn, rfl⟩
+--     refine prod_mem fun i hi ↦ Submonoid.pow_mem _ (Submonoid.subset_closure ?_) _
+--     use i
+
+-- omit [Fintype ι] in
+-- lemma clo_mu_bar_agrDeg (P: Mu L) [DecidableEq P.multicenter.index] :
+--     (clo_mu L P).bar.agrDeg = ⊤ := by
+--   rw [eq_top_iff]
+--   rintro x -
+--   rw [← Finsupp.sum_single x]
+--   refine sum_mem fun i hi ↦ ?_
+--   rw [show Finsupp.single i (x i) = x i • Finsupp.single i 1 by simp]
+--   refine zsmul_mem ?_ _
+--   refine AddSubgroup.subset_closure ⟨.single L (Finsupp.single i 1)
+--     ⟨P.multicenter.elem (P.sec i), by
+--       simp only [familyPow_single', pow_one]
+--       rw [show L i = L (P.Ψ (P.sec i)) by rw [P.surj], ← P.cond]
+--       exact Multicenter.elem_mem_LargeIdeal P.multicenter (P.sec i)⟩, ⟨?_, ?_⟩, ?_⟩
+--   · use Finsupp.single i 1
+--     simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply]
+--     rw [dif_pos ⟨Finsupp.single i 1, by simp⟩]
+--     simp_rw [← show ρNatToInt ι (Finsupp.single i 1) = Finsupp.single i 1 by simp]
+--     rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+--     refine ⟨⟨P.multicenter.elem (P.sec i), ?_⟩, rfl⟩
+--     simp only [familyPow_single', pow_one]
+--     rw [show L i = L (P.Ψ (P.sec i)) by rw [P.surj], ← P.cond]
+--     exact Multicenter.elem_mem_LargeIdeal P.multicenter (P.sec i)
+--   · refine ⟨_, Submonoid.subset_closure ⟨P.sec i, ?_⟩, by rfl⟩
+--     apply ReesAlgebra.single_eq
+--     rw [P.surj i]
+--   · simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply]
+--     rw [dif_pos ⟨Finsupp.single i 1, by simp⟩]
+--     simp_rw [← show ρNatToInt ι (Finsupp.single i 1) = Finsupp.single i 1 by simp]
+--     rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+--     refine ⟨⟨P.multicenter.elem (P.sec i), ?_⟩, rfl⟩
+--     simp only [familyPow_single', pow_one]
+--     rw [show L i = L (P.Ψ (P.sec i)) by rw [P.surj], ← P.cond]
+--     exact Multicenter.elem_mem_LargeIdeal P.multicenter (P.sec i)
+
+-- lemma clo_mu_rel (P: Mu L) [DecidableEq P.multicenter.index]  : (clo_mu L P).IsRelevant := by
+--   rw [HomogeneousSubmonoid.isRelevant_iff_finiteIndex_of_FG, clo_mu_bar_agrDeg]
+--   infer_instance
+
+-- def mu_potion_algebraMap (P: Mu L) [DecidableEq P.multicenter.index] :
+--     A →+* ((clo_mu L P).Potion) :=
+--   RingHom.comp (algebraMap _ _) (ReesAlgebra.degreeZeroIso' L |>.toRingHom)
+
+
+-- instance (P: Mu L) [DecidableEq P.multicenter.index] : Algebra A ((clo_mu L P).Potion) :=
+--   RingHom.toAlgebra (mu_potion_algebraMap L P)
+
+-- omit [Fintype ι] in
+-- lemma mu_potion_algebraMap_eq (P: Mu L) [DecidableEq P.multicenter.index] :
+--   algebraMap A (clo_mu L P).Potion = mu_potion_algebraMap L P := rfl
+
+-- open Family
+
+-- open Multicenter Multicenter.Dilatation
+-- def clo_mu_mor (P: Mu L) [DecidableEq P.multicenter.index] :
+--   A[P.multicenter] →ₐ[A] (clo_mu L P).Potion :=
+--    Multicenter.desc P.multicenter
+--     (by
+--       intro i
+--       intro x hx
+--       induction x using Quotient.inductionOn' with | h x =>
+--       change HomogeneousLocalization.mk x = 0
+--       change HomogeneousLocalization.mk x * HomogeneousLocalization.mk _ = 0 at hx
+
+
+--       simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+--         HomogeneousLocalization.ext_iff_val, HomogeneousLocalization.val_mul,
+--         HomogeneousLocalization.val_mk, Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast,
+--         cast_eq, SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, mul_one,
+--         HomogeneousLocalization.val_zero, ← Localization.mk_zero 1, Localization.mk_eq_mk_iff,
+--         Localization.r_iff_exists, OneMemClass.coe_one, one_mul, mul_zero, Subtype.exists,
+--         HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop] at hx ⊢
+--       obtain ⟨s, hs1, hs2⟩ := hx
+--       rw [mem_clo_mu] at hs1
+--       obtain ⟨n, rfl⟩ := hs1
+--       rw [ReesAlgebra.single_familyPow] at hs2
+
+--       obtain ⟨w, hw⟩ := ReesAlgebra.eq_single_of_homogeneous' L x.num ⟨_, x.num.2⟩
+--       rw [hw] at hs2 ⊢
+--       rw [ReesAlgebra.single_mul, ReesAlgebra.single_mul, ReesAlgebra.single_eq_zero] at hs2
+--       simp only [Submodule.mk_eq_zero] at hs2
+--       refine ⟨(∏ x ∈ n.support, .single _ (Finsupp.single (P.Ψ x) 1) ⟨P.multicenter.elem x, by
+--         simp only [familyPow_single', pow_one]
+--         rw [← P.cond]
+--         exact elem_mem_LargeIdeal P.multicenter x⟩ ^ n x) *
+--         .single _ (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, by
+--           simp only [familyPow_single', pow_one]
+--           rw [← P.cond]
+--           exact elem_mem_LargeIdeal P.multicenter i⟩, mul_mem (Submonoid.prod_mem _ fun j hj ↦
+--             Submonoid.pow_mem _ (Submonoid.subset_closure ?_) _) (Submonoid.subset_closure ?_), ?_⟩
+--       · simp
+--       · simp
+--       simp_rw [ReesAlgebra.single_npow]
+--       rw [ReesAlgebra.single_prod, ReesAlgebra.single_mul, ReesAlgebra.single_mul,
+--         ReesAlgebra.single_eq_zero]
+--       simp only [Submodule.mk_eq_zero, ← hs2]
+--       ring)
+--     (by
+--       intro i
+
+--       refine le_antisymm ?_ ?_
+--       · rw [Ideal.span_le]
+--         rintro _ rfl
+--         apply Ideal.mem_map_of_mem
+--         exact elem_mem_LargeIdeal P.multicenter i
+--       · rw [Multicenter.LargeIdeal, Ideal.add_eq_sup, Ideal.map_sup, sup_le_iff, Ideal.map_span]
+--         simp only [Set.image_singleton, le_refl, and_true]
+--         rw [Ideal.map_le_iff_le_comap]
+--         intro x hx
+--         simp only [Ideal.mem_comap]
+--         have eq : algebraMap A (clo_mu L P).Potion x =
+--           algebraMap A (clo_mu L P).Potion (P.multicenter.elem i) *
+--           HomogeneousLocalization.mk
+--             { deg := Finsupp.single (P.Ψ i) (1 : ℤ),
+--               num := ⟨.single _ (Finsupp.single (P.Ψ i) 1) ⟨x, ?num_deg⟩, ?num_deg'⟩
+--               den := ⟨.single _ (Finsupp.single (P.Ψ i) 1) ⟨P.multicenter.elem i, ?den_deg⟩, ?den_deg'⟩
+--               den_mem := ?den_mem } := by
+--           ext
+--           simp only [HomogeneousLocalization.val_mul, HomogeneousLocalization.val_mk]
+--           erw [HomogeneousLocalization.val_mk, HomogeneousLocalization.val_mk]
+--           simp only [RingEquiv.toRingHom_eq_coe, RingHom.coe_coe, ReesAlgebra.degreeZeroIso'_apply,
+--             Set.mem_range, ρNatToInt_apply, id_eq, eq_mpr_eq_cast, cast_eq,
+--             SetLike.GradeZero.coe_one, Localization.mk_mul, Submonoid.mk_mul_mk, one_mul,
+--             Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists,
+--             HomogeneousSubmonoid.mem_toSubmonoid_iff, exists_prop]
+--           refine ⟨1, one_mem _, ?_⟩
+--           simp only [ReesAlgebra.single_mul, one_mul]
+--           apply ReesAlgebra.single_eq'
+--           · rw [add_comm]
+--           · rfl
+--         pick_goal 4
+--         · simp only [familyPow_single', pow_one]
+--           rw [← P.cond, Multicenter.LargeIdeal, Ideal.add_eq_sup]
+--           exact le_sup_left (a := P.multicenter.ideal i)
+--             (b := Ideal.span {P.multicenter.elem i}) hx
+--         · simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range,
+--             ρNatToInt_apply]
+--           rw [dif_pos ⟨Finsupp.single (P.Ψ i) 1, by simp⟩]
+--           refine ⟨⟨x, ?_⟩, ?_⟩
+--           · generalize_proofs _ h
+--             rw [show Set.rangeSplitting (ρNatToInt ι) ⟨Finsupp.single (P.Ψ i) 1, h⟩ =
+--               Finsupp.single (P.Ψ i) 1 from ρNatToInt_inj (by
+--                 rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+--                 simp)]
+--             simp only [familyPow_single', pow_one]
+--             rw [← P.cond]
+--             exact le_sup_left (a := P.multicenter.ideal i)
+--               (b := Ideal.span {P.multicenter.elem i}) hx
+--           · apply ReesAlgebra.single_eq
+--             apply ρNatToInt_inj
+--             rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+--             simp
+--         pick_goal 3
+--         · simp only [familyPow_single', pow_one]
+--           rw [← P.cond]
+--           exact elem_mem_LargeIdeal P.multicenter i
+--         · simp only [ReesAlgebra.intGrading, gradingOfInjection, Set.mem_range,
+--             ρNatToInt_apply]
+--           rw [dif_pos ⟨Finsupp.single (P.Ψ i) 1, by simp⟩]
+--           refine ⟨⟨P.multicenter.elem i, ?_⟩, ?_⟩
+--           · generalize_proofs _ h
+--             rw [show Set.rangeSplitting (ρNatToInt ι) ⟨Finsupp.single (P.Ψ i) 1, h⟩ =
+--               Finsupp.single (P.Ψ i) 1 from ρNatToInt_inj (by
+--                 rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+--                 simp)]
+--             simp only [familyPow_single', pow_one]
+--             rw [← P.cond]
+--             exact elem_mem_LargeIdeal P.multicenter i
+--           · apply ReesAlgebra.single_eq
+--             apply ρNatToInt_inj
+--             rw [Set.apply_rangeSplitting (ρNatToInt ι)]
+--             simp
+--         · apply Submonoid.subset_closure
+--           use i
+--         rw [eq]
+--         apply Ideal.mul_mem_right
+--         apply Ideal.subset_span
+--         rfl)
+
+-- lemma clo_mu_mor_surj (P: Mu L) [DecidableEq P.multicenter.index] :
+--     Function.Surjective (clo_mu_mor L P) := by
+--   intro x
+--   induction x using Quotient.inductionOn' with | h x =>
+--   have := x.den_mem
+--   refine ⟨.mk ⟨?_, ?_, ?_⟩, ?_⟩
+--   sorry
+
+-- def Mu_mor_iso (P: Mu L) [DecidableEq P.multicenter.index] :
+--     A[P.multicenter] ≃ₐ[A] (clo_mu L P).Potion :=
+--   AlgEquiv.ofBijective sorry sorry
+-- -- lemma Mu_mor_iso (P: Mu L ): Mu_mor is an iso :=
+-- --   by  in
+
+
+-- def map_index : fun (P: Mu L)↦
+--    (clo_mu L P : GoodPotionIngredient (ReesAlgebra.intGrading L)) := by
+--    Mu_rel
+--    sorry
+
+
+
+-- def BlMu  := Proj (τ := Mu L ) map_index L P
+--     sorry
+
+
+
+-- lemma inter_Po (P,P' : Mu L) : Po.P ∩ Po.P' = Po.union.Mu P P' (as open subschemes) := by
+--    many already stasblished lemmas
+--    sorry
+
+
+
+-- lemma Dila_cov_proj : BlMu → Bl isIso := by
+--      --in the paper
+--     sorry
+
+-- def (P P': Mu) : A[P]→ₐ[A] A[union_center P  P'] :=
+--   desc
+--   sorry
+
+
+-- lemma lemm_dila  [Algebra A B] (P P': Mu L) (c: ι→  nonZeroDivisors B) (i : ι)
+-- (g: A[P]→ₐ[A] B)
+-- (g':  A[P']→ₐ[A] B)
+-- (cond1: Ideal.map (algebraMap A B) (L i) = Ideal.span  {(algebraMap A B) ((c i).1)})
+-- (cond2: (algebraMap A B)= AlgHom.comp g (algebraMap A A[P]) )
+-- (cond2': (algebraMap A B)= AlgHom.comp (g') (algebraMap A A[P'] ) ) :
+-- ∃! (g'' : A[union_center P P'] →ₐ[A]B),
+--    g = AlgHom.comp (g'') (algebraMap A[P] A[union_center P P'])
+--  ∧  g= AlgHom.comp (g') (algebraMap A[P'] A[union_center P P']) := by
+--     desc union_center P P'
+--     sorry
+
+
+
+-- variable {X : Type u} [Scheme X]
+
+-- structure PreClos where
+--   indnumb : finite set
+--   clotop: indnumb → closed (underlying top of X)
+--   subscheme: indnumb → AlgebraicGeometry.Scheme
+--   condset : clotop i = underlying top (subscheme i)
+--   mor: indnumb → subscheme i →sch X
+--   cov: X.affineCover
+--   ideal:   indnumb → cov.index → ideal A γ
+--   condiso: for all i γ  Spec(A_γ/L_iγ)= mor^{-1} (Spec(A_γ))
+
+
+-- def PreClos_on_refinement (Z: PreClos) (cov': refinment of Z.cov) : X.Preclos :=
+--    indnumb : Z.indnumb
+--    clotop: indnumb → closed (underlying top of X)
+--    subscheme: indnumb → AlgebraicGeometry.Scheme
+--    condset : clotop i = underlying top (subscheme i)
+--    mor: indnumb → subscheme i →sch X
+--    cov: cov'
+--    ideal:   indnumb → cov.index → image ideal A γ
+--    condiso: use condiso Z
+
+-- lemma (C1 C2 : X.affineCover) : ∃ (C3 : X.affineCover) such that C3 is finer than C1 and C2:= by
+--    sorry
+
+-- def rel : X.PreClos → X.PreClos → Prop := fun Z Z' =>
+--    exists refinement such that Z = Z' on refinement.
+
+-- def : Clos = PreClos.quotient
+
+-- structure Cars extends Clos where exists openaffine covering such that
+--   nonz: indnumb → indcov → nonZeroDivisors A γ
+--   condcar : ideal i γ = Ideal.span nonz i γ
+
+
+
+-- variable {Y: Type u} [Clos X]
+
+
+-- def pull_back_Clos(Z: Clos X) (f: X' → X): Clos X :=
+--   indnumb : Z.indnumb
+--   clotop: indnumb → pullback f oof closed (underlying top of X)
+--   subscheme: indnumb → pullback f Z.subscheme i
+--   condset : ok
+--   mor: pullbackmor
+--   cov: affine refinement oof pullback X.affineCover
+--   ideal:   indnumb → cov.index → image ideal A γ
+--   condiso: affine routine
+
+
+-- structure conceptual_blowup (Z: Clos X) where
+--    scheme: scheme over X
+--    cond1:  pull_back_Clos Z on scheme is Cartier
+--    cond2: forr all T → X such that pull_back_Clos is Cartier there exists a unique X-mor T → X
+
+
+
+-- def loc_to_Clos (L: ι(finite) → ideal A) : Clos Spec(A):=
+--    indcov: singleton
+--    indnumb: ι
+--    clotop: i ↦ underlying Spec(A/ L i)
+--    subscheme : i ↦ Spec(A/L i)
+--    condset: tauto
+--    mor: i ↦ Spec.hom A → AA/Li
+--    condcov X =x
+--    ideal: i ↦ * ↦mapsto L i
+--    condiso: tauto
+
+
+
+-- lemma ProjBlowup_UnivProp_unicity_affine :  (f: T → Spec(A))
+--      (cond: pullback on T loc_to_clos L is in Cars T)
+--      (φ φ': T →over Spec(A) BlMu L ): φ=φ'  := by
+--      Let x ∈ T.
+--      Reduce to local neighborhood
+--      put y=φx
+--      put y'=φ'x
+--      obtain P ∈ Mu L such that y ∈ Mu P
+--      obtain p' ∈ Mu L such that y ∈ Mu P'
+--      Let U=Spec(B) be an affine neighborhood of x in φ^-1 (Po P) ∩ φ'^-1 (Po P').
+--      consider the restrictions of φ and φ' to U
+--      Phi factors through Po P, Phi' factors through Po P'
+--      apply lemma 2
+--      apply univ prop of dilatations
+--      sorry
+
+-- lemma ProjBlowup_UnivProp_existence_affine (f: T → Spec(A))
+--      (cond: pullback on T loc_to_clos L is in Cars T) : ∃  T →over Spec(A) BlMu L := by
+--         produce locally some map using dilatation
+--         glue them using Glue and ProjBlowup_UnivProp_unicity_affine
+--         sorry
+
+-- lemma ProjBlowup_UnivProp_affine (f: T → Spec(A))
+--      (cond: pullback on T loc_to_clos L is in Cars T) :∃!  T →over Spec(A) BlMu L  by
+--        ProjBlowup_UnivProp_unicity_affine + ProjBlowup_UnivProp_existence_affine
+--        sorry
+
+-- lemma dilatation_ring_flat_base_change (χ : A →+* B) (F: Multicenter A):
+--  χ ∈ RingHom.Flat  : ∃! A[F]⊗[A] B ≅ₐ[B] B[image_mult F] := by
+--    χ flat and nonzerodiv_image implies that  𝐚^ν is a nonzerodivisor in A[F]⊗[A] B
+--    cond on ideals is ok
+--    apply univ property to get a unique B- morphism  <-
+--    universal property of tensor product, exists ->
+--    check that both compositions are identity
+--   sorry
+
+-- lemma flat_module_localization_at_prime_iff (M: Module.A):
+--  (M =0) ↔ (∀ q : maxideal.A : localization M A\ q =0 ):=
+--   → is trivial
+--   intro M
+--   assume let x ∈ M let Nx = submodule of M generated by x
+--   let I=Submodule.annihilator Nx, this is an ideal of A
+--   ∀ q in maxideal.A, exists f ∈ A \ q such that f∈ I -- because x=0 in the localization
+--   ∀ q in maxideal.A, I is not included in q
+--   applying Ideal.exists_le_maximal we get I=A
+--   so 1.x=0
+--   so M=0
+--   sorry
+
+-- lemma open_implies_flat_ring (χ : A →+* B):
+--  (B.Spec → A.Spec is open_immerison )→ (χ : A →+* B is flat_ring_map):=
+--    intro χ
+--    AlgebraicGeometry.isOpenImmersion_iff_stalk
+--    and AlgebraicGeometry.IsAffineOpen.isLocalization_stalk implies
+--    that for all q ⊆ B prime ideals,
+--    IsLocalization.AtPrime f^-1(q) A → IsLocalization.AtPrime b B
+--    is an isomorphism
+--   sorry
+
+
+
+-- lemma base_change_dil_open [Algebra A B]
+--    (i:Spec(B) → Spec(A) is Open immersion)
+--    (F: multicenter A) :
+--    ∃! (Spec(A[F]))×[Spec(A)](Spec(B))≅ Spec(B[image_mult (B:=B) F]) over Spec(B):= by
+--      exact open_implies_flat_ring  and dilatation_ring_flat_base_change
+--       sorry
+
+-- lemma base_change_Bl_open [Algebra A B]
+--    (i:Spec(B) → Spec(A) is Open immersion)
+--    (L: ι → ideal A) :
+--    ∃! (Bl (L))×[Spec(A)](Spec(B))≅ Bl (im L) over Spec(B):=  by
+--      byy univ prop exists unique φ →
+--      exists θ <- by fiber product
+--      φ ∘ θ = id by univ prop
+--      so θ is injective
+--      to prove that θ is surjective enough to do it locally on target
+--      we chose a potion and apply base_change_dil_open
+--      sorry
+
+
+-- def ideal_loc (Z: Clos X) (γ : Z.indcov) : indnumb → ideal A γ :=
+--    fun i ↦ ideal i γ
+
+-- def Proj_loc  (Z: Clos X) (γ : Z.indcov) := Bl (ideal_loc Z γ)
+
+-- def open_pair (Z: Clos X) (γ δ : Z.indcov) := Spec(A_γ) ∩ Spec(A_δ)
+
+-- def Proj_loc_pair (Z: Clos X) (γ δ : Z.indcov) :=
+--     inverse image of open_pair in Bl (ideal_loc Z γ)
+
+-- def Proj_loc_pair_open (Z: Clos X) (γ δ : Z.indcov) (U: open affine of open_pair γ δ) :
+--    ∃! (inverse image of U inn Proj_loc_pair Z γ δ)  →
+--    (inverse image of U inn Proj_loc_pair Proj_loc_pair Z δ γ) over U :=
+--    because it is an iso byy base_change_Bl_open
+
+
+-- def Proj_loc_pair_lemm (Z: Clos X) (γ δ : Z.indcov) :
+--   ∃!   Proj_loc_pair Z γ δ →  Proj_loc_pair Z δ γ such that forr all U, restriction
+--    to U is given byy Proj_loc_pair_open := by
+--    because it is an iso byy base_change_Bl_open
+--    sorry
+
+
+-- lemma Proj_loc_pair_iso (Z: Clos X) (γ δ : Z.indcov) :Proj_loc_pair_lemm is Iso :=
+--    this is local
+
+-- def BlGlob  (Z: Clos X) :=  Scheme.GlueData where
+--   J := Clos.indcov
+--   U γ := Proj_loc γ
+--   V pair := Proj_loc pair.1 pair.2
+--   f γ δ := Proj_loc_pair_iso
+--   f_id i :=
+--   f_open i j :=
+--   t i j :=
+--   t_id i :=
+--   t' i j k :=
+--   t_fac i j k :=
+--   cocycle i j k :=
+
+
+-- lemma ProjBlowup_UnivProp_unicity : (Z: Clos X) (f: T → X)
+--      (cond: pullback on T oof Z is in Cars T)
+--      (φ φ': T →over X BlGlob Y): φ=φ'  := by
+--        use locall
+--        sorry
+
+-- lemma ProjBlowup_UnivProp_existence_affine (Z: Clos X) (f: T → X)
+--      (cond: pullback on T oof Z is in Cars T) : ∃  T →over X BlGlob Y := by
+--         glue local map
+--         sorry
+
+-- lemma ProjBlowup_UnivProp_affine (Z: Clos X) (f: T → X)
+--      (cond: pullback on T oof Z is in Cars T) : ∃!  T →over X BlGlob Y by
+--        ProjBlowup_UnivProp_unicity + ProjBlowup_UnivProp_existence
+--        sorry
+
+
+-- -- set_option maxHeartbeats 1000000 in

@@ -113,10 +113,10 @@ noncomputable instance : DirectSum.Decomposition (𝒜 ⊗ ℬ) where
     induction x using TensorProduct.induction_on with
     | zero => simp
     | tmul a b =>
-      apply DirectSum.Decomposition.inductionOn 𝒜 ?_ ?_ ?_ a
+      refine DirectSum.Decomposition.inductionOn 𝒜 ?_ ?_ ?_ a
       · simp
       · intro i a
-        apply DirectSum.Decomposition.inductionOn ℬ ?_ ?_ ?_ b
+        refine DirectSum.Decomposition.inductionOn ℬ ?_ ?_ ?_ b
         · simp
         · intro j b
           rw [decompositionByProduct_apply_tmul_homogeneous (ha := a.2) (hb := b.2)]
@@ -130,8 +130,8 @@ noncomputable instance : DirectSum.Decomposition (𝒜 ⊗ ℬ) where
       simp [hx, hy]
   right_inv x := by
     induction x using DirectSum.induction_on with
-    | H_zero => simp
-    | H_basic p x =>
+    | zero => simp
+    | of p x =>
       obtain ⟨i, j⟩ := p
       obtain ⟨_, ⟨x, rfl⟩⟩ := x
       simp only [DirectSum.coeAddMonoidHom_of]
@@ -151,7 +151,7 @@ noncomputable instance : DirectSum.Decomposition (𝒜 ⊗ ℬ) where
         simp only [map_add, hx, hy]
         rw [← map_add]
         rfl
-    | H_plus x y hx hy =>
+    | add x y hx hy =>
       simp [hx, hy]
 
 noncomputable instance : GradedAlgebra (𝒜 ⊗ ℬ) where
@@ -160,8 +160,8 @@ variable {𝒜 ℬ}
 omit [DecidableEq
   ιA] [AddCommGroup ιA] [DecidableEq ιB] [AddCommGroup ιB] [GradedAlgebra 𝒜] [GradedAlgebra ℬ] in
 lemma tmul_homogeneous {a : A} {b : B}
-    (ha : SetLike.Homogeneous 𝒜 a) (hb : SetLike.Homogeneous ℬ b) :
-    SetLike.Homogeneous (𝒜 ⊗ ℬ) (a ⊗ₜ b) := by
+    (ha : SetLike.IsHomogeneousElem 𝒜 a) (hb : SetLike.IsHomogeneousElem ℬ b) :
+    SetLike.IsHomogeneousElem (𝒜 ⊗ ℬ) (a ⊗ₜ b) := by
   rcases ha with ⟨i, ha⟩
   rcases hb with ⟨j, hb⟩
   use (i, j), ⟨a, ha⟩ ⊗ₜ ⟨b, hb⟩
@@ -179,7 +179,7 @@ lemma mem_degree_iff {iA : ιA} {iB : ιB} (x : A ⊗[R] B) :
     simp only [LinearMap.mem_range] at h
     obtain ⟨x, rfl⟩ := h
     have : x ∈ (⊤ : Submodule R _) := ⟨⟩
-    rw [← TensorProduct.span_tmul_eq_top, mem_span_set] at this
+    rw [← TensorProduct.span_tmul_eq_top, Submodule.mem_span_set] at this
     obtain ⟨c, hc, (rfl : ∑ i ∈ c.support, _ • _ = _)⟩ := this
     choose x' y' hxy' using hc
     let x : c.support → 𝒜 iA := fun i ↦ x' i.2
@@ -215,7 +215,7 @@ lemma mem_degree_iff {iA : ιA} {iB : ιB} (x : A ⊗[R] B) :
 
 open HomogeneousSubmonoid in
 lemma tmul_elemIsRelevant
-    {x : A} {y : B} {hom_x : SetLike.Homogeneous 𝒜 x} {hom_y : SetLike.Homogeneous ℬ y}
+    {x : A} {y : B} {hom_x : SetLike.IsHomogeneousElem 𝒜 x} {hom_y : SetLike.IsHomogeneousElem ℬ y}
     (rel_x : ElemIsRelevant x hom_x) (rel_y : ElemIsRelevant y hom_y) :
     ElemIsRelevant (x ⊗ₜ y) (tmul_homogeneous hom_x hom_y) := by
   delta ElemIsRelevant at rel_x rel_y ⊢
@@ -318,11 +318,11 @@ lemma tmul_elemIsRelevant
 -- Proposition 2.5.1
 open HomogeneousSubmonoid in
 lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
-    (x : A ⊗[R] B) (hom_x : SetLike.Homogeneous (𝒜 ⊗ ℬ) x)
+    (x : A ⊗[R] B) (hom_x : SetLike.IsHomogeneousElem (𝒜 ⊗ ℬ) x)
     (rel_x : ElemIsRelevant x hom_x) :
     ∃ (n : ℕ) (sA : Fin n → A) (sB : Fin n → B)
-      (hom_sA : ∀ i, SetLike.Homogeneous 𝒜 (sA i))
-      (hom_sB : ∀ i, SetLike.Homogeneous ℬ (sB i))
+      (hom_sA : ∀ i, SetLike.IsHomogeneousElem 𝒜 (sA i))
+      (hom_sB : ∀ i, SetLike.IsHomogeneousElem ℬ (sB i))
       (_ : ∀ i, ElemIsRelevant (sA i) (hom_sA i))
       (_ : ∀ i, ElemIsRelevant (sB i) (hom_sB i))
       (k : ℕ),
@@ -389,18 +389,18 @@ lemma elemIsRelevant_of_exists [AddGroup.FG ιA] [AddGroup.FG ιB]
   let sB : Fin M → B :=
     (fun x ↦ ∏ i : Fin N, (c i (x.1 i (by simp))).2) ∘
     (Finset.univ.pi fun x ↦ (c x).support).equivFin.symm
-  have hom_sA : ∀ i, SetLike.Homogeneous 𝒜 (sA i) := by
+  have hom_sA : ∀ i, SetLike.IsHomogeneousElem 𝒜 (sA i) := by
     intro i
     simp only [Function.comp_apply, sA, M]
-    apply SetLike.Homogeneous.prod'
+    apply SetLike.IsHomogeneousElem.prod'
     intro j
-    simp only [SetLike.homogeneous_coe, sA, M]
-  have hom_sB : ∀ i, SetLike.Homogeneous ℬ (sB i) := by
+    simp only [SetLike.isHomogeneousElem_coe, sA, M]
+  have hom_sB : ∀ i, SetLike.IsHomogeneousElem ℬ (sB i) := by
     intro i
     simp only [Function.comp_apply, sB, M]
-    apply SetLike.Homogeneous.prod'
+    apply SetLike.IsHomogeneousElem.prod'
     intro j
-    simp only [SetLike.homogeneous_coe, sB, M]
+    simp only [SetLike.isHomogeneousElem_coe, sB, M]
   have rel_sA : ∀ i, ElemIsRelevant (sA i) (hom_sA i) := by
     intro i
     rw [elemIsRelevant_iff]
@@ -504,7 +504,7 @@ lemma rad_dagger [AddGroup.FG ιA] [AddGroup.FG ιB] :
       change a ∈ Submodule.span _ _ at ha
       change b ∈ Submodule.span _ _ at hb
       change _ ∈ Ideal.span _
-      rw [mem_span_set] at ha hb
+      rw [Submodule.mem_span_set] at ha hb
       obtain ⟨c, hc, (rfl : ∑ i ∈ c.support, _ • _ = _)⟩ := ha
       obtain ⟨d, hd, (rfl : ∑ i ∈ d.support, _ • _ = _)⟩ := hb
       simp only [smul_eq_mul, tmul_sum, sum_tmul]

@@ -8,7 +8,7 @@ namespace TensorProduct
 variable {ι : Type*} (s : Finset ι) (a : ι → A) (b : ι → B)
 
 lemma prod_tmul_prod :
-    (∏ i in s, a i) ⊗ₜ[R] (∏ i in s, b i) = ∏ i in s, a i ⊗ₜ[R] b i := by
+  (∏ i ∈ s, a i) ⊗ₜ[R] (∏ i ∈ s, b i) = ∏ i ∈ s, a i ⊗ₜ[R] b i := by
   classical
   induction s using Finset.induction_on with
   | empty => simp; rfl

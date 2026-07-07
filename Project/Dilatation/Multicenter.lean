@@ -2,31 +2,41 @@ import Mathlib.RingTheory.Ideal.Maps
 import Mathlib.Algebra.DirectSum.Basic
 import Project.Dilatation.lemma
 import Mathlib.RingTheory.Ideal.Operations
-import Mathlib.RingTheory.Localization.Basic
 
 import Project.Dilatation.Family
+import Mathlib.Algebra.Algebra.Tower
 
 suppress_compilation
 
 open DirectSum Family
 
+universe u
+
 section defs
 
-variable (A : Type*) [CommSemiring A]
+variable (A : Type (u+1)) [CommSemiring A]
 
-structure Multicenter where
-  (index : Type*)
+@[ext]
+structure Multicenter : Type (u+1) where
+  (index : Type)
   (ideal : index → Ideal A)
   (elem : index → A)
+
 end defs
 
 namespace Multicenter
 
 section semiring
 
-variable {A : Type*} [CommSemiring A] (F : Multicenter A)
+variable {A : Type _} [CommSemiring A] (F : Multicenter A)
 
-scoped notation: max F"^ℕ"  => Multicenter.index F  →₀ ℕ
+@[simps]
+def ofFamily (index : Type) (c : index → A) : Multicenter A where
+  index := index
+  ideal i := Ideal.span {c i}
+  elem i := c i
+
+-- scoped notation: max F"^ℕ"  => Multicenter.index F  →₀ ℕ
 
 def LargeIdeal (i : F.index) : Ideal A := F.ideal i + Ideal.span {F.elem i}
 
@@ -36,7 +46,7 @@ lemma elem_mem_LargeIdeal (i: F.index) : F.elem i ∈ F.LargeIdeal i := by
    exact Ideal.mem_span_singleton_self (F.elem i)
   simp only [LargeIdeal, Submodule.add_eq_sup, le_sup_right]
 
-abbrev prodLargeIdealPower (v : F^ℕ) : Ideal A :=
+abbrev prodLargeIdealPower (v : F.index →₀ ℕ) : Ideal A :=
   v.prod fun i k ↦ F.LargeIdeal i ^ k
 
 -- scoped prefix:max "𝐋^" => prodLargeIdealPower _
@@ -79,16 +89,16 @@ abbrev prodLargeIdealPower (v : F^ℕ) : Ideal A :=
 
 
 structure PreDil where
-  pow : F^ℕ
+  pow : F.index →₀ ℕ
   num : A
-  num_mem : num ∈ F.LargeIdeal ^pow
+  num_mem : num ∈ F.LargeIdeal ^ pow
 
 def r : F.PreDil → F.PreDil → Prop := fun x y =>
-  ∃ β : F^ℕ, x.num * F.elem^(β + y.pow) = y.num * F.elem^(β + x.pow)
+  ∃ β : F.index →₀ ℕ, x.num * F.elem^(β + y.pow) = y.num * F.elem^(β + x.pow)
 
 variable {F}
 
-lemma r_refl (x : F.PreDil) : F.r x x := by simp[r]
+lemma r_refl (x : F.PreDil) : F.r x x := by simp [r]
 
 lemma r_symm (x y : F.PreDil) : F.r x y → F.r y x := by
   intro h
@@ -105,7 +115,7 @@ lemma r_trans (x y z : F.PreDil) : F.r x y → F.r y z → F.r x z := by
   use β+γ+y.pow
   simp only [← familyPow_add, ← mul_assoc] at eq' eq'' ⊢
   rw [show β + γ + y.pow + z.pow = (β + y.pow) + (γ + z.pow) by abel,
-    familyPow_add, ← mul_assoc, hβ, mul_assoc, mul_comm (F.elem^(_ : F^ℕ)), ← mul_assoc, gγ,
+    familyPow_add, ← mul_assoc, hβ, mul_assoc, mul_comm (F.elem^(_ : F.index →₀ ℕ)), ← mul_assoc, gγ,
     mul_assoc, ← familyPow_add]
   congr 2
   abel
@@ -349,7 +359,9 @@ def fromBaseRing : A →+* A[F] where
   map_zero' := by simp [zero_def]
   map_add' _ _ := by simp [mk_add_mk, mk_eq_mk]; use 0; simp
 
-instance : Algebra A A[F] := RingHom.toAlgebra (fromBaseRing F)
+-- instance : Algebra A A[F] := RingHom.toAlgebra (fromBaseRing F)
+instance instAlgebra {B : Type _} [CommSemiring B] [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
+  RingHom.toAlgebra (RingHom.comp (fromBaseRing G) (algebraMap A B))
 
 lemma algebraMap_eq : (algebraMap A A[F]) = fromBaseRing F := rfl
 
@@ -367,7 +379,7 @@ lemma smul_mk (x : A) (y : F.PreDil) : x • mk y = mk {
   use 0
   simp
 
-abbrev frac (ν : F^ℕ)  (m: F.LargeIdeal^ν) : A[F]:=
+abbrev frac (ν : F.index →₀ ℕ)  (m: F.LargeIdeal^ν) : A[F]:=
   mk {
     pow := ν
     num := m
@@ -378,7 +390,7 @@ scoped notation:max m"/.[" F"]"ν => frac (F := F) ν m
 
 scoped notation:max m"/."ν => frac ν m
 
-lemma frac_add_frac (v w : F^ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
+lemma frac_add_frac (v w : F.index →₀ ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
     (m/.v) + (n/.w) =
     (⟨(m : A) * F.elem^w + (n : A) * F.elem^v, Ideal.add_mem _
       (Ideal.mem_familyPow_add m.2 (Ideal.mem_familyPow_of_mem fun i _ ↦ elem_mem_LargeIdeal F i))
@@ -389,20 +401,21 @@ lemma frac_add_frac (v w : F^ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
   simp only [add'_num, zero_add, familyPow_add, add'_pow]
   ring
 
-lemma frac_mul_frac (v w : F^ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
+lemma frac_mul_frac (v w : F.index →₀ ℕ) (m : F.LargeIdeal^v) (n : F.LargeIdeal^w) :
     (m/.v) * (n/.w) =
-    (⟨m * n, Ideal.mem_familyPow_add m.2 n.2⟩)/.(v + w) := by
+    (⟨m.1 * n, Ideal.mem_familyPow_add m.2 n.2⟩)/.(v + w) := by
   simp only [frac, mk_mul_mk, mk_eq_mk]
   use 0
   simp
 
-lemma smul_frac (a : A) (v : F^ℕ) (m : F.LargeIdeal^v) : a • (m/.v) = (a • m)/.v := by
+lemma smul_frac (a : A) (v : F.index →₀ ℕ) (m : F.LargeIdeal^v) : a • (m/.v) = (a • m)/.v := by
   simp only [frac, smul_mk, mk_eq_mk]
   use 0
   simp
 
-lemma nonzerodiv_image (v :F^ℕ) :
-   algebraMap A A[F] (F.elem^v) ∈ nonZeroDivisors A[F] := by
+lemma nonzerodiv_image (v : F.index →₀ ℕ) : algebraMap A A[F] (F.elem^v) ∈ nonZeroDivisors A[F] := by
+    simp only [nonZeroDivisors, Submonoid.mem_inf, mem_nonZeroDivisorsLeft_iff, mul_comm,
+      mem_nonZeroDivisorsRight_iff, and_self]
     intro x h
     induction x using induction_on with |h x =>
     simp only [algebraMap_apply, mk_mul_mk, zero_def, mk_eq_mk] at h
@@ -412,7 +425,7 @@ lemma nonzerodiv_image (v :F^ℕ) :
     use v + α
     simp [familyPow_add, ← mul_assoc, hα]
 
-lemma image_elem_LargeIdeal_equal  (v : F^ℕ) :
+lemma image_elem_LargeIdeal_equal  (v : F.index →₀ ℕ) :
  Ideal.span ({algebraMap A A[F] (F.elem^v)}) =
     Ideal.map (algebraMap A A[F]) (F.LargeIdeal^v):= by
     refine le_antisymm ?_  ?_
@@ -445,7 +458,7 @@ section ring
 
 namespace Dilatation
 
-variable {A : Type*} [CommRing A] {F : Multicenter A}
+variable {A : Type _} [CommRing A] {F : Multicenter A}
 
 @[simps]
 def neg' (x : F.PreDil) : F.PreDil where
@@ -472,7 +485,7 @@ instance : CommRing A[F] where
     use 0
     simp
 
-lemma neg_frac (v : F^ℕ) (m : F.LargeIdeal^v) : -(m/.v) = (-m)/.v := by
+lemma neg_frac (v : F.index →₀ ℕ) (m : F.LargeIdeal^v) : -(m/.v) = (-m)/.v := by
   simp only [frac, mk_neg, mk_eq_mk]
   use 0
   simp
@@ -483,12 +496,12 @@ end ring
 
 section universal_property
 
-variable {A B : Type*} [CommRing A] [CommRing B] (F : Multicenter A)
+variable {A B : Type _} [CommRing A] [CommRing B] (F : Multicenter A)
 
 
 lemma  cond_univ_implies_large_cond [Algebra A B]
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    (∀ (ν : F^ℕ) , (Ideal.span {(algebraMap A B) (F.elem^ν)} = Ideal.map (algebraMap A B) (F.LargeIdeal^ν))) :=by
+    (∀ (ν : F.index →₀ ℕ) , (Ideal.span {(algebraMap A B) (F.elem^ν)} = Ideal.map (algebraMap A B) (F.LargeIdeal^ν))) :=by
      classical
      intro v
      simp only [familyPow_def, Finsupp.prod, map_prod, map_pow]
@@ -537,7 +550,7 @@ lemma equiv_small_big_cond [Algebra A B]  :
 lemma  lemma_exists_in_image [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
-    (∀(ν : F^ℕ) (m : F.LargeIdeal^ν) ,  (∃! bm : B ,  (algebraMap A B) (F.elem^ν) *bm=(algebraMap A B) (m) )):= by
+    (∀(ν : F.index →₀ ℕ) (m : F.LargeIdeal^ν) ,  (∃! bm : B ,  (algebraMap A B) (F.elem^ν) *bm=(algebraMap A B) (m) )):= by
       intro v m
       have mem : (algebraMap A B) m ∈  (F.LargeIdeal^v).map (algebraMap A B) := by
           apply Ideal.mem_map_of_mem
@@ -561,30 +574,28 @@ lemma  lemma_exists_in_image [Algebra A B]
 
 
 
-def def_unique_elem [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
+def def_unique_elem [Algebra A B] (v : F.index →₀ ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)): B :=
-     (lemma_exists_in_image  F  non_zero_divisor gen v m).choose
+  (lemma_exists_in_image  F  non_zero_divisor gen v m).choose
 
-lemma def_unique_elem_spec [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
+lemma def_unique_elem_spec [Algebra A B] (v : F.index →₀ ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
     (algebraMap A B) (F.elem^v) * def_unique_elem F v m non_zero_divisor gen = (algebraMap A B) m := by
     apply (lemma_exists_in_image F non_zero_divisor gen v m).choose_spec.1
 
-lemma def_unique_elem_unique  [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
+lemma def_unique_elem_unique  [Algebra A B] (v : F.index →₀ ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
     ∀ bm : B, (algebraMap A B) (F.elem^v) * bm = (algebraMap A B) m →  def_unique_elem F v m non_zero_divisor gen =bm:= by
     intro bm hbm
     apply ((lemma_exists_in_image F  non_zero_divisor gen v m).choose_spec.2 bm hbm).symm
 
-
-
 def desc [Algebra A B]
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)) :
-     A[F] →ₐ[A] B where
+    A[F] →ₐ[A] B where
   toFun := Dilatation.descFun (fun x ↦ def_unique_elem F  x.pow ⟨ x.num, x.num_mem⟩  non_zero_divisor gen )
                             ( by
                               intro x y h
@@ -634,7 +645,7 @@ def desc [Algebra A B]
     intro x y
     induction x using Dilatation.induction_on with |h x =>
     induction y using Dilatation.induction_on with |h y =>
-    simp only [Dilatation.descFun₂_mk_mk, Dilatation.mk_mul_mk]
+    simp only [Dilatation.descFun_mk]
     apply def_unique_elem_unique
     · exact non_zero_divisor
     · exact gen
@@ -652,7 +663,7 @@ def desc [Algebra A B]
 
 open Multicenter
 open Dilatation
-lemma dsc_spec [Algebra A B] (v : F^ℕ) (m : F.LargeIdeal^v)
+lemma dsc_spec [Algebra A B] (v : F.index →₀ ℕ) (m : F.LargeIdeal^v)
     (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
     (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i)):
     (algebraMap A B) (F.elem^v) * desc F non_zero_divisor gen (m/.v)  = (algebraMap A B) m := by
@@ -685,13 +696,45 @@ lemma  lemma_exists_unique_morphism [Algebra A B]
       rw[← eq3]
       rfl
 
+lemma  lemma_exists_unique_morphism' [Algebra A B]
+    (non_zero_divisor : ∀ i : F.index, (algebraMap A B) (F.elem i) ∈ nonZeroDivisors B)
+    (gen : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)} = Ideal.map (algebraMap A B) (F.LargeIdeal i))
+    (χ χ' :A[F]→ₐ[A] B)  : χ = χ' := by
+      trans desc F non_zero_divisor gen
+      · apply lemma_exists_unique_morphism
+      · symm
+        apply lemma_exists_unique_morphism
+
+
+-- instance [Algebra A B] (F : Multicenter B) : Algebra A B[F] :=
+--   RingHom.toAlgebra <| RingHom.comp (algebraMap B B[F]) (algebraMap A B)
+
+-- instance [Algebra A B] (F : Multicenter B) : IsScalarTower A B B[F] :=
+--   IsScalarTower.of_algebraMap_smul fun _ ↦ congrFun rfl
+
+def ofFamilyIso {index : Type} {c : index → A} (c0 : ∀ i, c i ∈ nonZeroDivisors A) :
+    A[ofFamily index c] ≃ₐ[A] A :=
+  AlgEquiv.ofAlgHom
+    (desc _ c0 <| by simp [LargeIdeal])
+    (Algebra.ofId _ _)
+    (by simp)
+    (by sorry)
+
+def ofEqual {F F' : Multicenter A} (eq : F = F') :
+    A[F] ≃ₐ[A] A[F'] :=
+  AlgEquiv.ofAlgHom
+    (desc _ sorry sorry)
+    (desc _ sorry sorry)
+    sorry
+    sorry
+
 open Dilatation
 open Multicenter
 lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
    (χ':A[F] →ₐ[A] B) : ∀ i, Ideal.span {(algebraMap A B) (F.elem i)}
          = Ideal.map (algebraMap A B) (F.LargeIdeal i):= by
           intro i
-          let v : F^ℕ := Finsupp.single i 1
+          let v : F.index →₀ ℕ := Finsupp.single i 1
           have eq1:  Ideal.span {(algebraMap A A[F]) (F.elem^v)}
              = Ideal.map (algebraMap A A[F]) (F.LargeIdeal^v):= by
              rw [image_elem_LargeIdeal_equal v]
@@ -738,88 +781,68 @@ lemma reciprocal_for_univ [Algebra A B] (F : Multicenter A)
           rw[←eqB, eqA]
 
 
+open Multicenter Dilatation
+
+-- def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
+--  Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
+--  sorry
 
 
+-- lemma dil_representable_functor (F: Multicenter A) :
+--     A[F] represents the functor cat_dil_test_reg A F → Set,
+--     f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
+--              emptyset else := by
+--      sorry
 
-
-open Multicenter
-open Dilatation
-
-open Multicenter
-open Dilatation
-
-
-
-/--/
-def cat_dil_test_reg (F: Multicenter A) fullsubcategory of Cat A-alg ,
- Objects := {f:A→+* B |  f (F.elem i) ∈ nonZeroDivisors B }  := by
- sorry
-
-
-lemma dil_representable_functor (F: Multicenter A) :
-    A[F] represents the functor cat_dil_test_reg A F → Set,
-    f ↦ singleton if ∀ i, Ideal.span {f (F.elem i)} ⊇  f (F.LargeIdeal i)
-             emptyset else := by
-     sorry
--/
 
 
 @[simps]
 def image_mult [Algebra A B] :  Multicenter B :=
-  {index  :=F.index
-   ideal  :=(fun i ↦ Ideal.map (algebraMap A B) (F.ideal i))
-   elem := (fun i ↦ (algebraMap A B) (F.elem i))}
+  { index := _
+    ideal i := Ideal.map (algebraMap A B) (F.ideal i)
+    elem i := algebraMap A B (F.elem i)}
 
 
-/-
+
 lemma image_mult_LargeIdeal [Algebra A B] (i : F.index):
   (image_mult (B:=B) F ).LargeIdeal i = Ideal.map (algebraMap A B) (F.LargeIdeal i) := by
-   simp [LargeIdeal]
-   rw[Ideal.map_sup]
-   rw[Ideal.map_span]
-   simp
-
-instance [Algebra A B] (G : Multicenter B) : Algebra A B[G] :=
-  RingHom.toAlgebra (RingHom.comp (algebraMap B B[G]) (algebraMap A B))
-
+  simp [LargeIdeal]
+  rw[Ideal.map_sup]
+  rw[Ideal.map_span]
+  simp
 
 def functo_dila_alg [Algebra A B]: A[F] →ₐ[A]  B[image_mult (B := B) F]  :=
-  desc F
+  desc F (by
+    classical
+    intro i
+    have h := nonzerodiv_image (F := image_mult (B := B) F ) (Finsupp.single i 1)
+    simp at h
+    exact h)
     (by
-     classical
-     intro i
-     have h := nonzerodiv_image (F := image_mult (B := B) F ) (Finsupp.single i 1)
-     simp at h
-     exact h
-     )
-    (by
-     classical
-     intro i
-     let v : F^ℕ := Finsupp.single i 1
-     have h := image_elem_LargeIdeal_equal (F := image_mult (B := B[image_mult (B := B) F]) (image_mult (B := B) F) ) v
-     simp only at h
-     have eq2: 𝐚^v = F.elem i := by
-            rw [prodElemPower]
-            rw [Finsupp.prod_single_index]
-            ring
-            ring
-     have eq3 : 𝐋^v = F.LargeIdeal i := by
-              rw[prodLargeIdealPower]
-              rw [Finsupp.prod_single_index]
-              ring
-              ring
+    -- classical
+    -- intro i
+    -- let v : F^ℕ := Finsupp.single i 1
+    -- have h := image_elem_LargeIdeal_equal (F := image_mult (B := B[image_mult (B := B) F]) (image_mult (B := B) F) ) v
+    -- simp only at h
+    -- have eq2: 𝐚^v = F.elem i := by
+    --       rw [prodElemPower]
+    --       rw [Finsupp.prod_single_index]
+    --       ring
+    --       ring
+    -- have eq3 : 𝐋^v = F.LargeIdeal i := by
+    --         rw[prodLargeIdealPower]
+    --         rw [Finsupp.prod_single_index]
+    --         ring
+    --         ring
 
 
-     sorry
-      )
+  sorry)
 
 lemma unique_functorial_morphism_dilatation [Algebra A B]
- (other:A[F]→ₐ[A] B[image_mult (B := B) F]) :
-   other= desc F (algebraMap A B[image_mult (B := B) F])  :=by
+    (other:A[F]→ₐ[A] B[image_mult (B := B) F]) : true := sorry
+  -- other= desc F (algebraMap A B[image_mult (B := B) F])  :=by
 
-      sorry
-
-
+/-
 open Multicenter
 open Dilatation
 scoped notation: max A"["F".loc]" =>
@@ -1073,11 +1096,12 @@ instance : Algebra A F.ReesAlgebra :=
  sorry
 
 def placed_in_degree (F : Multicenter A) (v : F^ℕ) (x : 𝐋^v) :
-   F.ReesAlgebra  := .of _ v ⟨x, by simp⟩   sorry
+  F.ReesAlgebra  := .of _ v ⟨x, by simp⟩   sorry
 
+---- From this point, we don't have
 lemma potion_Rees_dilatation_iso (F : Multicenter A) :
   Potion a_i  placed in degree i for all i F.ReesAlgebra  ≅ A[F] := by
-   sorry
+  sorry
 
 def union_center (F F': Multicenter A): Multicenter A :=
   { index := F.index ⊔ F'.index

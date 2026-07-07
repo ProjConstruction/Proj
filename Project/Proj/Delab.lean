@@ -1,7 +1,7 @@
-import Project.Proj.Construction
 import Mathlib.Lean.Expr.ExtraRecognizers
 
 import Project.Proj.PP_Proj
+import Project.Proj.Construction
 
 
 open Lean PrettyPrinter.Delaborator SubExpr
@@ -39,7 +39,7 @@ section test
 
 open GoodPotionIngredient
 universe u
-variable {ι R₀ A : Type u}
+variable {ι : Type} {R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 

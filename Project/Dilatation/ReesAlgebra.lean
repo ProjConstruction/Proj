@@ -1,6 +1,8 @@
 import Project.Dilatation.Family
 import Project.Grading.Injection
 
+import Project.Potions.Basic
+
 import Mathlib.RingTheory.GradedAlgebra.Basic
 
 suppress_compilation
@@ -109,9 +111,9 @@ lemma induction_on (P : ReesAlgebra F → Prop) (H_zero : P 0) (H_basic : ∀ v 
   (H_plus : ∀ x y, P x → P y → P (x + y)) : ∀ x, P x := by
   rintro ⟨x⟩
   induction x using DirectSum.induction_on with
-  |H_zero => exact H_zero
-  |H_basic v x => exact H_basic v x
-  |H_plus x y hx hy => exact H_plus _ _ hx hy
+  |zero => exact H_zero
+  |of v x => exact H_basic v x
+  |add x y hx hy => exact H_plus _ _ hx hy
 
 instance : Semigroup (ReesAlgebra F) where
   mul_assoc := by
@@ -217,7 +219,8 @@ def algebraMap' : A →+* ReesAlgebra F where
   map_mul' a b := by
     ext : 3
     rw [DirectSum.coe_of_apply, mul_of_of, DirectSum.coe_of_apply]
-    simp
+    simp only [add_zero]
+    split_ifs <;> rfl
   map_zero' := by
     ext
     rw [DirectSum.coe_of_apply]
@@ -275,6 +278,80 @@ def single (v : ι →₀ ℕ) : F^v →ₗ[A] ReesAlgebra F where
 
 lemma single_def (v : ι →₀ ℕ) (x) :
   single F v x = { val := .of _ v x } := rfl
+
+lemma single_eq (v v' : ι →₀ ℕ) (eq : v = v') (x : A) (hx : x ∈ F^v) :
+    single F v ⟨x, hx⟩ = single F v' ⟨x, by subst eq; exact hx⟩ := by
+  subst eq
+  rfl
+
+lemma single_eq_iff (v v' : ι →₀ ℕ) (x : A) (hx : x ∈ F^v) (hx' : x ∈ F^v') (x_ne_zero : x ≠ 0) :
+    single F v ⟨x, hx⟩ = single F v' ⟨x, hx'⟩ ↔ v = v' := by
+  constructor
+  · intro eq
+    rw [ReesAlgebra.ext_iff] at eq
+    simp only [single_apply_val] at eq
+    have eq' := congr($eq v)
+    simp only [of_eq_same, of_apply, Subtype.ext_iff] at eq'
+    split_ifs at eq' with h
+    · exact h.symm
+    simp only [ZeroMemClass.coe_zero] at eq'
+    tauto
+  · rintro rfl
+    rfl
+
+lemma single_eq' (v v' : ι →₀ ℕ) (eq : v = v')
+    (x : A) (hx : x ∈ F^v)
+    (y : A) (hy : y ∈ F^v')
+    (eq' : x = y) :
+    single F v ⟨x, hx⟩ = single F v' ⟨y, hy⟩ := by
+  subst eq eq'
+  rfl
+
+@[simp]
+lemma single_eq_zero (v : ι →₀ ℕ) (x) :
+    single F v x = 0 ↔ x = 0 := by
+  refine ⟨?_, by rintro rfl; simp⟩
+  intro h
+  simp only [zero_def, ReesAlgebra.ext_iff, single_apply_val, DirectSum.ext_iff] at h
+  simpa using h v
+
+lemma single_mul (v w : ι →₀ ℕ) (x y) :
+    single F v x * single F w y = single F (v + w) ⟨x.1 * y.1, Ideal.mem_familyPow_add x.2 y.2⟩ := by
+  ext : 1
+  simp only [mul_val, single_def, mul'_of_of]
+
+lemma single_prod {index : Type*} (v : index → (ι →₀ ℕ)) (x : ∀ j : index, F^(v j)) (s : Finset index) :
+    ∏ j ∈ s, single F (v j) (x j) = single F (∑ j ∈ s, v j) ⟨∏ j ∈ s, x j, by
+      classical
+      rw [familyPow_sum]
+      apply Ideal.prod_mem_prod
+      simp⟩ := by
+  induction s using Finset.cons_induction with
+  | empty =>
+    simp only [Finset.prod_empty, Finset.sum_empty]; rfl
+  | cons i s hi ih =>
+    simp only [Finset.prod_cons, ih, single_mul]
+    apply single_eq
+    rw [Finset.sum_cons]
+
+lemma single_npow (v : ι →₀ ℕ) (x) (n : ℕ) :
+    single F v x ^ n = single F (n • v) ⟨x.1 ^ n, by
+      rw [familyPow_nsmul]
+      apply Ideal.pow_mem_pow
+      exact x.2⟩ := by
+  induction n with
+  | zero =>
+    ext : 1
+    simp only [pow_zero, one_def, single_apply_val]
+    ext w
+    rw [DirectSum.coe_of_apply, DirectSum.coe_of_apply]
+    simp_rw [zero_smul]
+    split_ifs <;> rfl
+
+  | succ n ih =>
+    simp only [pow_succ, ih, single_mul, one_mul]
+    apply single_eq
+    rw [add_smul, one_smul]
 
 end ReesAlgebra
 
@@ -378,13 +455,158 @@ instance : GradedAlgebra (grading F) where
     |H_plus x y hx hy => simp [hx, hy]
   right_inv x := by
     induction x using DirectSum.induction_on with
-    |H_zero => simp
-    |H_basic v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
-    |H_plus x y hx hy => simp [hx, hy]
+    |zero => simp
+    |of v x => rcases x with ⟨_, ⟨x, rfl⟩⟩; simp
+    |add x y hx hy => simp [hx, hy]
 
-variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))] in
-instance : GradedAlgebra (gradingOfInjection (grading F) (ρNatToInt ι)) :=
-  gradingOfInjection_isGradedAlgebra (grading F) (ρNatToInt ι) ρNatToInt_inj
+lemma single_has_degree (v : ι →₀ ℕ) (x) :
+    single F v x ∈ grading F v := by
+  rw [grading, LinearMap.mem_range]
+  use x
+
+lemma eq_single_of_homogeneous (x : ReesAlgebra F) (hx : SetLike.IsHomogeneousElem (grading F) x) :
+    ∃ v, x = single F v (x.val v) := by
+  rcases hx with ⟨v, ⟨y, rfl⟩⟩
+  use v
+  simp
+
+lemma single_familyPow {index : Type*}
+    (n : index →₀ ℕ) (v : index → (ι →₀ ℕ)) (a : ∀ i : index, F^(v i)) :
+    (fun i : index ↦ single F (v i) (a i))^n =
+    single F (∑ i ∈ n.support, n i • v i)
+      ⟨∏ i ∈ n.support, (a i)^(n i), n.induction (by simp) (by
+        intro i n f _ _ ih
+        change (f.prod fun j ↦ _) ∈ _ at ih
+        change Finsupp.prod _ _ ∈ _
+        rw [Finsupp.prod_add_index']
+        · simp only [pow_zero, Finsupp.prod_single_index]
+          change _ ∈ F ^ ((Finsupp.single i n + f).sum (fun i n ↦ n • (v i)) : ι →₀ ℕ)
+          rw [Finsupp.sum_add_index']
+          · rw [familyPow_add]
+            apply Ideal.mul_mem_mul
+            · simp only [zero_smul, Finsupp.sum_single_index, familyPow_nsmul]
+              apply Ideal.pow_mem_pow
+              exact (a i).2
+            · exact ih
+          · simp
+          · simp [add_smul]
+        · simp
+        · simp [pow_add])⟩ := by
+  refine n.induction ?_ ?_
+  · simp only [familyPow_zero, Finsupp.support_zero, Finsupp.coe_zero, Pi.zero_apply,
+    Finset.sum_empty, pow_zero, Finset.prod_const_one]
+    rfl
+  · intro j n f hj hn ih
+    rw [familyPow_add, ih, familyPow_single', single_npow, single_mul]
+    simp_rw [add_comm _ f, f.support_add_single hj hn, Finset.prod_cons]
+    apply single_eq'
+
+    · rw [add_comm _ f, f.support_add_single hj hn, Finset.sum_cons]
+      simp only [Finsupp.mem_support_iff, ne_eq, Decidable.not_not] at hj
+      simp only [Finsupp.coe_add, Pi.add_apply, hj, Finsupp.single_eq_same, zero_add, add_smul,
+        add_right_inj]
+      refine Finset.sum_congr rfl ?_
+      intro k hk
+      classical
+      rw [Finsupp.single_apply, if_neg (by
+        rintro rfl
+        simp only [Finsupp.mem_support_iff, ne_eq] at hk
+        exact hk hj), zero_smul, add_zero]
+    simp only [Finsupp.mem_support_iff, ne_eq, Decidable.not_not] at hj
+    simp only [Finsupp.coe_add, Pi.add_apply, hj, Finsupp.single_eq_same, zero_add]
+    congr 1
+    apply Finset.prod_congr rfl
+    intro k hk
+    simp only [Finsupp.mem_support_iff, ne_eq] at hk
+    classical
+    rw [Finsupp.single_apply, if_neg (by
+      rintro rfl
+      exact hk hj), add_zero]
+
+@[simps]
+def degreeZeroIso : A ≃+* (ReesAlgebra.grading F 0) where
+  toFun a := ⟨.single F 0 ⟨a, by simp⟩, by simp [grading]⟩
+  invFun a := a.1.val 0 |>.1
+  left_inv a := by simp
+  right_inv a := by
+    ext v
+    simp only [Subtype.coe_eta, single_apply_val, SetLike.coe_eq_coe]
+    ext
+    rw [DirectSum.coe_of_apply]
+    obtain ⟨x, hx⟩ := a.2
+    rw [← hx]
+    simp only [ZeroMemClass.coe_zero, single_apply_val]
+    rw [DirectSum.coe_of_apply]
+    simp
+  map_mul' x y := by
+    ext v
+    simp only [single_apply_val, SetLike.GradeZero.coe_mul, single_mul, SetLike.coe_eq_coe]
+    ext
+    simp only [coe_of_apply, zero_add]
+    split_ifs <;> rfl
+  map_add' x y := by
+    ext v
+    simp only [single_apply_val, coe_of_apply, AddMemClass.mk_add_mk, add_val, add_apply,
+      Submodule.coe_add]
+    split_ifs
+    · rfl
+    · simp
+
+variable [(i : ι →₀ ℤ) → Decidable (i ∈ Set.range (ρNatToInt ι))]
+abbrev intGrading := (gradingOfInjection (grading F) (ρNatToInt ι))
+instance : GradedAlgebra (intGrading F) :=
+  gradingOfInjection_isGradedAlgebra (grading F) (ρNatToInt ι)
+
+def degreeZeroIso' : A ≃+* (ReesAlgebra.intGrading F 0) :=
+  degreeZeroIso F |>.trans
+  (gradingOfInjection₀Iso (ReesAlgebra.grading F) (ρNatToInt ι)).symm
+
+@[simp]
+lemma degreeZeroIso'_apply (a : A) :
+  degreeZeroIso' F a = ⟨.single F 0 ⟨a, by simp⟩, by
+    delta intGrading gradingOfInjection
+    rw [dif_pos ⟨0, by simp⟩]
+    rw [Set.rangeSplitting_apply_zero (inj := ρNatToInt_inj) (hf := by simp)]
+    exact single_has_degree F 0 _⟩ := rfl
+
+lemma single_has_degree' (v : ι →₀ ℕ) (x) :
+    single F v x ∈ intGrading F (ρNatToInt _ v) := by
+  rw [intGrading, gradingOfInjection]
+  rw [dif_pos (by simp)]
+  erw [Set.rangeSplitting_apply_coe]
+  exact single_has_degree F v x
+  exact ρNatToInt_inj
+
+lemma eq_single_of_homogeneous' (x : ReesAlgebra F) (hx : SetLike.IsHomogeneousElem (intGrading F) x) :
+    ∃ v, x = single F v (x.val v) := by
+  rcases hx with ⟨v, hv⟩
+  simp only [intGrading, gradingOfInjection, Set.mem_range, ρNatToInt_apply] at hv
+  split_ifs at hv with h
+  · rcases h with ⟨v, rfl⟩
+    rcases hv with ⟨⟨x, hx⟩, rfl⟩
+
+    use v
+    ext w
+    simp only [single_apply_val, SetLike.coe_eq_coe]
+    ext
+    simp only [coe_of_apply]
+    split_ifs with h h'
+    · subst h'
+      rw [coe_of_apply, if_pos h]
+    · refine h' (h ▸ ?_) |>.elim
+      rw [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+    · refine h ?_ |>.elim
+      rwa [Set.rangeSplitting_apply_coe (inj := ρNatToInt_inj)]
+    · rfl
+
+  simp only [Submodule.mem_bot] at hv
+  subst hv
+  use 0
+  ext w
+  simp [zero_def]
+
+instance (S : HomogeneousSubmonoid (ReesAlgebra.intGrading F)) : Algebra A S.Potion :=
+  RingHom.toAlgebra <| RingHom.comp (algebraMap _ _) (degreeZeroIso' F).toRingHom
 
 end ReesAlgebra
 

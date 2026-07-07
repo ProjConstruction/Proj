@@ -1,4 +1,6 @@
 import Project.Potions.Basic
+import Project.ForMathlib.HomogeneousLocalization
+import Project.ForMathlib.LocalizationAway
 
 suppress_compilation
 
@@ -38,8 +40,8 @@ def localizationToPotion (T' : PotionGen S T) :
       simp only [mem_bar] at s_mem_bar' s'_mem_bar'
       obtain ⟨s_hom, y, hy, dvd⟩ := s_mem_bar'
       obtain ⟨s'_hom, y', hy', dvd'⟩ := s'_mem_bar'
-      obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 s_hom (S.homogeneous hy) dvd
-      obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 s'_hom (S.homogeneous hy') dvd'
+      obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 s_hom (S.homogeneous hy) dvd
+      obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 s'_hom (S.homogeneous hy') dvd'
       have t_deg : (T'.elem t : A)^(n : ℕ) ∈ 𝒜 (i - i') := T'.t_deg t
       have s_deg : s ∈ 𝒜 i := T'.s_deg t
       have s'_deg : s' ∈ 𝒜 i' := T'.s'_deg t
@@ -93,14 +95,14 @@ lemma localizationToPotion_mk (T' : PotionGen S T)
   have := T'.s_mem_bar t
   simp only [mem_bar] at this
   obtain ⟨-, y, h_mem, dvd⟩ := this
-  obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s_deg _⟩ (S.homogeneous h_mem) dvd
+  obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s_deg _⟩ (S.homogeneous h_mem) dvd
   rw [equivBarPotion_symm_apply (z_mem := hj) (hz := h_mem)]
 
   simp only [map_pow, mul_toSubmonoid, potionToMul_mk, eq_mp_eq_cast]
   have := T'.s'_mem_bar t
   simp only [mem_bar] at this
   obtain ⟨-, y, h_mem', dvd'⟩ := this
-  obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s'_deg _⟩ (S.homogeneous h_mem') dvd'
+  obtain ⟨z', rfl, ⟨j', hj'⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 ⟨_, T'.s'_deg _⟩ (S.homogeneous h_mem') dvd'
 
   rw [equivBarPotion_symm_apply (S * T) (z_mem := hj') (hz := by
     rw [mul_assoc]
@@ -163,7 +165,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
         simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,
           Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists, mem_toSubmonoid_iff,
           mem_bar, exists_prop]
-        refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, ?_⟩
+        refine ⟨1, ⟨SetLike.isHomogeneousElem_one _, 1, one_mem _, by rfl⟩, ?_⟩
         simp only [one_mul, hi]
         ring⟩, ?_⟩
   change _ * HomogeneousLocalization.mk _ = 0
@@ -193,7 +195,7 @@ lemma localizationToPotion_injective (T' : PotionGen S T) :
     exact ⟨𝔰, ⟨S.homogeneous ‹_›, 𝔰, ‹_›, by rfl⟩, eq1⟩
 
 
-  refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, ?_⟩
+  refine ⟨1, ⟨SetLike.isHomogeneousElem_one _, 1, one_mem _, by rfl⟩, ?_⟩
   simp only [one_mul]
   simp_rw [mul_pow, Finset.prod_mul_distrib]
   rw [Finset.prod_pow_eq_pow_sum]
@@ -258,7 +260,7 @@ lemma localizationToPotion_surjective (T' : PotionGen S T) :
 
   obtain ⟨i𝔰, 𝔰_deg⟩ := S.homogeneous h𝔰
   choose x hx using hd
-  have H : ∀ i ∈ d.support, SetLike.Homogeneous 𝒜 i := fun i hi ↦ T.homogeneous <| by
+  have H : ∀ i ∈ d.support, SetLike.IsHomogeneousElem 𝒜 i := fun i hi ↦ T.homogeneous <| by
     simpa [hx] using T'.elem_mem <| (x _ hi)
   choose degt hdegt using H
   have h𝔰𝔱' : (𝔰 * d.prod fun y i ↦ y ^ i) ∈ 𝒜 (i𝔰 + ∑ t ∈ d.support.attach, d t • degt _ t.2) := by
@@ -354,7 +356,7 @@ lemma localizationToPotion_surjective (T' : PotionGen S T) :
     have := T'.s_mem_bar (x _ ht)
     simp only [mem_bar] at this
     obtain ⟨hom, y, hy, dvd⟩ := this
-    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜 hom (S.homogeneous hy) dvd
+    obtain ⟨z, rfl, ⟨j, hj⟩⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜 hom (S.homogeneous hy) dvd
     rw [equivBarPotion_symm_apply (z_mem := hj) (hz := hy)]
     simp only
     apply pow_mem
@@ -367,7 +369,7 @@ lemma localizationToPotion_surjective (T' : PotionGen S T) :
     simp only [Setoid.ker_def, HomogeneousLocalization.NumDenSameDeg.embedding,
       Localization.mk_eq_mk_iff, Localization.r_iff_exists, Subtype.exists, mem_toSubmonoid_iff,
       mem_bar, exists_prop]
-    refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, by
+    refine ⟨1, ⟨SetLike.isHomogeneousElem_one _, 1, one_mem _, by rfl⟩, by
       simp only [one_mul, hx]; ring⟩
   let X : Localization T'.genSubmonoid := .mk num den
   use X
@@ -390,7 +392,7 @@ lemma localizationToPotion_surjective (T' : PotionGen S T) :
     HomogeneousLocalization.NumDenSameDeg.num_mul, HomogeneousLocalization.NumDenSameDeg.num_prod,
     HomogeneousLocalization.NumDenSameDeg.num_pow, Subtype.exists, mem_toSubmonoid_iff, mem_bar,
     exists_prop, num, den, X]
-  refine ⟨1, ⟨SetLike.homogeneous_one _, 1, one_mem _, by rfl⟩, ?_⟩
+  refine ⟨1, ⟨SetLike.isHomogeneousElem_one _, 1, one_mem _, by rfl⟩, ?_⟩
   simp only [Finsupp.prod,
     show (∏ x ∈ d.support, x ^ d x) = ∏ x ∈ d.support.attach, x.1 ^ d x by
       conv_lhs => rw [← Finset.prod_attach],

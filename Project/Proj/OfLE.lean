@@ -18,7 +18,7 @@ open HomogeneousSubmonoid
 namespace GoodPotionIngredient
 
 universe u
-variable {τ τ' ι R₀ A : Type u}
+variable {ι : Type} {τ τ' R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
@@ -47,8 +47,8 @@ def LE_.potionEquivMap (le : LE_ ℱ ℱ') (i : τ) : (ℱ' (le i)).Potion ≃+*
       (ℱ' (le i)).Potion →+* (ℱ i).Potion)
     (HomogeneousLocalization.map _ _ (RingHom.id _) (by erw [Submonoid.comap_id]; simp) (by simp) :
       (ℱ i).Potion →+* (ℱ' (le i)).Potion)
-     (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
-     (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
+    (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
+    (by ext x; induction x using Quotient.inductionOn' with | h x => rfl)
 
 lemma LE_.potionEquivMap_comp (le : LE_ ℱ ℱ') (i j : τ) :
       ((ℱ i).potionToMul (ℱ j).1).comp (le.potionEquivMap i).toRingHom =
@@ -104,9 +104,9 @@ def projHomOfLE (le : LE_ ℱ ℱ') : Proj ℱ ⟶ Proj ℱ' :=
       HomogeneousSubmonoid.mul_toSubmonoid, glueData_U, glueData_f, glueData_t]
     conv_rhs => rw [RingHom.comp_assoc]
     erw [LE_.potionEquivMap_comp]
-    simp only [mul_toHomogeneousSubmonoid, HomogeneousSubmonoid.mul_toSubmonoid,
-      RingEquiv.toRingHom_eq_coe, CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc,
-      glueData_J] at this ⊢
+    simp only [mul_toHomogeneousSubmonoid, mul_toSubmonoid, RingEquiv.toRingHom_eq_coe,
+      CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc, MultispanShape.prod_fst, glueData_J,
+      MultispanShape.prod_snd] at this ⊢
     rw [← this]
     rw [← Spec.map_comp_assoc, ← Spec.map_comp_assoc, ← Spec.map_comp_assoc, ← Spec.map_comp_assoc,
       ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp, ← CommRingCat.ofHom_comp,
@@ -214,17 +214,11 @@ lemma projHomOfLE_base_injective (le : LE_ ℱ ℱ') :
   clear_value X X'
   clear eq_X eq_X' x x'
   rw [Scheme.GlueData.ι_eq_iff] at h
-  obtain eq|⟨y, h₁, h₂⟩ := h
-  · simp only [glueData_J, glueData_U, Sigma.mk.inj_iff, Subtype.mk.injEq] at eq
-    rcases eq with ⟨eq₁, eq₂⟩
-    replace eq₁ := le.t.2 eq₁
-    subst eq₁
-    simp only [heq_eq_eq] at eq₂
-    subst eq₂
-    rfl
+  obtain ⟨y, h₁, h₂⟩ := h
   simp only at h₁ h₂
   rw [← h₁, ← h₂]
-  erw [← comp_apply, ← comp_apply, ← comp_apply, ← comp_apply, ← Scheme.comp_coeBase,
+  erw [← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply, ← ConcreteCategory.comp_apply,
+    ← ConcreteCategory.comp_apply, ← Scheme.comp_coeBase,
     ← Scheme.comp_coeBase, ← Scheme.comp_coeBase, ← Scheme.comp_coeBase, ]
   rw [← Category.assoc, LE_.f_comp_potionEquivMap, Category.assoc, ← (glueData ℱ).glue_condition j j',
     Category.assoc, LE_.f_comp_potionEquivMap_assoc, LE_.t_comp_assoc]
@@ -355,7 +349,7 @@ instance proj_iso_proj_idealify :
 
     erw [projHomOfLE_comp_ι_base_apply]
     rw [Scheme.GlueData.ι_eq_iff]
-    right
+
     let e : ((ℱ i).1 * ((ℱ i).1 * T.1)).Potion ≃+* ((ℱ i).1 * T.1).Potion := potionEquiv (by simp [← mul_assoc])
     refine ⟨⟨Ideal.comap e x.asIdeal, inferInstance⟩, ?_, ?_⟩
 
@@ -368,9 +362,9 @@ instance proj_iso_proj_idealify :
       congr 1
       ext x
       induction x using Quotient.inductionOn' with | h x =>
-      simp only [mul_toSubmonoid, RingHom.coe_comp, Function.comp_apply, potionToMul_mk]
+      simp only [mul_toSubmonoid, RingHom.coe_comp, Function.comp_apply]
       erw [HomogeneousLocalization.map_mk]
-      simp only [RingHom.id_apply, Subtype.coe_eta, HomogeneousLocalization.val_mk, id_eq]
+      simp only [RingHom.id_apply, Subtype.coe_eta, HomogeneousLocalization.val_mk]
       rw [← Localization.mk_one_eq_algebraMap]
       have eq := localizationToPotion_mk' (ℱ i).1 T.1 (finitePotionGen (ℱ i).relevant T.fg) x ∅ id (fun _ ↦ 1)
       simp only [mul_toSubmonoid, id_eq, pow_one, Finset.prod_empty, map_one, mul_one] at eq
@@ -390,7 +384,7 @@ instance proj_iso_proj_idealify :
       simp only [glueData_J, SetLike.coe_sort_coe, glueData_V, mul_toHomogeneousSubmonoid,
         mul_toSubmonoid, glueData_U, glueData_f, Scheme.comp_coeBase, TopCat.comp_app]
       erw [Scheme.GlueData.ι_eq_iff]
-      right
+
       refine ⟨⟨Ideal.comap e x.asIdeal, inferInstance⟩, ?_⟩
       simp only [glueData_J, SetLike.coe_sort_coe, glueData_U, mul_toSubmonoid,
         mul_toHomogeneousSubmonoid, glueData_V, glueData_f, glueData_t, RingEquiv.toRingHom_eq_coe,
@@ -399,19 +393,18 @@ instance proj_iso_proj_idealify :
       change Ideal.comap _ (Ideal.comap _ _) = _
       rw [Ideal.comap_comap]
       ext z
-      simp only [Ideal.mem_comap, RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply,
-        potionEquiv_trans_apply, mul_toSubmonoid, e]
+      simp only [Ideal.mem_comap, RingHom.coe_comp, Function.comp_apply, e]
       induction z using Quotient.inductionOn' with | h z =>
-      simp only [mul_toSubmonoid, e]
+      simp only [mul_toSubmonoid]
       erw [HomogeneousLocalization.map_mk]
       swap
-      · simp only [mul_toSubmonoid, e]
-        rw [mul_comm (ℱ i).1.1, mul_assoc, Submonoid.mul_self]
+      · simp only [mul_toSubmonoid]
+        rw [← mul_assoc, Submonoid.mul_self]
         erw [Submonoid.comap_id]
       swap
       · intro _ _ h
         exact h
-      simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta, e]
+      simp only [mul_toSubmonoid, RingHom.id_apply, Subtype.coe_eta]
       rfl
 
 section Sets
@@ -443,15 +436,29 @@ instance proj_iso_proj_subset :
     erw [projHomOfLE_comp_ι_base_apply]
     simp only [SetLike.coe_sort_coe, glueData_U]
     erw [Scheme.GlueData.ι_eq_iff]
-    left
-    simp only [glueData_J, glueData_U, Sigma.mk.inj_iff, heq_eq_eq]
-    constructor
-    · rfl
-    refine PrimeSpectrum.ext ?_
-    change Ideal.comap _ _ = _
-    ext a
-    induction a using Quotient.inductionOn' with | h a =>
-    rfl
+    simp only [glueData_J, glueData_U]
+    refine ⟨⟨Ideal.comap (potionEquiv ?_) x.asIdeal, x.isPrime.comap _⟩, ?_, ?_⟩
+
+    · simp [LE_.of_subset]
+    · refine PrimeSpectrum.ext ?_
+      change Ideal.comap _ _ = _
+      ext a
+      induction a using Quotient.inductionOn' with | h a =>
+      rfl
+    · simp only [glueData_J, glueData_U, glueData_V, mul_toHomogeneousSubmonoid, mul_toSubmonoid,
+      glueData_t, potionEquiv_refl, RingEquiv.toRingHom_eq_coe, RingEquiv.coe_ringHom_refl,
+      CommRingCat.ofHom_id, Spec.map_id, glueData_f, Scheme.comp_coeBase, Scheme.id.base,
+      TopCat.hom_comp, ContinuousMap.comp_apply]
+      erw [ConcreteCategory.id_apply]
+      refine PrimeSpectrum.ext ?_
+      change Ideal.comap _ (Ideal.comap _ _) = _
+      erw [Ideal.comap_comap]
+      convert Ideal.comap_id _
+      ext x
+      simp only [mul_toSubmonoid, CommRingCat.hom_ofHom, RingHom.coe_comp, Function.comp_apply,
+        RingHom.id_apply]
+      induction x using Quotient.inductionOn' with | h x =>
+      rfl
   · refine ⟨((glueData (τ := ℱ) Subtype.val).ι ⟨S, hS'⟩).base
       ⟨Ideal.comap (algebraMap (S.Potion) _) <| Ideal.comap
         (HomogeneousSubmonoid.localizationRingEquivPotion (finitePotionGen S.relevant T.fg))
@@ -460,7 +467,6 @@ instance proj_iso_proj_subset :
 
     erw [projHomOfLE_comp_ι_base_apply]
     rw [Scheme.GlueData.ι_eq_iff]
-    right
     let e : (S.1 * (S.1 * T.1)).Potion ≃+* (S.1 * T.1).Potion := potionEquiv (by simp [← mul_assoc])
     refine ⟨⟨Ideal.comap e x.asIdeal, inferInstance⟩, ?_, ?_⟩
 
@@ -496,7 +502,6 @@ instance proj_iso_proj_subset :
       simp only [glueData_J, SetLike.coe_sort_coe, glueData_V, mul_toHomogeneousSubmonoid,
         mul_toSubmonoid, glueData_U, glueData_f, Scheme.comp_coeBase, TopCat.comp_app]
       erw [Scheme.GlueData.ι_eq_iff]
-      right
       refine ⟨⟨Ideal.comap e x.asIdeal, inferInstance⟩, ?_⟩
       simp only [glueData_J, SetLike.coe_sort_coe, glueData_U, mul_toSubmonoid,
         mul_toHomogeneousSubmonoid, glueData_V, glueData_f, glueData_t, RingEquiv.toRingHom_eq_coe,
@@ -512,7 +517,7 @@ instance proj_iso_proj_subset :
       erw [HomogeneousLocalization.map_mk]
       swap
       · simp only [mul_toSubmonoid, e]
-        rw [mul_comm S.1.1, mul_assoc, Submonoid.mul_self]
+        rw [← mul_assoc, Submonoid.mul_self]
         erw [Submonoid.comap_id]
       swap
       · intro _ _ h

@@ -1,4 +1,5 @@
 import Project.HomogeneousSubmonoid.Basic
+import Mathlib.Data.NNReal.Defs
 open DirectSum TensorProduct
 open scoped NNReal
 
@@ -50,7 +51,7 @@ lemma mem_convDeg [Nontrivial A] (x) :
     | zero =>
       refine ⟨0, ?_, by simp⟩
       intro i hi
-      simp only [Finsupp.support_zero, Finset.not_mem_empty] at hi
+      simp only [Finsupp.support_zero, Finset.notMem_empty] at hi
     | tmul a i =>
       rcases i with ⟨i, hi⟩
       refine ⟨Finsupp.single i a, ?_, ?_⟩
@@ -71,8 +72,8 @@ lemma mem_convDeg [Nontrivial A] (x) :
       simp_rw [eq, eq']
       refine ⟨s + t, ⟨?_, ?_⟩⟩
       · intro j hj
-        simp only [Finsupp.mem_support_iff, ne_eq, Finsupp.coe_add, Pi.add_apply,
-          AddLeftCancelMonoid.add_eq_zero, not_and] at hs ht hj
+        simp only [Finsupp.mem_support_iff, ne_eq, mem_deg_iff, Finsupp.coe_add, Pi.add_apply,
+          add_eq_zero, not_and] at hs ht hj
         tauto
       simp only [Finsupp.coe_add, Pi.add_apply, NNReal.coe_add, add_tmul, Finset.sum_add_distrib]
       nth_rewrite 1 [show (s + t).support = s.support ∪ ((s + t).support \ s.support) by

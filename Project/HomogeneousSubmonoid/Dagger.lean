@@ -1,5 +1,6 @@
 import Project.HomogeneousSubmonoid.Relevant
 import Project.Grading.GradedRingHom
+import Mathlib.RingTheory.GradedAlgebra.Homogeneous.Ideal
 
 variable {ι A B σ τ : Type*}
 variable [AddCommGroup ι] [AddGroup.FG ι] [DecidableEq ι]
@@ -9,7 +10,7 @@ variable [CommRing B] [SetLike τ B] [AddSubgroupClass τ B] (ℬ : ι → τ) [
 namespace HomogeneousSubmonoid
 
 def dagger : HomogeneousIdeal 𝒜 where
-  __ := Ideal.span { x | ∃ (h : SetLike.Homogeneous 𝒜 x), ElemIsRelevant x h }
+  __ := Ideal.span { x | ∃ (h : SetLike.IsHomogeneousElem 𝒜 x), ElemIsRelevant x h }
   is_homogeneous' := Ideal.homogeneous_span _ _ (by rintro x ⟨h, _⟩; exact h)
 
 scoped postfix:max "†" => dagger
@@ -24,7 +25,7 @@ namespace GradedRingHom
 
 variable {𝒜 ℬ}
 
-lemma map_relevant {a : A} {hom_a : SetLike.Homogeneous 𝒜 a} (rel_a : ElemIsRelevant a hom_a) :
+lemma map_relevant {a : A} {hom_a : SetLike.IsHomogeneousElem 𝒜 a} (rel_a : ElemIsRelevant a hom_a) :
     ElemIsRelevant (Ψ a) (Ψ.map_homogeneous hom_a) := by
   rw [elemIsRelevant_iff] at rel_a ⊢
   obtain ⟨n, x, d, mem, fin, k, eq⟩ := rel_a
@@ -69,7 +70,7 @@ lemma radical_dagger_eq_of_surjective (surj : Function.Surjective Ψ) :
     have h_tilde : Ψ f_tilde = (Ψ f)^k := by
       simp only [f_tilde, map_prod, hf'', eq]
     refine ⟨k, h_tilde ▸ Ideal.subset_span ⟨f_tilde,
-      Ideal.subset_span ⟨SetLike.Homogeneous.prod' _ _ fun i ↦ ⟨d i, hf' i⟩, ?_⟩, rfl⟩⟩
+      Ideal.subset_span ⟨SetLike.IsHomogeneousElem.prod' _ _ fun i ↦ ⟨d i, hf' i⟩, ?_⟩, rfl⟩⟩
     rw [elemIsRelevant_iff]
     refine ⟨n, f', d, hf', fin, 1, by simp [f_tilde]⟩
   | add f g hf hg ihf ihg =>

@@ -1,10 +1,11 @@
 import Project.Potions.GoodPotionIngredient
 import Mathlib.Util.CountHeartbeats
+import Mathlib.AlgebraicGeometry.Pullbacks
 
 suppress_compilation
 
 universe u
-variable {ι R₀ A : Type u}
+variable {ι : Type} {R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
@@ -104,5 +105,49 @@ def glueData {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) : Scheme.Glu
 --     simpa using congr($(t'_cocycle R.1 S.1 T.1) x)
 
 def Proj {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) : Scheme := glueData ℱ |>.glued
+
+/--
+F i ≤ F j
+
+F j -> Proj
+F j -> F i -> Proj
+-/
+lemma proj_glue_condition {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) (i j : τ)
+    (le : (ℱ i).toHomogeneousSubmonoid ≤ (ℱ j).toHomogeneousSubmonoid) :
+    (glueData ℱ).ι j =
+    (Spec.map <| CommRingCat.ofHom <| potionMapOfLE _ _ le) ≫ (glueData ℱ).ι i := by
+  convert (Spec.map <| CommRingCat.ofHom <| (potionEquiv <| by
+      refine le_antisymm ?_ ?_
+      · rintro x (hx : x ∈ (ℱ i).1 * (ℱ j).1)
+        rw [HomogeneousSubmonoid.mem_mul_iff] at hx
+        obtain ⟨x, hx, y, hy, rfl⟩ := hx
+        exact mul_mem (le hx) hy
+      · apply right_le_mul).toRingHom :
+    (glueData ℱ).U j ⟶ (glueData ℱ).V (i, j)) ≫= (glueData ℱ |>.glue_condition i j) using 1
+  · simp only [glueData_U, glueData_J, mul_toHomogeneousSubmonoid, mul_toSubmonoid,
+      RingEquiv.toRingHom_eq_coe, glueData_V, glueData_t, glueData_f, ← Category.assoc, ←
+      Spec.map_comp, ← CommRingCat.ofHom_comp, ← RingHom.comp_assoc]
+    symm
+    convert Category.id_comp _
+    convert Spec.map_id (CommRingCat.of (ℱ j).Potion)
+    ext x
+    induction x using Quotient.inductionOn' with | h x =>
+    simp only [CommRingCat.ofHom_comp, CommRingCat.hom_comp, CommRingCat.hom_ofHom,
+      RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply, potionToMul_mk, mul_toSubmonoid,
+      potionEquiv_trans_apply, CommRingCat.hom_id, RingHom.id_apply, HomogeneousLocalization.val_mk]
+    rw [potionEquiv_mk']
+    simp
+  · simp only [glueData_U, glueData_J, mul_toHomogeneousSubmonoid, mul_toSubmonoid,
+    RingEquiv.toRingHom_eq_coe, glueData_V, glueData_f, ← Category.assoc, ← Spec.map_comp, ←
+    CommRingCat.ofHom_comp]
+    congr 3
+
+    ext x
+    induction x using Quotient.inductionOn' with | h x =>
+    simp only [RingHom.coe_comp, RingHom.coe_coe, Function.comp_apply, potionToMul_mk,
+      mul_toSubmonoid]
+    rw [potionEquiv_mk']
+    simp only [mul_toSubmonoid, Subtype.coe_eta, HomogeneousLocalization.val_mk]
+    rfl
 
 end GoodPotionIngredient

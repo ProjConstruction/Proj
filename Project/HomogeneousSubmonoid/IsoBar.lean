@@ -39,7 +39,7 @@ IsLocalization.lift
   rintro ⟨s, hs⟩
   simp only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq] at hs
   obtain ⟨-, y, hy, hdvd⟩ := hs
-  obtain ⟨z, rfl, hz⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜
+  obtain ⟨z, rfl, hz⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜
     (S.bar.homogeneous hs) (S.homogeneous hy) hdvd
   refine ⟨⟨_, .mk z ⟨_, hy⟩, ?_, ?_⟩, rfl⟩
   · simp only [← Localization.mk_one_eq_algebraMap, Localization.mk_mul, mul_one, one_mul]
@@ -90,7 +90,7 @@ def localizationEquivLocalizationBar : S.LocalizationGrading ≃+* S.bar.Localiz
       MonoidHom.coe_coe]
     simp only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq] at hs
     obtain ⟨hs', y, hy1, hy2⟩ := hs
-    obtain ⟨z, rfl, hz⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜
+    obtain ⟨z, rfl, hz⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜
       (S.bar.homogeneous hs) (S.homogeneous hy1) hy2
     rw [localizationBarToLocalization_mk (hz := hy1)]
     simp only [localizationToLocalizationBar_mk]
@@ -109,12 +109,11 @@ def localizationEquivLocalizationBar : S.LocalizationGrading ≃+* S.bar.Localiz
     exact ⟨m, n, hmn, a, b, S.le_bar hb, rfl⟩
   inv_mem' := by
     intro i x hx
-    simp only
     rw [mem_localizationGrading_iff] at hx
     obtain ⟨m, n, hmn, ⟨a, a_mem⟩, ⟨b, b_mem⟩, hb, rfl⟩ := hx
     simp only [bar, Submonoid.mem_mk, Subsemigroup.mem_mk, Set.mem_setOf_eq] at hb
     obtain ⟨-, y, hy1, hdvd⟩ := hb
-    obtain ⟨z, rfl, hz⟩ := SetLike.Homogeneous.exists_homogeneous_of_dvd 𝒜
+    obtain ⟨z, rfl, hz⟩ := SetLike.IsHomogeneousElem.exists_homogeneous_of_dvd 𝒜
       (S.bar.homogeneous hb) (S.homogeneous hy1) hdvd
     rw [localizationBarToLocalization_mk (hz := hy1)]
     simp only

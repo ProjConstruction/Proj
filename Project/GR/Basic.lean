@@ -1,8 +1,8 @@
 import Mathlib.Algebra.Group.Subgroup.Lattice
 import Mathlib.Algebra.Group.Subgroup.Ker
-import Mathlib.GroupTheory.Congruence.Basic
 import Mathlib.Tactic.Group
 import Mathlib.Tactic.ApplyFun
+import Mathlib.GroupTheory.Congruence.Hom
 
 universe u v
 
@@ -88,7 +88,6 @@ def emb : M →* Mᵍʳ where
   toFun x := ↑((x, 1) : M × M)
   map_one' := rfl
   map_mul' x y := by
-    simp only [Con.coe_mk']
     change Con.mk' _ _ = Con.mk' _ _
     simp only [Con.coe_mk', Prod.mk_mul_mk, mul_one]
 
@@ -129,7 +128,7 @@ lemma inv_coe (x y : M) : (↑(x, y) : Mᵍʳ)⁻¹ = ↑(y, x) := rfl
 
 @[to_additive (attr := simp)]
 lemma coe_same (x : M) : (↑(x, x) : Mᵍʳ) = 1 := by
-  rw [show (1 : Mᵍʳ) = ↑((1, 1) : M × M) by simp, Con.eq]
+  rw [show (1 : Mᵍʳ) = ↑((1, 1) : M × M) by rfl, Con.eq]
   use 1
   simp
 
@@ -175,7 +174,8 @@ lemma lift_emb_apply {G : Type v} [Group G] (f : M →* G) (x) : (lift f) (emb M
 lemma lift_uniq {G : Type v} [Group G] (f : M →* G) (f' : Mᵍʳ →* G) (h : f'.comp (emb M) = f) :
     f' = lift f := by
   ext x
-  obtain ⟨⟨a, b⟩, rfl⟩ := Con.mk'_surjective x
+  obtain ⟨⟨a, b⟩, hab⟩ := Con.mk'_surjective (M := M × M) (c := GRConstruction.con M) x
+  simp only [MonoidHom.coe_comp, Con.coe_mk', Function.comp_apply, ← hab]
   simp only [Con.coe_mk', lift, Con.lift_coe, MonoidHom.coe_mk, OneHom.coe_mk]
   have eq (x : M) := congr($h x)
   simp only [emb, MonoidHom.coe_comp, MonoidHom.coe_mk, OneHom.coe_mk, Function.comp_apply] at eq

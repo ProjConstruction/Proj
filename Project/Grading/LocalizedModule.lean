@@ -175,8 +175,7 @@ instance (i : ι) : AddCommGroup (addCon 𝒬 S i).Quotient where
   neg_add_cancel := by
     intro a
     obtain ⟨a, rfl⟩ := AddCon.mk'_surjective a
-    simp only [AddCon.coe_mk', AddCon.lift_coe, AddMonoidHom.coe_mk, ZeroHom.coe_mk]
-    rw [← AddCon.coe_mk', ← map_add]
+    simp only [AddCon.rel_eq_coe, AddCon.coe_mk', AddMonoidHom.coe_mk, ZeroHom.coe_mk]
     erw [AddCon.eq]
     simp only [addCon, val, AddCon.ker_rel, AddMonoidHom.coe_mk, ZeroHom.coe_mk, add_num, neg_den,
       neg_num, smul_neg, add_neg_cancel, add_den, zero_mk, zero_num, zero_den]
@@ -258,6 +257,8 @@ noncomputable instance :
   Module.compHom (R := ⨁ i : ι, S.LocalizationGrading i) (⨁ i : ι, S.LocalizedModuleGrading 𝒬 i)
     (decomposeRingEquiv S.LocalizationGrading).toRingHom
 
+set_option synthInstance.maxHeartbeats 40000
+
 omit [Decomposition 𝒬] in
 @[simp]
 lemma localization_smul_directSum_def
@@ -322,15 +323,15 @@ noncomputable def decompositionAux3 : Q →ₗ[A] (⨁ (i : ι), (S.LocalizedMod
   map_smul' a q := by
     dsimp only [decompositionAux2, decompositionAux1]
     induction a using DirectSum.Decomposition.inductionOn 𝓐 with
-    | h_zero =>
+    | zero =>
       rw [zero_smul, map_zero, map_zero, smul_directSum_def, map_zero,
         localization_smul_directSum_def, decompose_zero, Gmodule.smul_def, map_zero]
       rfl
-    | @h_homogeneous i a =>
+    | @homogeneous i a =>
       induction q using DirectSum.Decomposition.inductionOn 𝓠 with
-      | h_zero =>
+      | zero =>
         rw [smul_zero, map_zero, smul_zero]
-      | @h_homogeneous j q =>
+      | @homogeneous j q =>
         rw [AddMonoidHom.comp_apply, AddMonoidHom.comp_apply]
         erw [show decomposeAddEquiv 𝓠 (a.1 • q.1) = decompose 𝓠 (a.1 • q.1) by rfl,
           show decomposeAddEquiv 𝓠 q.1 = decompose 𝓠 q.1 by rfl, decompose_coe]
@@ -345,9 +346,9 @@ noncomputable def decompositionAux3 : Q →ₗ[A] (⨁ (i : ι), (S.LocalizedMod
         ext k
         simp only [coe_of_apply, ← Localization.mk_one_eq_algebraMap,
           GradedMonoid.GSMul.smul, ite_apply, LocalizedModule.mk_smul_mk, mul_one]
-      | h_add q q' hq hq' =>
+      | add q q' hq hq' =>
         rw [smul_add, map_add, hq, hq', map_add, smul_add]
-    | h_add a a' ha ha' =>
+    | add a a' ha ha' =>
       rw [add_smul, map_add, ha, ha', map_add, add_smul]
 
 
@@ -415,16 +416,16 @@ private noncomputable def linv (x : A) (hx1 : x ∈ S.toSubmonoid) (i : ι) (hx2
     dsimp only [smul_directSum_def, localization_smul_directSum_def, Gmodule.smul_def,
       AddHom.toFun_eq_coe, AddHom.coe_mk, RingHom.id_apply]
     induction a using DirectSum.Decomposition.inductionOn 𝓐 with
-    | h_zero =>
+    | zero =>
       simp only [map_zero, decompose_zero, AddMonoidHom.zero_apply]
-    | @h_homogeneous ia a =>
+    | @homogeneous ia a =>
       rw [decompose_of_mem (i := ia) (hx := by
         refine ⟨AddCon.mk' _ ⟨a, 1, ia, 0, a.2, SetLike.GradedOne.one_mem, by simp⟩, by
           simp [← Localization.mk_one_eq_algebraMap]⟩)]
       induction q using DirectSum.induction_on with
-      | H_zero =>
+      | zero =>
         simp only [map_zero]
-      | H_basic j q =>
+      | of j q =>
         simp only [Gmodule.smulAddMonoidHom_apply_of_of, vadd_eq_add]
         obtain ⟨_, ⟨q, rfl⟩⟩ := q
         induction q using AddCon.induction_on with | H q =>
@@ -440,9 +441,9 @@ private noncomputable def linv (x : A) (hx1 : x ∈ S.toSubmonoid) (i : ι) (hx2
           abel
         · simp only [vadd_eq_add]
           abel
-      | H_plus q q' hq hq' =>
+      | add q q' hq hq' =>
         simp only [map_add, hq, hq']
-    | h_add a a' ha ha' =>
+    | add a a' ha ha' =>
       simp only [map_add, decompose_add, AddMonoidHom.add_apply, ha, ha']
 
 set_option synthInstance.maxHeartbeats 200000 in
@@ -452,7 +453,7 @@ noncomputable def decomposition :
   LocalizedModule.lift _ (decompositionAux3 𝓠 S) <| by
     rintro ⟨x, hx⟩
     obtain ⟨i, hi⟩ := S.homogeneous hx
-    rw [Module.End_isUnit_iff, Function.bijective_iff_has_inverse]
+    rw [Module.End.isUnit_iff, Function.bijective_iff_has_inverse]
     use linv 𝓠 S x hx i hi
     constructor
     · intro q
@@ -462,9 +463,9 @@ noncomputable def decomposition :
         refine ⟨AddCon.mk' _ ⟨x, 1, i, 0, hi, SetLike.GradedOne.one_mem, by simp⟩, by
           simp [← Localization.mk_one_eq_algebraMap]⟩)]
       induction q using DirectSum.induction_on with
-      | H_zero =>
+      | zero =>
         simp only [smul_zero, map_zero]
-      | H_basic j y =>
+      | of j y =>
         obtain ⟨_, ⟨y, rfl⟩⟩ := y
         induction y using AddCon.induction_on with | H y =>
         simp only [PreLocalizedModuleGrading.emb_apply, AddCon.liftOn_coe,
@@ -487,7 +488,7 @@ noncomputable def decomposition :
           · simp
         simp only [← y.deg_frac_eq, vadd_eq_add]
         abel
-      | H_plus x y hx hy =>
+      | add x y hx hy =>
         simp only [smul_add, Gmodule.smul_def, linv_apply, map_add]
         erw [hx, hy]
     · intro q
@@ -497,9 +498,9 @@ noncomputable def decomposition :
         refine ⟨AddCon.mk' _ ⟨x, 1, i, 0, hi, SetLike.GradedOne.one_mem, by simp⟩, by
           simp [← Localization.mk_one_eq_algebraMap]⟩)]
       induction q using DirectSum.induction_on with
-      | H_zero =>
+      | zero =>
         simp only [smul_zero, map_zero]
-      | H_basic j y =>
+      | of j y =>
         obtain ⟨_, ⟨y, rfl⟩⟩ := y
         induction y using AddCon.induction_on with | H y =>
         simp only [PreLocalizedModuleGrading.emb_apply, AddCon.liftOn_coe,
@@ -519,7 +520,7 @@ noncomputable def decomposition :
             rfl
           · simp
         · exact y.deg_frac_eq.symm
-      | H_plus x y hx hy =>
+      | add x y hx hy =>
         simp only [smul_add, Gmodule.smul_def, linv_apply, map_add] at hx hy ⊢
         erw [hx, hy]
 
@@ -538,7 +539,7 @@ lemma decomposition_homogeneous_mk
   rw [toAddMonoid_of]
   simp only [AddMonoidHom.coe_mk, ZeroHom.coe_mk]
 
-  rw [Module.End_algebraMap_isUnit_inv_apply_eq_iff]
+  rw [Module.End.algebraMap_isUnit_inv_apply_eq_iff]
   rw [smul_directSum_def, localization_smul_directSum_def]
   rw [decompose_of_mem (i := j) (hx := by
     refine ⟨AddCon.mk' _ ⟨b, 1, j, 0, hb, SetLike.GradedOne.one_mem, by simp⟩, by
@@ -561,13 +562,13 @@ lemma decomposition_left_inv (x) :
   induction x using LocalizedModule.induction_on with | h x y =>
   rcases y with ⟨y, hy⟩
   induction x using DirectSum.Decomposition.inductionOn 𝓠 with
-  | h_zero =>
+  | zero =>
     rw [LocalizedModule.zero_mk, map_zero, map_zero]
-  | @h_homogeneous i x =>
+  | @homogeneous i x =>
     obtain ⟨j, hj⟩ := S.homogeneous hy
     rw [decomposition_homogeneous_mk 𝓠 S x.1 x.2 ⟨y, hy⟩ hj]
     simp only [coeAddMonoidHom_of]
-  | h_add a a' h h' =>
+  | add a a' h h' =>
     rw [show LocalizedModule.mk (a + a') ⟨y, hy⟩ =
       LocalizedModule.mk a ⟨y, hy⟩ + LocalizedModule.mk a' ⟨y, hy⟩ by
       simp only [mk_add_mk, Submonoid.mk_smul, Submonoid.mk_mul_mk, mk_eq, smul_add, Subtype.exists,
@@ -586,8 +587,8 @@ set_option maxHeartbeats 2000000 in
 lemma decomposition_right_inv (x) :
     (decomposition 𝓠 S) ((DirectSum.coeAddMonoidHom (LocalizedModuleGrading 𝓠 S)) x) = x := by
   induction x using DirectSum.induction_on with
-  | H_zero => simp
-  | H_basic i x =>
+  | zero => simp
+  | of i x =>
     simp only [coeAddMonoidHom_of]
     obtain ⟨y, hy⟩ := x.2
     have hy' : x = ⟨_, ⟨y, rfl⟩⟩ := by ext; exact hy.symm
@@ -598,7 +599,7 @@ lemma decomposition_right_inv (x) :
       AddCon.liftOn_coe, PreLocalizedModuleGrading.val_apply]
     rw [lift_mk]
 
-    rw [Module.End_algebraMap_isUnit_inv_apply_eq_iff]
+    rw [Module.End.algebraMap_isUnit_inv_apply_eq_iff]
     rw [smul_directSum_def, localization_smul_directSum_def]
     rw [decompose_of_mem (i := n) (hx := by
       refine ⟨AddCon.mk' _ ⟨b, 1, n, 0, hn, SetLike.GradedOne.one_mem, by simp⟩, by
@@ -619,7 +620,7 @@ lemma decomposition_right_inv (x) :
       refine ⟨1, ?_⟩
       simp only [Submonoid.mk_smul, one_smul]
     · simp
-  | H_plus x y hx hy =>
+  | add x y hx hy =>
     simp [map_add, hx, hy]
 
 noncomputable instance : DirectSum.Decomposition (S.LocalizedModuleGrading 𝓠) where

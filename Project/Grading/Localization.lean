@@ -165,8 +165,7 @@ instance (i : ι) : AddCommGroup (addCon S i).Quotient where
   neg_add_cancel := by
     intro a
     obtain ⟨a, rfl⟩ := AddCon.mk'_surjective a
-    simp only [AddCon.coe_mk', AddCon.lift_coe, AddMonoidHom.coe_mk, ZeroHom.coe_mk]
-    rw [← AddCon.coe_mk', ← map_add]
+    simp only [AddCon.rel_eq_coe, AddCon.coe_mk', AddMonoidHom.coe_mk, ZeroHom.coe_mk]
     erw [AddCon.eq]
     simp only [addCon, val, AddCon.ker_rel, AddMonoidHom.coe_mk, ZeroHom.coe_mk, add_num, neg_den,
       neg_num, mul_neg, add_neg_cancel, add_den, zero_num, zero_den, Localization.mk_eq_mk_iff,
@@ -308,20 +307,20 @@ noncomputable instance : DirectSum.Decomposition S.LocalizationGrading where
     rcases x with ⟨a, ⟨b, hb⟩⟩
     simp only
     induction a using DirectSum.Decomposition.inductionOn 𝒜 with
-    | h_zero =>
+    | zero =>
       rw [Localization.mk_zero, map_zero, map_zero]
-    | @h_homogeneous i x =>
+    | @homogeneous i x =>
       obtain ⟨j, hj⟩ := S.homogeneous hb
       rw [decomposition_homogeneous_mk S x.1 x.2 ⟨b, hb⟩ hj]
       simp only [coeAddMonoidHom_of]
-    | h_add a a' h h' =>
+    | add a a' h h' =>
       convert congr($h + $h') using 1
       · rw [← map_add, ← map_add, Localization.add_mk_self]
       · rw [Localization.add_mk_self]
   right_inv x := by
     induction x using DirectSum.induction_on with
-    | H_zero => simp
-    | H_basic i x =>
+    | zero => simp
+    | of i x =>
       simp only [coeAddMonoidHom_of]
       obtain ⟨y, hy⟩ := x.2
       have hy' : x = ⟨_, ⟨y, rfl⟩⟩ := by ext; exact hy.symm
@@ -353,7 +352,7 @@ noncomputable instance : DirectSum.Decomposition S.LocalizationGrading where
           of (fun i ↦ S.LocalizationGrading i) m ⟨x, hx⟩ := by
         subst h; rfl
       exact this (n + i) (by rw [← H]; abel) (Localization.mk a 1) _ |>.symm
-    | H_plus x y hx hy =>
+    | add x y hx hy =>
       simp only [map_add, hx, hy]
 
 noncomputable instance : GradedRing S.LocalizationGrading where

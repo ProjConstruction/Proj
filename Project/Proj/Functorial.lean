@@ -1,12 +1,11 @@
 import Project.Proj.Construction
 import Project.Grading.GradedRingHom
 
-import Project.Proj.Delab
 
 suppress_compilation
 
 universe u
-variable {τ ι R₀ A B : Type u}
+variable {ι : Type} {τ R₀ A B : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 variable [CommRing B] [Algebra R₀ B] {ℬ : ι → Submodule R₀ B}
@@ -51,8 +50,8 @@ protected def Proj.map (ℱ : τ → GoodPotionIngredient 𝒜) :
       induction x using Quotient.inductionOn' with | h x =>
       rfl
     rw [eq]
-    simp only [CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc, mul_toSubmonoid,
-      RingEquiv.toRingHom_eq_coe] at this ⊢
+    simp only [CommRingCat.ofHom_comp, Spec.map_comp, Category.assoc, MultispanShape.prod_fst,
+      MultispanShape.prod_snd, mul_toSubmonoid, RingEquiv.toRingHom_eq_coe] at this ⊢
     rw [this]
     rw [← Spec.map_comp_assoc, ← Spec.map_comp_assoc, ← Spec.map_comp_assoc]
     congr 2

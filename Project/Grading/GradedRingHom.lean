@@ -40,8 +40,8 @@ lemma map_mem (f : 𝒜 →+* ℬ) {i : ι} {x : A} (hx : x ∈ 𝒜 i) : f x �
 variable {𝒜 ℬ} in
 omit [AddCommMonoid ι] [DecidableEq ι] [AddSubmonoidClass σ A] [GradedRing 𝒜]
   [AddSubmonoidClass τ B] [GradedRing ℬ] in
-lemma map_homogeneous (f : 𝒜 →+* ℬ) {a : A} (hom_a : SetLike.Homogeneous 𝒜 a)  :
-    SetLike.Homogeneous ℬ (f a) := by
+lemma map_homogeneous (f : 𝒜 →+* ℬ) {a : A} (hom_a : SetLike.IsHomogeneousElem 𝒜 a)  :
+    SetLike.IsHomogeneousElem ℬ (f a) := by
   obtain ⟨i, hi⟩ := hom_a
   exact ⟨_, f.map_mem hi⟩
 
@@ -84,11 +84,11 @@ lemma commutes (f : 𝒜 →+* ℬ) :
     DirectSum.decompose ℬ ∘ f = f.asDirectSum ∘ (DirectSum.decompose 𝒜) := by
   ext x : 1
   induction x using Decomposition.inductionOn 𝒜 with
-  | h_zero => simp
-  | @h_homogeneous j x  =>
+  | zero => simp
+  | @homogeneous j x  =>
     simp only [Function.comp_apply, decompose_coe]
     simp [decompose_of_mem _ (f.map_mem x.2)]
-  | h_add a a' iha iha' =>
+  | add a a' iha iha' =>
     simp only [Function.comp_apply] at iha iha'
     simp only [Function.comp_apply, map_add, decompose_add, iha, iha']
 

@@ -1,11 +1,7 @@
-import Project.Proj.Opens
-import Project.Proj.Stalk
-import Project.ForMathlib.SchemeIsOpenImmersion
 
-import Project.Proj.Delab
 
 import Mathlib.AlgebraicGeometry.Over
-import Mathlib.AlgebraicGeometry.Morphisms.OpenImmersion
+import Project.Proj.Construction
 
 suppress_compilation
 
@@ -14,7 +10,7 @@ open AlgebraicGeometry CategoryTheory CategoryTheory.Limits Opposite Topological
 namespace GoodPotionIngredient
 
 universe u
-variable {τ ι R₀ A : Type u}
+variable {ι : Type} {τ R₀ A : Type u}
 variable [AddCommGroup ι] [CommRing R₀] [CommRing A] [Algebra R₀ A] {𝒜 : ι → Submodule R₀ A}
 variable [DecidableEq ι] [GradedAlgebra 𝒜]
 
