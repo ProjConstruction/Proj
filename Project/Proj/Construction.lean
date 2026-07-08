@@ -105,4 +105,9 @@ def glueData {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) : Scheme.Glu
 
 def Proj {τ : Type u} (ℱ : τ → GoodPotionIngredient 𝒜) : Scheme := glueData ℱ |>.glued
 
+
+
+def fullProj : Scheme :=
+  Proj (𝒜 := 𝒜) (fun P : GoodPotionIngredient 𝒜 => P)
+
 end GoodPotionIngredient
